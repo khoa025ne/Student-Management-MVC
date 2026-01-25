@@ -1,0 +1,122 @@
+@model DataAccess.Entities.Class
+
+@{
+    ViewData["Title"] = "Tạo lớp học mới";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-plus-circle"></i> Tạo lớp học mới</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ClassCode" class="form-label">Mã lớp *</label>
+                                <input asp-for="ClassCode" class="form-control" required />
+                                <span asp-validation-for="ClassCode" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ClassName" class="form-label">Tên lớp *</label>
+                                <input asp-for="ClassName" class="form-control" required />
+                                <span asp-validation-for="ClassName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CourseId" class="form-label">Môn học *</label>
+                                <select asp-for="CourseId" class="form-select" required>
+                                    <option value="">-- Chọn môn học --</option>
+                                    @foreach (var course in ViewBag.Courses as IEnumerable<DataAccess.Entities.Course>)
+                                    {
+                                        <option value="@course.CourseId">@course.CourseCode - @course.CourseName</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CourseId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SemesterId" class="form-label">Học kỳ *</label>
+                                <select asp-for="SemesterId" class="form-select" required>
+                                    <option value="">-- Chọn học kỳ --</option>
+                                    @foreach (var semester in ViewBag.Semesters as IEnumerable<DataAccess.Entities.Semester>)
+                                    {
+                                        <option value="@semester.SemesterId">@semester.SemesterCode - @semester.SemesterName</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="SemesterId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Room" class="form-label">Phòng học</label>
+                                <input asp-for="Room" class="form-control" />
+                                <span asp-validation-for="Room" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="DayOfWeekPair" class="form-label">Lịch học</label>
+                                <select asp-for="DayOfWeekPair" class="form-select">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="Thứ 2 - Thứ 4">Thứ 2 - Thứ 4</option>
+                                    <option value="Thứ 3 - Thứ 5">Thứ 3 - Thứ 5</option>
+                                    <option value="Thứ 4 - Thứ 6">Thứ 4 - Thứ 6</option>
+                                    <option value="Thứ 2 - Thứ 5">Thứ 2 - Thứ 5</option>
+                                    <option value="Thứ 3 - Thứ 6">Thứ 3 - Thứ 6</option>
+                                    <option value="Thứ 7">Thứ 7</option>
+                                    <option value="Chủ nhật">Chủ nhật</option>
+                                </select>
+                                <span asp-validation-for="DayOfWeekPair" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="TimeSlot" class="form-label">Giờ học</label>
+                                <select asp-for="TimeSlot" class="form-select">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="7:00 - 9:00">7:00 - 9:00</option>
+                                    <option value="9:00 - 11:00">9:00 - 11:00</option>
+                                    <option value="13:00 - 15:00">13:00 - 15:00</option>
+                                    <option value="15:00 - 17:00">15:00 - 17:00</option>
+                                    <option value="17:00 - 19:00">17:00 - 19:00</option>
+                                </select>
+                                <span asp-validation-for="TimeSlot" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MaxCapacity" class="form-label">Sĩ số tối đa</label>
+                                <input asp-for="MaxCapacity" type="number" class="form-control" value="40" />
+                                <span asp-validation-for="MaxCapacity" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CurrentEnrollment" class="form-label">Sĩ số hiện tại</label>
+                                <input asp-for="CurrentEnrollment" type="number" class="form-control" value="0" readonly />
+                                <span asp-validation-for="CurrentEnrollment" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Tạo lớp
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,183 @@
+@model IEnumerable<DataAccess.Entities.Score>
+
+@{
+    ViewData["Title"] = "Kết quả học tập";
+    var totalCourses = Model.Count();
+    var passedCourses = Model.Count(s => s.ScoreValue >= 5.0);
+    var avgScore = totalCourses > 0 ? Model.Average(s => s.ScoreValue) : 0;
+    var excellentCount = Model.Count(s => s.ScoreValue >= 8.5);
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+        <div>
+            <h1><i class="fas fa-chart-line"></i>Kết quả học tập</h1>
+            <p>Xem điểm số và kết quả học tập của bạn</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn">
+                <div class="stat-card-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Môn đã học</p>
+                    <p class="stat-card-value">@totalCourses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.1s;">
+                <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Môn đạt</p>
+                    <p class="stat-card-value">@passedCourses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.2s;">
+                <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Điểm TB</p>
+                    <p class="stat-card-value">@avgScore.ToString("0.1")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.3s;">
+                <div class="stat-card-icon" style="background: rgba(251, 191, 36, 0.15); color: #f59e0b;">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Xuất sắc</p>
+                    <p class="stat-card-value">@excellentCount</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grades Table -->
+    <div class="glass-card">
+        <h5 class="mb-4 fw-semibold">
+            <i class="fas fa-list-alt me-2" style="color: var(--primary);"></i>Bảng điểm
+        </h5>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Chưa có dữ liệu điểm</h3>
+                <p>Điểm của bạn sẽ hiển thị ở đây sau khi có kết quả.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table-modern">
+                    <thead>
+                        <tr>
+                            <th>Môn học</th>
+                            <th>Mã môn</th>
+                            <th style="text-align: center;">Điểm số</th>
+                            <th style="text-align: center;">Xếp loại</th>
+                            <th style="text-align: center;">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var scoreValue = item.ScoreValue;
+                            var gradeClass = scoreValue >= 8.5 ? "success" : scoreValue >= 7.0 ? "primary" : scoreValue >= 5.5 ? "info" : scoreValue >= 5.0 ? "warning" : "danger";
+                            var gradeLetter = scoreValue >= 8.5 ? "A" : scoreValue >= 7.0 ? "B" : scoreValue >= 5.5 ? "C" : scoreValue >= 5.0 ? "D" : "F";
+                            var isPassed = scoreValue >= 5.0;
+                            
+                            <tr class="animate-fadeIn">
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="stat-card-icon" style="width: 40px; height: 40px; font-size: 0.875rem;">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Môn học @item.CourseId</div>
+                                            <div class="small text-muted">Tín chỉ</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code class="small">@item.CourseId</code>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="grade-display grade-@gradeClass" style="display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; font-weight: 700; font-size: 1.125rem;">
+                                        @scoreValue.ToString("0.1")
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="badge-modern badge-@gradeClass" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                                        @gradeLetter
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (isPassed)
+                                    {
+                                        <span class="badge-modern badge-success">
+                                            <i class="fas fa-check me-1"></i>Đạt
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-modern badge-danger">
+                                            <i class="fas fa-times me-1"></i>Trượt
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary -->
+            <div class="mt-4 p-4" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%); border-radius: 12px; color: white;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-2"><i class="fas fa-info-circle me-2"></i>Tổng kết</h5>
+                        <p class="mb-0 opacity-75">
+                            Bạn đã hoàn thành @totalCourses môn học với điểm trung bình @avgScore.ToString("0.2").
+                            @if (passedCourses == totalCourses && totalCourses > 0)
+                            {
+                                <span>Tuyệt vời! Bạn đã đạt tất cả các môn.</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="display-4 fw-bold">@(totalCourses > 0 ? (passedCourses * 100 / totalCourses) : 0)%</div>
+                        <div class="small opacity-75">Tỷ lệ đạt</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .grade-display {
+        transition: transform 0.2s;
+    }
+    .grade-display:hover {
+        transform: scale(1.1);
+    }
+    .grade-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .grade-primary { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .grade-info { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .grade-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .grade-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+</style>

@@ -1,0 +1,94 @@
+@model DataAccess.Entities.Course
+
+@{
+    ViewData["Title"] = "Chỉnh sửa môn học";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h4><i class="fas fa-edit"></i> Chỉnh sửa môn học</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="CourseId" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CourseCode" class="form-label">Mã môn học *</label>
+                                <input asp-for="CourseCode" class="form-control" required readonly />
+                                <small class="text-muted">Mã môn học không thể thay đổi</small>
+                                <span asp-validation-for="CourseCode" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CourseName" class="form-label">Tên môn học *</label>
+                                <input asp-for="CourseName" class="form-control" required />
+                                <span asp-validation-for="CourseName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Credits" class="form-label">Số tín chỉ *</label>
+                                <input asp-for="Credits" type="number" class="form-control" min="1" max="6" required />
+                                <span asp-validation-for="Credits" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Major" class="form-label">Chuyên ngành</label>
+                                <select asp-for="Major" class="form-select">
+                                    <option value="">-- Chọn chuyên ngành --</option>
+                                    <option value="Công nghệ thông tin">Công nghệ thông tin</option>
+                                    <option value="Kỹ thuật phần mềm">Kỹ thuật phần mềm</option>
+                                    <option value="An toàn thông tin">An toàn thông tin</option>
+                                    <option value="Khoa học dữ liệu">Khoa học dữ liệu</option>
+                                    <option value="Trí tuệ nhân tạo">Trí tuệ nhân tạo</option>
+                                    <option value="Hệ thống thông tin">Hệ thống thông tin</option>
+                                    <option value="Mạng máy tính">Mạng máy tính</option>
+                                    <option value="Đại cương">Đại cương</option>
+                                </select>
+                                <span asp-validation-for="Major" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PrerequisiteCourseId" class="form-label">
+                                <i class="fas fa-link"></i> Môn học tiên quyết
+                            </label>
+                            <select asp-for="PrerequisiteCourseId" class="form-select">
+                                <option value="">-- Không có môn tiên quyết --</option>
+                                @foreach (var course in (IEnumerable<DataAccess.Entities.Course>)ViewBag.AllCourses)
+                                {
+                                    @if (course.CourseId != Model.CourseId)
+                                    {
+                                        <option value="@course.CourseId">[@course.CourseCode] @course.CourseName</option>
+                                    }
+                                }
+                            </select>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> Sinh viên phải hoàn thành môn tiên quyết trước khi đăng ký môn này
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

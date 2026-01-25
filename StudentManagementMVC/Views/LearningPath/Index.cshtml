@@ -1,0 +1,71 @@
+@model DataAccess.Entities.LearningPathRecommendation
+
+@{
+    ViewData["Title"] = "Lộ trình học tập";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Gợi ý Lộ trình học tập (AI)</h1>
+        <form asp-action="Generate" method="post">
+            <button type="submit" class="btn btn-primary shadow-sm">
+                <i class="fas fa-magic fa-sm text-white-50"></i> Tạo gợi ý mới
+            </button>
+        </form>
+    </div>
+
+    @if (Model == null)
+    {
+        <div class="alert alert-warning">
+            Chưa có gợi ý lộ trình nào. Hãy nhấn nút "Tạo gợi ý mới" để AI phân tích hồ sơ của bạn.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Chiến lược tổng quan -->
+            <div class="col-xl-12 col-md-12 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Chiến lược tổng quan (@Model.RecommendationDate.ToShortDateString())
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.OverallStrategy</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Môn học gợi ý -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Các môn học đề xuất</h6>
+                    </div>
+                    <div class="card-body">
+                       <p>@Model.RecommendedCoursesJson</p>
+                       <small class="text-muted">(Dữ liệu dạng JSON - Cần parse đẹp hơn nếu có model chi tiết)</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cảnh báo -->
+             <div class="col-lg-6 mb-4">
+                <div class="card shadow mb-4 border-left-warning">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-warning">Lưu ý / Cảnh báo</h6>
+                    </div>
+                    <div class="card-body">
+                       <p>@Model.WarningsJson</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

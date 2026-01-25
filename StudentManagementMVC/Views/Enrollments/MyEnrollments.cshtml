@@ -1,0 +1,180 @@
+@model IEnumerable<DataAccess.Entities.Enrollment>
+
+@{
+    ViewData["Title"] = "Môn học đã đăng ký";
+    var student = ViewBag.Student as DataAccess.Entities.Student;
+    var enrolledCount = Model.Count(e => e.Status == "Enrolled" || e.Status == "Active");
+    var completedCount = Model.Count(e => e.Status == "Completed");
+    var totalCredits = Model.Where(e => e.Status == "Enrolled" || e.Status == "Active").Sum(e => e.Class?.Course?.Credits ?? 0);
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+        <div>
+            <h1><i class="fas fa-clipboard-list"></i>Môn học của tôi</h1>
+            <p>Quản lý các môn học đã đăng ký</p>
+        </div>
+        <a asp-action="Register" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Đăng ký thêm
+        </a>
+    </div>
+
+    <!-- Student Info -->
+    <div class="glass-card">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="sidebar-user-avatar" style="width: 50px; height: 50px;">
+                    @(student?.User?.FullName?.Substring(0, 2).ToUpper() ?? "SV")
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-semibold">@student?.User?.FullName</h5>
+                    <p class="text-muted mb-0">MSSV: @student?.StudentCode • @student?.Major</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4">
+        <div class="col-sm-6 col-md-4">
+            <div class="stat-card animate-fadeIn">
+                <div class="stat-card-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Đang học</p>
+                    <p class="stat-card-value">@enrolledCount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.1s;">
+                <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Hoàn thành</p>
+                    <p class="stat-card-value">@completedCount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-4">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.2s;">
+                <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Tín chỉ</p>
+                    <p class="stat-card-value">@totalCredits</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrolled Courses -->
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var enrollment in Model)
+            {
+                var statusClass = enrollment.Status switch {
+                    "Enrolled" or "Active" => "success",
+                    "Completed" => "primary",
+                    "Dropped" or "Cancelled" => "danger",
+                    "Failed" => "warning",
+                    _ => "secondary"
+                };
+                var statusText = enrollment.Status switch {
+                    "Enrolled" or "Active" => "Đang học",
+                    "Completed" => "Hoàn thành",
+                    "Dropped" or "Cancelled" => "Đã hủy",
+                    "Failed" => "Không đạt",
+                    _ => enrollment.Status
+                };
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="course-card animate-fadeIn">
+                        <div class="course-card-header">
+                            <div>
+                                <h5 class="course-card-title">@enrollment.Class?.Course?.CourseName</h5>
+                                <span class="course-card-code">@enrollment.Class?.ClassCode</span>
+                            </div>
+                            <span class="badge-modern badge-@statusClass">@statusText</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                                <i class="fas fa-clock"></i>
+                                <span>@enrollment.Class?.DayOfWeekPair - @enrollment.Class?.TimeSlot</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Phòng @enrollment.Class?.Room</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-muted small">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>@enrollment.Class?.Semester?.SemesterName</span>
+                            </div>
+                        </div>
+
+                        <!-- Scores -->
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="flex-fill text-center p-2" style="background: var(--bg-secondary); border-radius: 8px;">
+                                <div class="small text-muted mb-1">Giữa kỳ</div>
+                                @if (enrollment.MidtermScore.HasValue)
+                                {
+                                    <div class="fw-bold" style="color: var(--primary);">@enrollment.MidtermScore.Value.ToString("0.0")</div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted">--</div>
+                                }
+                            </div>
+                            <div class="flex-fill text-center p-2" style="background: var(--bg-secondary); border-radius: 8px;">
+                                <div class="small text-muted mb-1">Cuối kỳ</div>
+                                @if (enrollment.FinalScore.HasValue)
+                                {
+                                    <div class="fw-bold" style="color: var(--primary);">@enrollment.FinalScore.Value.ToString("0.0")</div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted">--</div>
+                                }
+                            </div>
+                            <div class="flex-fill text-center p-2" style="background: var(--bg-secondary); border-radius: 8px;">
+                                <div class="small text-muted mb-1">Tín chỉ</div>
+                                <div class="fw-bold">@enrollment.Class?.Course?.Credits</div>
+                            </div>
+                        </div>
+
+                        @if (enrollment.Status == "Enrolled" || enrollment.Status == "Active")
+                        {
+                            <form asp-action="Drop" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="enrollmentId" value="@enrollment.EnrollmentId" />
+                                <button type="submit" class="btn btn-outline-danger w-100"
+                                        onclick="return confirm('Bạn có chắc muốn hủy đăng ký lớp này?');">
+                                    <i class="fas fa-times-circle me-2"></i>Hủy đăng ký
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="glass-card">
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>Chưa đăng ký môn học</h3>
+                <p>Bạn chưa đăng ký môn học nào. Hãy đăng ký ngay!</p>
+                <a asp-action="Register" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Đăng ký môn học
+                </a>
+            </div>
+        </div>
+    }
+</div>

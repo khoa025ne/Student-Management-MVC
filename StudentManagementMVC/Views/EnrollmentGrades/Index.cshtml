@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Quản lý điểm số";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-graduation-cap"></i> Quản lý điểm số theo lớp
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Hướng dẫn:</strong> Chọn học kỳ để xem danh sách lớp học, sau đó chọn lớp để nhập điểm cho sinh viên.
+                    </div>
+
+                    <form asp-action="SelectClass" method="get" class="needs-validation" novalidate>
+                        <div class="row align-items-end">
+                            <div class="col-md-8">
+                                <label for="semesterId" class="form-label">
+                                    <i class="fas fa-calendar-alt"></i> Chọn học kỳ <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" 
+                                        id="semesterId" 
+                                        name="semesterId" 
+                                        required>
+                                    <option value="">-- Chọn học kỳ --</option>
+                                    @foreach (var item in ViewData["Semesters"] as SelectList ?? new SelectList(Array.Empty<object>()))
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search"></i> Xem danh sách lớp
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Bootstrap validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

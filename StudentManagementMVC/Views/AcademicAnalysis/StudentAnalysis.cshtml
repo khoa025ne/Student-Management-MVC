@@ -1,0 +1,145 @@
+@model IEnumerable<DataAccess.Entities.AcademicAnalysis>
+@{
+    ViewData["Title"] = "Phân tích Học tập của " + ViewBag.StudentName;
+    var studentName = ViewBag.StudentName as string ?? "Sinh viên";
+    var studentCode = ViewBag.StudentCode as string ?? "N/A";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">📊 Phân tích Học tập AI</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Phân tích Học tập</a></li>
+        <li class="breadcrumb-item active">@studentName</li>
+    </ol>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Student Info Card -->
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-user-graduate me-1"></i>
+            Thông tin Sinh viên
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Họ tên:</strong> @studentName</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Mã SV:</strong> @studentCode</p>
+                </div>
+            </div>
+            <form asp-action="GenerateAnalysis" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="studentId" value="@(Model.FirstOrDefault()?.StudentId ?? 0)" />
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-robot"></i> Tạo Phân tích Mới bằng AI
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Analysis List -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-chart-line me-1"></i>
+            Lịch sử Phân tích (@Model.Count())
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Chưa có phân tích nào. Hãy nhấn nút "Tạo Phân tích Mới" ở trên!
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var analysis in Model.OrderByDescending(a => a.AnalysisDate))
+                    {
+                        var strongSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(analysis.StrongSubjectsJson ?? "[]");
+                        var weakSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(analysis.WeakSubjectsJson ?? "[]");
+
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-calendar-alt"></i>
+                                            @analysis.AnalysisDate.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                        <span class="badge bg-@(analysis.OverallGPA >= 3.5 ? "success" : analysis.OverallGPA >= 2.5 ? "warning" : "danger")">
+                                            GPA: @analysis.OverallGPA.ToString("F2")
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="text-success">
+                                        <i class="fas fa-check-circle"></i> Môn mạnh:
+                                    </h6>
+                                    <p class="small">
+                                        @if (strongSubjects != null && strongSubjects.Any())
+                                        {
+                                            @string.Join(", ", strongSubjects)
+                                        }
+                                        else
+                                        {
+                                            <em class="text-muted">Chưa có</em>
+                                        }
+                                    </p>
+
+                                    <h6 class="text-danger">
+                                        <i class="fas fa-exclamation-triangle"></i> Môn yếu:
+                                    </h6>
+                                    <p class="small">
+                                        @if (weakSubjects != null && weakSubjects.Any())
+                                        {
+                                            @string.Join(", ", weakSubjects)
+                                        }
+                                        else
+                                        {
+                                            <em class="text-muted">Không có</em>
+                                        }
+                                    </p>
+
+                                    <h6><i class="fas fa-lightbulb"></i> Khuyến nghị:</h6>
+                                    <p class="small">
+                                        @{
+                                            var recommendation = analysis.Recommendations ?? "";
+                                            var displayText = recommendation.Length > 150 ? recommendation.Substring(0, 150) + "..." : recommendation;
+                                        }
+                                        @displayText
+                                    </p>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-brain"></i> @analysis.AiModelUsed
+                                        </small>
+                                        <a asp-action="Details" asp-route-id="@analysis.AnalysisId" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Xem chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

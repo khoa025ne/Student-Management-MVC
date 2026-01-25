@@ -1,0 +1,53 @@
+@model IEnumerable<DataAccess.Entities.Notification>
+
+@{
+    ViewData["Title"] = "Thông báo của tôi";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Thông báo</h1>
+
+    <div class="row">
+        @if (!Model.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info">Bạn không có thông báo nào.</div>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow border-left-@((item.IsRead ? "secondary" : "primary"))">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        @item.Type - @item.CreatedAt.ToShortDateString()
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@item.Title</div>
+                                    <p class="mb-0 mt-2">@item.Message</p>
+                                </div>
+                                <div class="col-auto">
+                                    @if (!item.IsRead)
+                                    {
+                                         <form asp-action="MarkRead" asp-route-id="@item.NotificationId" method="post">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Đánh dấu đã đọc">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-check-circle text-gray-300 fa-2x"></i>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

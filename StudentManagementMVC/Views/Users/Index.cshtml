@@ -1,0 +1,143 @@
+@model IEnumerable<DataAccess.Entities.User>
+
+@{
+    ViewData["Title"] = "Quản lý Người dùng";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-users-cog"></i> Quản lý Người dùng</h2>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="fas fa-plus"></i> Thêm người dùng
+        </a>
+    </div>
+
+    <partial name="_Notifications" />
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="usersTable">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@user.UserId</td>
+                                <td>
+                                    <strong>@user.FullName</strong>
+                                    @if (user.MustChangePassword)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1" title="Phải đổi mật khẩu">
+                                            <i class="fas fa-key"></i>
+                                        </span>
+                                    }
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@(user.PhoneNumber ?? "N/A")</td>
+                                <td>
+                                    @if (user.Role != null)
+                                    {
+                                        @if (user.Role.RoleName == "Admin")
+                                        {
+                                            <span class="badge bg-danger">@user.Role.RoleName</span>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="UpdateRole" asp-route-userId="@user.UserId" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <select name="newRoleId" class="form-select form-select-sm d-inline-block" style="width: auto;"
+                                                        onchange="if(confirm('Bạn có chắc muốn thay đổi role?')) this.form.submit();">
+                                                    @foreach (var role in ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>)
+                                                    {
+                                                        <option value="@role.RoleId" selected="@(role.RoleId == user.RoleId)">
+                                                            @role.RoleName
+                                                        </option>
+                                                    }
+                                                </select>
+                                            </form>
+                                        }
+                                    }
+                                </td>
+                                <td>
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-ban"></i> Đã khóa
+                                        </span>
+                                    }
+                                </td>
+                                <td>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Edit" asp-route-id="@user.UserId" 
+                                           class="btn btn-sm btn-warning" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+
+                                        @if (user.Role?.RoleName != "Admin")
+                                        {
+                                            <form asp-action="ToggleActive" asp-route-id="@user.UserId" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm @(user.IsActive ? "btn-secondary" : "btn-success")" 
+                                                        title="@(user.IsActive ? "Khóa tài khoản" : "Mở khóa tài khoản")"
+                                                        onclick="return confirm('@(user.IsActive ? "Bạn có chắc muốn khóa tài khoản này?" : "Bạn có chắc muốn mở khóa tài khoản này?")')">
+                                                    <i class="fas @(user.IsActive ? "fa-lock" : "fa-unlock")"></i>
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="ResetPassword" asp-route-id="@user.UserId" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-info" 
+                                                        title="Reset mật khẩu"
+                                                        onclick="return confirm('Bạn có chắc muốn reset mật khẩu cho tài khoản này?')">
+                                                    <i class="fas fa-key"></i>
+                                                </button>
+                                            </form>
+
+                                            <a asp-action="Delete" asp-route-id="@user.UserId" 
+                                               class="btn btn-sm btn-danger" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#usersTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                },
+                order: [[0, 'desc']],
+                pageLength: 25
+            });
+        });
+    </script>
+}

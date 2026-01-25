@@ -1,0 +1,237 @@
+@using StudentManagementMVC.ViewModels
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Student Compass</title>
+    <link rel="stylesheet" href="~/css/animated-login.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="animated-login-page">
+        <div class="wrapper" id="loginWrapper">
+            <span class="rotate-bg"></span>
+            <span class="rotate-bg2"></span>
+
+            <!-- Login Form -->
+            <div class="form-box login">
+                <h2 class="title animation" style="--i: 0; --j: 21;">
+                    Đăng Nhập
+                </h2>
+                <form asp-action="Login" method="post">
+                    <div class="input-box animation" style="--i: 1; --j: 22;">
+                        <input asp-for="Email" type="email" required />
+                        <label>Email</label>
+                        <i class='bx bxs-envelope'></i>
+                    </div>
+
+                    <div class="input-box animation" style="--i: 2; --j: 23;">
+                        <input asp-for="Password" type="password" id="loginPassword" required />
+                        <label>Mật khẩu</label>
+                        <i class='bx bxs-hide' id="toggleLoginPassword" onclick="togglePassword('loginPassword', 'toggleLoginPassword')" style="cursor: pointer;"></i>
+                    </div>
+
+                    <button type="submit" class="btn animation" style="--i: 3; --j: 24;">
+                        Đăng Nhập
+                    </button>
+
+                    <div class="linkTxt animation" style="--i: 5; --j: 26;">
+                        <p>Quên mật khẩu? <a href="#" class="register-link" onclick="switchToChangePassword(event)">Đổi mật khẩu</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <div class="info-text login">
+                <h2 class="animation" style="--i: 0; --j: 20;">
+                    Chào Mừng!
+                </h2>
+                <p class="animation" style="--i: 1; --j: 21;">
+                    Hệ thống quản lý sinh viên thông minh
+                </p>
+            </div>
+
+            <!-- Change Password Form -->
+            <div class="form-box register">
+                <h2 class="title animation" style="--i: 17; --j: 0;">
+                    Đổi Mật Khẩu
+                </h2>
+
+                <form asp-action="ChangePassword" method="post" id="changePasswordForm">
+                    <div class="input-box animation" style="--i: 18; --j: 1;">
+                        <input type="email" name="email" id="changeEmail" required />
+                        <label>Email</label>
+                        <i class='bx bxs-envelope'></i>
+                    </div>
+
+                    <div class="input-box animation" style="--i: 19; --j: 2;">
+                        <input type="password" name="currentPassword" id="currentPassword" required />
+                        <label>Mật khẩu cũ</label>
+                        <i class='bx bxs-hide' id="toggleCurrentPassword" onclick="togglePassword('currentPassword', 'toggleCurrentPassword')" style="cursor: pointer;"></i>
+                    </div>
+
+                    <div class="input-box animation" style="--i: 20; --j: 3;">
+                        <input type="password" name="newPassword" id="newPassword" required oninput="validatePassword()" />
+                        <label>Mật khẩu mới</label>
+                        <i class='bx bxs-hide' id="toggleNewPassword" onclick="togglePassword('newPassword', 'toggleNewPassword')" style="cursor: pointer;"></i>
+                    </div>
+
+                    <!-- Password Rules Checklist -->
+                    <div class="password-rules animation" id="passwordRules" style="--i: 19; --j: 2; display: none;">
+                        <div class="rule" id="rule-length">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                            <span>Ít nhất 8 ký tự</span>
+                        </div>
+                        <div class="rule" id="rule-uppercase">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                            <span>Ít nhất 1 chữ hoa</span>
+                        </div>
+                        <div class="rule" id="rule-lowercase">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                            <span>Ít nhất 1 chữ thường</span>
+                        </div>
+                        <div class="rule" id="rule-digit">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                            <span>Ít nhất 1 chữ số</span>
+                        </div>
+                        <div class="rule" id="rule-special">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                            <span>Ít nhất 1 ký tự đặc biệt</span>
+                        </div>
+                    </div>
+
+                    <div class="input-box animation" style="--i: 20; --j: 3;">
+                        <input type="password" name="confirmPassword" id="confirmPassword" required oninput="checkPasswordMatch()" />
+                        <label>Xác nhận mật khẩu</label>
+                        <i class='bx bxs-hide' id="toggleConfirmPassword" onclick="togglePassword('confirmPassword', 'toggleConfirmPassword')" style="cursor: pointer;"></i>
+                    </div>
+
+                    <p class="error-text animation" id="matchError" style="--i: 20; --j: 3; display: none;">
+                        Mật khẩu xác nhận không khớp
+                    </p>
+
+                    <button type="submit" class="btn animation" id="changePasswordBtn" style="--i: 21; --j: 4;">
+                        Đổi Mật Khẩu
+                    </button>
+
+                    <div class="linkTxt animation" style="--i: 22; --j: 5;">
+                        <p><a href="#" class="login-link" onclick="switchToLogin(event)">← Quay lại đăng nhập</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <div class="info-text register">
+                <h2 class="animation" style="--i: 17; --j: 0;">
+                    Bảo Mật
+                </h2>
+                <p class="animation" style="--i: 18; --j: 1;">
+                    Đổi mật khẩu để bảo vệ tài khoản của bạn
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bxs-hide');
+                icon.classList.add('bxs-show');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bxs-show');
+                icon.classList.add('bxs-hide');
+            }
+        }
+
+        function switchToChangePassword(e) {
+            e.preventDefault();
+            document.getElementById('loginWrapper').classList.add('active');
+        }
+
+        function switchToLogin(e) {
+            e.preventDefault();
+            document.getElementById('loginWrapper').classList.remove('active');
+        }
+
+        const passwordRules = [
+            { id: 'length', test: (p) => p.length >= 8 },
+            { id: 'uppercase', test: (p) => /[A-Z]/.test(p) },
+            { id: 'lowercase', test: (p) => /[a-z]/.test(p) },
+            { id: 'digit', test: (p) => /\\d/.test(p) },
+            { id: 'special', test: (p) => /[!@@#$%^&*(),.?":{}|<>]/.test(p) },
+        ];
+
+        function validatePassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const rulesContainer = document.getElementById('passwordRules');
+            
+            if (newPassword) {
+                rulesContainer.style.display = 'flex';
+                
+                let allPassed = true;
+                passwordRules.forEach(rule => {
+                    const ruleElement = document.getElementById('rule-' + rule.id);
+                    const passed = rule.test(newPassword);
+                    
+                    if (passed) {
+                        ruleElement.classList.add('passed');
+                        ruleElement.classList.remove('failed');
+                    } else {
+                        ruleElement.classList.remove('passed');
+                        ruleElement.classList.add('failed');
+                        allPassed = false;
+                    }
+                });
+
+                // Update input border color
+                const input = document.getElementById('newPassword');
+                if (allPassed) {
+                    input.classList.add('valid-password');
+                    input.classList.remove('invalid-password');
+                } else {
+                    input.classList.remove('valid-password');
+                    input.classList.add('invalid-password');
+                }
+            } else {
+                rulesContainer.style.display = 'none';
+            }
+            
+            checkPasswordMatch();
+        }
+
+        function checkPasswordMatch() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const matchError = document.getElementById('matchError');
+            const confirmInput = document.getElementById('confirmPassword');
+            
+            if (confirmPassword) {
+                if (newPassword === confirmPassword) {
+                    matchError.style.display = 'none';
+                    confirmInput.classList.add('valid-password');
+                    confirmInput.classList.remove('invalid-password');
+                } else {
+                    matchError.style.display = 'block';
+                    confirmInput.classList.remove('valid-password');
+                    confirmInput.classList.add('invalid-password');
+                }
+            }
+        }
+
+        // Auto-switch to change password if URL hash is present
+        if (window.location.hash === '#change-password') {
+            document.getElementById('loginWrapper').classList.add('active');
+        }
+    </script>
+</body>
+</html>

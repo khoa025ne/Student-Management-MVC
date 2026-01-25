@@ -1,0 +1,226 @@
+@model DataAccess.Entities.Enrollment
+
+@{
+    ViewData["Title"] = "Chi tiết điểm & AI Analysis";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-robot"></i> Chi tiết điểm & AI Analysis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    @if (Model != null)
+                    {
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-user-graduate"></i> Thông tin sinh viên</h5>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th width="40%">Mã sinh viên:</th>
+                                        <td><strong>@Model.Student?.StudentCode</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Họ và tên:</th>
+                                        <td>@Model.Student?.User?.FullName</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>@Model.Student?.User?.Email</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-book"></i> Thông tin lớp học</h5>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th width="40%">Lớp:</th>
+                                        <td><strong>@Model.Class?.ClassName</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Môn học:</th>
+                                        <td>@Model.Class?.Course?.CourseName</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Giảng viên:</th>
+                                        <td>N/A</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="enrollmentId" value="@Model.EnrollmentId" />
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="midtermScore" class="form-label">
+                                            <i class="fas fa-pen"></i> Điểm giữa kỳ (0-10)
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control form-control-lg" 
+                                               id="midtermScore" 
+                                               name="midtermScore" 
+                                               value="@Model.MidtermScore" 
+                                               min="0" 
+                                               max="10" 
+                                               step="0.1" 
+                                               placeholder="Nhập điểm giữa kỳ" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="finalScore" class="form-label">
+                                            <i class="fas fa-pen"></i> Điểm cuối kỳ (0-10)
+                                        </label>
+                                        <input type="number" 
+                                               class="form-control form-control-lg" 
+                                               id="finalScore" 
+                                               name="finalScore" 
+                                               value="@Model.FinalScore" 
+                                               min="0" 
+                                               max="10" 
+                                               step="0.1" 
+                                               placeholder="Nhập điểm cuối kỳ" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card border-primary">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Tổng kết (40% GK + 60% CK)</h6>
+                                            <h2 class="@(Model.IsPassed ? "text-success" : "text-danger")">
+                                                @(Model.TotalScore?.ToString("F2") ?? "--")
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Xếp loại</h6>
+                                            <h2>
+                                                @if (!string.IsNullOrEmpty(Model.Grade))
+                                                {
+                                                    <span class="badge @(Model.IsPassed ? "bg-success" : "bg-danger") fs-3">
+                                                        @Model.Grade
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">--</span>
+                                                }
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title text-muted">Kết quả</h6>
+                                            <h2>
+                                                @if (Model.TotalScore.HasValue)
+                                                {
+                                                    if (Model.IsPassed)
+                                                    {
+                                                        <span class="badge bg-success fs-4">
+                                                            <i class="fas fa-check-circle"></i> ĐẬU
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-danger fs-4">
+                                                            <i class="fas fa-times-circle"></i> RỚT
+                                                        </span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Chưa có</span>
+                                                }
+                                            </h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mt-3">
+                                <h6><i class="fas fa-info-circle"></i> Lưu ý:</h6>
+                                <ul class="mb-0">
+                                    <li>Sau khi lưu điểm, hệ thống sẽ tự động:
+                                        <ul>
+                                            <li>Tính toán tổng kết, xếp loại và kết quả</li>
+                                            <li>Gửi email thông báo điểm cho sinh viên</li>
+                                            <li><strong>Phân tích AI</strong> về điểm mạnh, điểm yếu và đưa ra khuyến nghị</li>
+                                            <li>Gửi báo cáo AI qua email</li>
+                                        </ul>
+                                    </li>
+                                    <li>Xếp loại: A (8.5-10), B (7-8.4), C (5.5-6.9), D (4-5.4), F (&lt;4)</li>
+                                </ul>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="javascript:history.back()" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-arrow-left"></i> Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-robot"></i> Lưu điểm & Phân tích AI
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Không tìm thấy dữ liệu!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        var midterm = document.getElementById('midtermScore').value;
+                        var final = document.getElementById('finalScore').value;
+
+                        if (midterm !== '' && (parseFloat(midterm) < 0 || parseFloat(midterm) > 10)) {
+                            event.preventDefault();
+                            alert('Điểm giữa kỳ phải từ 0-10!');
+                            return;
+                        }
+
+                        if (final !== '' && (parseFloat(final) < 0 || parseFloat(final) > 10)) {
+                            event.preventDefault();
+                            alert('Điểm cuối kỳ phải từ 0-10!');
+                            return;
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

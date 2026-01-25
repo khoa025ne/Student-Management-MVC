@@ -1,0 +1,24 @@
+﻿        // Show error/success messages on page load
+        @if (TempData[""ErrorMessage""] != null)
+        {
+            @:Swal.fire({
+                @:icon: 'error',
+                @:title: 'Lỗi!',
+                @:text: '@Html.Raw(TempData[""ErrorMessage""])',
+                @:confirmButtonColor: '#667eea'
+            @:});
+        }
+        
+        @if (TempData[""SuccessMessage""] != null)
+        {
+            @:Swal.fire({
+                @:icon: 'success',
+                @:title: 'Thành công!',
+                @:text: '@Html.Raw(TempData[""SuccessMessage""])',
+                @:confirmButtonColor: '#667eea',
+                @:timer: 2000,
+                @:showConfirmButton: false
+            @:}).then(function() {
+                @:window.location.href = '@Url.Action(""Login"", ""Auth"")';
+            @:});
+        }

@@ -1,0 +1,55 @@
+@model DataAccess.Entities.Notification
+
+@{
+    ViewData["Title"] = "Gửi Thông báo";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Gửi Thông báo mới</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group">
+                    <label asp-for="StudentId" class="control-label">Người nhận (Sinh viên)</label>
+                    <select asp-for="StudentId" class ="form-control" asp-items="ViewBag.StudentId">
+                        <option value="">-- Chọn sinh viên --</option>
+                    </select>
+                    <small class="text-muted">Để trống nếu muốn gửi chung (Cần xử lý logic gửi broadcast sau - Hiện tại chỉ hỗ trợ gửi cá nhân)</small>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Title" class="control-label">Tiêu đề</label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Message" class="control-label">Nội dung</label>
+                    <textarea asp-for="Message" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Message" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Type" class="control-label">Loại thông báo</label>
+                    <select asp-for="Type" class="form-control">
+                        <option value="General">Thông báo chung</option>
+                        <option value="ScoreUpdate">Cập nhật điểm</option>
+                        <option value="ClassUpdate">Tin lớp học</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Gửi ngay" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

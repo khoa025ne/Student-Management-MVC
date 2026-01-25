@@ -1,0 +1,47 @@
+@model IEnumerable<DataAccess.Entities.Enrollment>
+
+@{
+    ViewData["Title"] = "Chuyển lớp";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Đăng ký Chuyển lớp</h1>
+    <p class="mb-4">Chọn lớp học phần hiện tại bạn muốn chuyển đi.</p>
+
+    <partial name="_Notifications" />
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Các lớp đang học</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Mã Lớp</th>
+                            <th>Môn học</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.ClassId</td> <!-- Nên hiện ClassCode -->
+                                <td>@item.ClassId</td> <!-- Nên hiện CourseName -->
+                                <td>@item.Status</td>
+                                <td>
+                                    <a asp-action="Create" asp-route-id="@item.EnrollmentId" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-exchange-alt"></i> Chuyển lớp
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

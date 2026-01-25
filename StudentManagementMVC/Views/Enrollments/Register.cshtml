@@ -1,0 +1,135 @@
+@model IEnumerable<DataAccess.Entities.Class>
+
+@{
+    ViewData["Title"] = "Đăng ký môn học";
+    var student = ViewBag.Student as DataAccess.Entities.Student;
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+        <div>
+            <h1><i class="fas fa-book-open"></i>Đăng ký môn học</h1>
+            <p>Tìm và đăng ký các lớp học phần</p>
+        </div>
+        <a asp-action="MyEnrollments" class="btn btn-outline-primary">
+            <i class="fas fa-list me-2"></i>Xem môn đã đăng ký
+        </a>
+    </div>
+
+    <!-- Student Info Card -->
+    <div class="glass-card">
+        <div class="d-flex align-items-center gap-3">
+            <div class="sidebar-user-avatar" style="width: 50px; height: 50px;">
+                @(student?.User?.FullName?.Substring(0, 2).ToUpper() ?? "SV")
+            </div>
+            <div>
+                <h5 class="mb-0 fw-semibold">@student?.User?.FullName</h5>
+                <p class="text-muted mb-0">MSSV: @student?.StudentCode • @student?.Major</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="glass-card">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="input-group-modern flex-grow-1" style="max-width: 400px;">
+                <i class="fas fa-search input-icon"></i>
+                <input type="text" id="searchCourse" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm kiếm môn học, mã lớp...">
+            </div>
+            <select id="semesterFilter" class="form-control" style="width: auto; min-width: 200px;">
+                <option value="">Tất cả học kỳ</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Available Classes -->
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                var capacityPercent = item.MaxCapacity > 0 ? (item.CurrentEnrollment * 100 / item.MaxCapacity) : 0;
+                var statusClass = capacityPercent >= 90 ? "danger" : capacityPercent >= 70 ? "warning" : "success";
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="course-card animate-fadeIn">
+                        <div class="course-card-header">
+                            <div>
+                                <h5 class="course-card-title">@item.Course?.CourseName</h5>
+                                <span class="course-card-code">@item.ClassCode</span>
+                            </div>
+                            <span class="badge-modern badge-primary">@item.Course?.Credits TC</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                                <i class="fas fa-clock"></i>
+                                <span>@item.DayOfWeekPair - @item.TimeSlot</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Phòng @item.Room</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-muted small">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>@item.Semester?.SemesterName</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Sĩ số</span>
+                                <span class="small fw-semibold">@item.CurrentEnrollment / @item.MaxCapacity</span>
+                            </div>
+                            <div class="progress" style="height: 6px; border-radius: 3px;">
+                                <div class="progress-bar bg-@statusClass" style="width: @capacityPercent%"></div>
+                            </div>
+                        </div>
+
+                        <form asp-action="Enroll" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="classId" value="@item.ClassId" />
+                            @if (item.CurrentEnrollment >= item.MaxCapacity)
+                            {
+                                <button type="button" class="btn btn-secondary w-100" disabled>
+                                    <i class="fas fa-times-circle me-2"></i>Đã đầy
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn btn-primary w-100" 
+                                        onclick="return confirm('Bạn có chắc muốn đăng ký lớp @item.ClassCode - @item.Course?.CourseName?');">
+                                    <i class="fas fa-plus-circle me-2"></i>Đăng ký
+                                </button>
+                            }
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="glass-card">
+            <div class="empty-state">
+                <i class="fas fa-book-open"></i>
+                <h3>Không có lớp học khả dụng</h3>
+                <p>Hiện tại không có lớp học nào để đăng ký. Vui lòng quay lại sau.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Simple search filter
+        document.getElementById('searchCourse').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.course-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.closest('.col-md-6').style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
+}

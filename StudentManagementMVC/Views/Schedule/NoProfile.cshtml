@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Chưa có hồ sơ sinh viên";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0 mt-5">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-user-slash fa-5x text-warning"></i>
+                    </div>
+                    <h3 class="text-gray-800 mb-3">Chưa có hồ sơ sinh viên</h3>
+                    <p class="text-muted mb-4">
+                        Tài khoản của bạn chưa được liên kết với hồ sơ sinh viên. 
+                        Vui lòng liên hệ với quản trị viên để được hỗ trợ.
+                    </p>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Lưu ý:</strong> Bạn cần có hồ sơ sinh viên để xem lịch học và sử dụng các chức năng khác.
+                    </div>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

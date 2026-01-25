@@ -1,0 +1,199 @@
+@model IEnumerable<DataAccess.Entities.Course>
+
+@{
+    ViewData["Title"] = "Danh sách Môn học";
+    var totalCourses = Model.Count();
+    var seCourses = Model.Count(c => c.Major?.ToString() == "SE" || c.Major?.ToString() == "SoftwareEngineering");
+    var iaCourses = Model.Count(c => c.Major?.ToString() == "IA" || c.Major?.ToString() == "InformationAssurance");
+    var aiCourses = Model.Count(c => c.Major?.ToString() == "AI" || c.Major?.ToString() == "ArtificialIntelligence");
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+        <div>
+            <h1><i class="fas fa-book"></i>Quản lý Môn học</h1>
+            <p>Danh sách tất cả các môn học trong hệ thống</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Thêm môn học
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn">
+                <div class="stat-card-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Tổng môn học</p>
+                    <p class="stat-card-value">@totalCourses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.1s;">
+                <div class="stat-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                    <i class="fas fa-code"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Ngành SE</p>
+                    <p class="stat-card-value">@seCourses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.2s;">
+                <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Ngành IA</p>
+                    <p class="stat-card-value">@iaCourses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.3s;">
+                <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Ngành AI</p>
+                    <p class="stat-card-value">@aiCourses</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="glass-card">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="input-group-modern flex-grow-1" style="max-width: 400px;">
+                <i class="fas fa-search input-icon"></i>
+                <input type="text" id="searchCourse" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm kiếm môn học...">
+            </div>
+            <select id="majorFilter" class="form-control" style="width: auto; min-width: 180px;">
+                <option value="">Tất cả chuyên ngành</option>
+                <option value="SE">Software Engineering</option>
+                <option value="IA">Information Assurance</option>
+                <option value="AI">Artificial Intelligence</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Courses Table -->
+    <div class="glass-card">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table-modern" id="coursesTable">
+                    <thead>
+                        <tr>
+                            <th>Môn học</th>
+                            <th style="text-align: center;">Tín chỉ</th>
+                            <th style="text-align: center;">Chuyên ngành</th>
+                            <th style="text-align: center; width: 150px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var majorClass = item.Major?.ToString() switch {
+                                "SE" or "SoftwareEngineering" => "primary",
+                                "IA" or "InformationAssurance" => "success",
+                                "AI" or "ArtificialIntelligence" => "info",
+                                _ => "secondary"
+                            };
+                            <tr class="animate-fadeIn">
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="stat-card-icon" style="width: 40px; height: 40px; font-size: 0.875rem;">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@item.CourseName</div>
+                                            <code class="small text-muted">@item.CourseCode</code>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="badge-modern badge-secondary">@item.Credits TC</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="badge-modern badge-@majorClass">@item.Major</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a asp-action="Edit" asp-route-id="@item.CourseId" class="btn btn-sm btn-outline-primary" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button onclick="deleteCourse(@item.CourseId, '@item.CourseCode')" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-book"></i>
+                <h3>Chưa có môn học</h3>
+                <p>Chưa có môn học nào trong hệ thống.</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Thêm môn học đầu tiên
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<form id="deleteForm" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function deleteCourse(id, code) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: `Bạn có chắc muốn xóa môn ${code}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('deleteForm');
+                    form.action = `/Courses/Delete/${id}`;
+                    form.submit();
+                }
+            });
+        }
+
+        // Search filter
+        document.getElementById('searchCourse').addEventListener('input', filterTable);
+        document.getElementById('majorFilter').addEventListener('change', filterTable);
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchCourse').value.toLowerCase();
+            const majorFilter = document.getElementById('majorFilter').value.toLowerCase();
+            
+            document.querySelectorAll('#coursesTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const matchSearch = text.includes(searchTerm);
+                const matchMajor = !majorFilter || text.includes(majorFilter);
+                row.style.display = matchSearch && matchMajor ? '' : 'none';
+            });
+        }
+    </script>
+}

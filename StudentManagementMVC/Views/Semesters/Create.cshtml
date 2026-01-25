@@ -1,0 +1,60 @@
+@model DataAccess.Entities.Semester
+
+@{
+    ViewData["Title"] = "Thêm Học kỳ";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Thêm Học kỳ mới</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Thông tin Học kỳ</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group">
+                    <label asp-for="SemesterName" class="control-label">Tên Học kỳ</label>
+                    <input asp-for="SemesterName" class="form-control" />
+                    <span asp-validation-for="SemesterName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="SemesterCode" class="control-label">Mã Học kỳ</label>
+                    <input asp-for="SemesterCode" class="form-control" />
+                    <span asp-validation-for="SemesterCode" class="text-danger"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label asp-for="StartDate" class="control-label">Ngày Bắt đầu</label>
+                        <input asp-for="StartDate" class="form-control" type="date" />
+                        <span asp-validation-for="StartDate" class="text-danger"></span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label asp-for="EndDate" class="control-label">Ngày Kết thúc</label>
+                        <input asp-for="EndDate" class="form-control" type="date" />
+                        <span asp-validation-for="EndDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Tạo mới" class="btn btn-primary" />
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,109 @@
+@model DataAccess.Entities.Student
+@using DataAccess.Enums
+@using System.ComponentModel.DataAnnotations
+
+@{
+    ViewData["Title"] = "Chọn ngành học";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-graduation-cap"></i> Chọn ngành học của bạn
+                    </h4>
+                </div>
+                <div class="card-body p-5">
+                    @if (Model.Major == MajorType.Undefined)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            <h5 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle"></i> Bạn chưa chọn ngành học!
+                            </h5>
+                            <hr>
+                            <p class="mb-0">
+                                Vui lòng chọn ngành học của bạn để tiếp tục sử dụng hệ thống.
+                                Thông tin ngành học sẽ giúp hệ thống gợi ý các môn học phù hợp và tính toán lộ trình học tập.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle"></i>
+                            Ngành học hiện tại: <strong>@(typeof(MajorType).GetField(Model.Major.ToString())?.GetCustomAttributes(typeof(DisplayAttribute), false).Cast<DisplayAttribute>().FirstOrDefault()?.Name ?? Model.Major.ToString())</strong>
+                        </div>
+                    }
+
+                    <form asp-action="UpdateMajor" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-group">
+                            <label class="font-weight-bold mb-3">Chọn ngành học của bạn:</label>
+                            
+                            <div class="row">
+                                @foreach (MajorType major in Enum.GetValues(typeof(MajorType)))
+                                {
+                                    if (major == MajorType.Undefined) continue;
+                                    
+                                    var displayName = major.GetType()
+                                        .GetField(major.ToString())?
+                                        .GetCustomAttributes(typeof(DisplayAttribute), false)
+                                        .Cast<DisplayAttribute>()
+                                        .FirstOrDefault()?.Name ?? major.ToString();
+                                    
+                                    var isChecked = Model.Major == major;
+                                    var majorValue = (int)major;
+
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card @(isChecked ? "border-primary" : "")">
+                                            <div class="card-body">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" 
+                                                           id="major_@majorValue" 
+                                                           name="majorType" 
+                                                           value="@majorValue" 
+                                                           class="custom-control-input"
+                                                           @(isChecked ? "checked" : "")>
+                                                    <label class="custom-control-label" for="major_@majorValue">
+                                                        <strong>@displayName</strong>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-check"></i> Xác nhận ngành học
+                            </button>
+                            @if (Model.Major != MajorType.Undefined)
+                            {
+                                <a href="@Url.Action("Index")" class="btn btn-secondary btn-lg px-5 ml-2">
+                                    <i class="fas fa-times"></i> Hủy
+                                </a>
+                            }
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Highlight selected card
+            $('input[type="radio"]').change(function() {
+                $('.card').removeClass('border-primary');
+                $(this).closest('.card').addClass('border-primary');
+            });
+        });
+    </script>
+}

@@ -1,0 +1,39 @@
+@model DataAccess.Entities.Enrollment
+
+@{
+    ViewData["Title"] = "Xác nhận Chuyển lớp";
+}
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Yêu cầu Chuyển lớp</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Thông tin chuyển lớp</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" name="enrollmentId" value="@Model.EnrollmentId" />
+                
+                <div class="form-group">
+                    <label class="control-label">Lớp hiện tại</label>
+                    <input type="text" class="form-control" value="@Model.ClassId" readonly />
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label">Chọn lớp mới (Cùng môn học)</label>
+                    <select name="targetClassId" class ="form-control" asp-items="ViewBag.TargetClassId">
+                         <option value="">-- Chọn lớp mới --</option>
+                    </select>
+                    <small class="text-danger">Lưu ý: Chỉ chọn lớp cùng môn học. Hệ thống sẽ báo lỗi nếu khác môn.</small>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Xác nhận chuyển" class="btn btn-warning" />
+                    <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

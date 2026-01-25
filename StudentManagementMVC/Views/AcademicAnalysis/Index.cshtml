@@ -1,0 +1,147 @@
+@model IEnumerable<DataAccess.Entities.AcademicAnalysis>
+@{
+    ViewData["Title"] = "Quản lý Phân tích Học tập AI";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">🤖 Quản lý Phân tích Học tập AI</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item active">Phân tích Học tập</li>
+    </ol>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-brain me-1"></i>
+            Danh sách Phân tích
+        </div>
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Chưa có phân tích nào.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="analysisTable">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>ID</th>
+                                <th>Sinh viên</th>
+                                <th>Ngày phân tích</th>
+                                <th>GPA</th>
+                                <th>Môn mạnh</th>
+                                <th>Môn yếu</th>
+                                <th>AI Model</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var strongSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(item.StrongSubjectsJson ?? "[]");
+                                var weakSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(item.WeakSubjectsJson ?? "[]");
+
+                                <tr>
+                                    <td>@item.AnalysisId</td>
+                                    <td>
+                                        @if (item.Student != null)
+                                        {
+                                            <strong>@item.Student.FullName</strong><br/>
+                                            <small class="text-muted">@item.Student.StudentCode</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>@item.AnalysisDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge bg-@(item.OverallGPA >= 3.5 ? "success" : item.OverallGPA >= 2.5 ? "warning" : "danger")">
+                                            @item.OverallGPA.ToString("F2")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (strongSubjects != null && strongSubjects.Any())
+                                        {
+                                            <small>@string.Join(", ", strongSubjects.Take(2))</small>
+                                            @if (strongSubjects.Length > 2)
+                                            {
+                                                <span class="badge bg-info">+@(strongSubjects.Length - 2)</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (weakSubjects != null && weakSubjects.Any())
+                                        {
+                                            <small>@string.Join(", ", weakSubjects.Take(2))</small>
+                                            @if (weakSubjects.Length > 2)
+                                            {
+                                                <span class="badge bg-warning">+@(weakSubjects.Length - 2)</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td><span class="badge bg-secondary">@item.AiModelUsed</span></td>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@item.AnalysisId" class="btn btn-sm btn-info" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="StudentAnalysis" asp-route-studentId="@item.StudentId" class="btn btn-sm btn-primary" title="Xem tất cả phân tích">
+                                            <i class="fas fa-list"></i>
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@item.AnalysisId" method="post" class="d-inline" 
+                                              onsubmit="return confirm('Bạn có chắc muốn xóa phân tích này?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#analysisTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Vietnamese.json"
+                },
+                "order": [[2, "desc"]] // Sort by date descending
+            });
+        });
+    </script>
+}

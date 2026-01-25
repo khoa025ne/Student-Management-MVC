@@ -1,0 +1,195 @@
+@model DataAccess.Entities.AcademicAnalysis
+@{
+    ViewData["Title"] = "Chi tiết Phân tích Học tập";
+    var strongSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(Model.StrongSubjectsJson ?? "[]");
+    var weakSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(Model.WeakSubjectsJson ?? "[]");
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">🔍 Chi tiết Phân tích Học tập</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Phân tích Học tập</a></li>
+        <li class="breadcrumb-item active">Chi tiết #@Model.AnalysisId</li>
+    </ol>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Left Column: Student Info & Summary -->
+        <div class="col-lg-4">
+            <!-- Student Info Card -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-user-graduate"></i> Thông tin Sinh viên
+                </div>
+                <div class="card-body">
+                    @if (Model.Student != null)
+                    {
+                        <div class="text-center mb-3">
+                            @if (!string.IsNullOrEmpty(Model.Student.AvatarUrl))
+                            {
+                                <img src="@Model.Student.AvatarUrl" alt="Avatar" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" 
+                                     style="width: 100px; height: 100px;">
+                                    <i class="fas fa-user fa-3x text-white"></i>
+                                </div>
+                            }
+                        </div>
+                        <h5 class="text-center">@Model.Student.FullName</h5>
+                        <p class="text-center text-muted">@Model.Student.StudentCode</p>
+                        <hr>
+                        <p><strong>Email:</strong> @Model.Student.Email</p>
+                        <p><strong>Ngành:</strong> @Model.Student.Major</p>
+                        <p><strong>Lớp:</strong> @Model.Student.ClassCode</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Không tìm thấy thông tin sinh viên</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Analysis Info Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-info-circle"></i> Thông tin Phân tích
+                </div>
+                <div class="card-body">
+                    <p><strong>ID:</strong> @Model.AnalysisId</p>
+                    <p><strong>Ngày phân tích:</strong><br/>@Model.AnalysisDate.ToString("dd/MM/yyyy HH:mm:ss")</p>
+                    <p><strong>AI Model:</strong> <span class="badge bg-secondary">@Model.AiModelUsed</span></p>
+                    <p>
+                        <strong>GPA tổng:</strong> 
+                        <span class="badge bg-@(Model.OverallGPA >= 3.5 ? "success" : Model.OverallGPA >= 2.5 ? "warning" : "danger") fs-5">
+                            @Model.OverallGPA.ToString("F2")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Analysis Details -->
+        <div class="col-lg-8">
+            <!-- Strong Subjects Card -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-star"></i> Môn học Mạnh
+                </div>
+                <div class="card-body">
+                    @if (strongSubjects != null && strongSubjects.Any())
+                    {
+                        <div class="row">
+                            @foreach (var subject in strongSubjects)
+                            {
+                                <div class="col-md-6 mb-2">
+                                    <div class="alert alert-success mb-0">
+                                        <i class="fas fa-check-circle"></i> @subject
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle"></i> Chưa có môn học mạnh nổi bật
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Weak Subjects Card -->
+            <div class="card mb-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle"></i> Môn học Yếu
+                </div>
+                <div class="card-body">
+                    @if (weakSubjects != null && weakSubjects.Any())
+                    {
+                        <div class="row">
+                            @foreach (var subject in weakSubjects)
+                            {
+                                <div class="col-md-6 mb-2">
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="fas fa-exclamation-circle"></i> @subject
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-success mb-0">
+                            <i class="fas fa-thumbs-up"></i> Không có môn học yếu. Tuyệt vời!
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Recommendations Card -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-lightbulb"></i> Khuyến nghị của AI
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light">
+                        <p class="mb-0" style="white-space: pre-wrap;">@Model.Recommendations</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            @if (User.IsInRole("Student"))
+                            {
+                                <a asp-action="MyAnalysis" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Quay lại
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-list"></i> Danh sách
+                                </a>
+                                <a asp-action="StudentAnalysis" asp-route-studentId="@Model.StudentId" class="btn btn-primary">
+                                    <i class="fas fa-user"></i> Xem tất cả phân tích của SV
+                                </a>
+                            }
+                        </div>
+                        
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                        {
+                            <form asp-action="Delete" asp-route-id="@Model.AnalysisId" method="post" 
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa phân tích này?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add smooth scroll animation
+        $('html, body').animate({ scrollTop: 0 }, 'slow');
+    </script>
+}

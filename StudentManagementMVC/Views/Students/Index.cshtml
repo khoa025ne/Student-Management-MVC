@@ -1,0 +1,395 @@
+@model IEnumerable<DataAccess.Entities.Student>
+
+@{
+    ViewData["Title"] = "Quản lý sinh viên";
+    var studentUsers = ViewBag.StudentUsers as IEnumerable<DataAccess.Entities.User>;
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+        <div>
+            <h1><i class="fas fa-users"></i>Quản lý sinh viên</h1>
+            <p>Quản lý danh sách sinh viên theo ngành và kỳ học</p>
+        </div>
+        <a asp-controller="Students" asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Thêm sinh viên
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 stagger-children">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <h4>Tổng sinh viên</h4>
+                    <p class="text-primary">@(studentUsers?.Count() ?? 0)</p>
+                </div>
+                <div class="stat-card-icon primary">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <h4>Ngành SE</h4>
+                    <p style="color: #2563eb;">@(Model?.Count(s => s.Major.ToString() == "SE" || s.Major.ToString().Contains("Phần mềm")) ?? 0)</p>
+                </div>
+                <div class="stat-card-icon" style="background: rgba(59, 130, 246, 0.1);">
+                    <i class="fas fa-graduation-cap" style="color: #2563eb;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <h4>Ngành IA</h4>
+                    <p style="color: #16a34a;">@(Model?.Count(s => s.Major.ToString() == "IA" || s.Major.ToString().Contains("An toàn")) ?? 0)</p>
+                </div>
+                <div class="stat-card-icon" style="background: rgba(34, 197, 94, 0.1);">
+                    <i class="fas fa-shield-alt" style="color: #16a34a;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <h4>Ngành AI</h4>
+                    <p style="color: #9333ea;">@(Model?.Count(s => s.Major.ToString() == "AI" || s.Major.ToString().Contains("Trí tuệ")) ?? 0)</p>
+                </div>
+                <div class="stat-card-icon" style="background: rgba(168, 85, 247, 0.1);">
+                    <i class="fas fa-robot" style="color: #9333ea;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="glass-card">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="input-group-modern flex-grow-1" style="max-width: 400px;">
+                <i class="fas fa-search input-icon"></i>
+                <input type="text" id="searchInput" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm theo tên, MSSV, email...">
+            </div>
+            <select id="majorFilter" class="form-control" style="width: auto; min-width: 180px;">
+                <option value="">Tất cả ngành</option>
+                <option value="SE">Software Engineering</option>
+                <option value="IA">Information Assurance</option>
+                <option value="AI">Artificial Intelligence</option>
+            </select>
+            <select id="statusFilter" class="form-control" style="width: auto; min-width: 150px;">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Đã khóa</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Alert Message -->
+    <div id="alertMessage" class="alert d-none"></div>
+
+    <!-- Students Table -->
+    <div class="table-modern">
+        <table class="table" id="studentsTable">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>MSSV</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>SĐT</th>
+                    <th>Ngành</th>
+                    <th>Lớp</th>
+                    <th>GPA</th>
+                    <th>Trạng thái</th>
+                    <th style="width: 100px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (studentUsers != null && studentUsers.Any())
+                {
+                    int index = 1;
+                    foreach (var user in studentUsers)
+                    {
+                        var student = Model?.FirstOrDefault(s => s.UserId == user.UserId);
+                        
+                        <tr id="row_@(student?.StudentId ?? 0)">
+                            <td>@index</td>
+                            <td>
+                                <span class="badge-modern badge-primary">@(student?.StudentCode ?? "N/A")</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="sidebar-user-avatar" style="width: 36px; height: 36px; font-size: 0.75rem;">
+                                        @user.FullName?.Substring(0, 2).ToUpper()
+                                    </div>
+                                    <div>
+                                        <strong>@user.FullName</strong>
+                                        @if (user.MustChangePassword)
+                                        {
+                                            <br/><small class="text-warning"><i class="fas fa-exclamation-triangle"></i> Cần đổi mật khẩu</small>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@user.Email</td>
+                            <td>@user.PhoneNumber</td>
+                            <td>
+                                @{
+                                    var major = student?.Major.ToString() ?? "";
+                                    var badgeClass = "badge-info";
+                                    if (major.Contains("SE") || major.Contains("Phần mềm")) badgeClass = "badge-se";
+                                    else if (major.Contains("IA") || major.Contains("An toàn")) badgeClass = "badge-ia";
+                                    else if (major.Contains("AI") || major.Contains("Trí tuệ")) badgeClass = "badge-ai";
+                                }
+                                <span class="badge-modern @badgeClass">@(major != "" ? major : "Chưa cập nhật")</span>
+                            </td>
+                            <td>@(student?.ClassCode ?? "Chưa phân lớp")</td>
+                            <td>
+                                @if (student != null)
+                                {
+                                    var gpaClass = student.OverallGPA >= 8.5 ? "gpa-excellent" : 
+                                                   student.OverallGPA >= 7.0 ? "gpa-good" : 
+                                                   student.OverallGPA >= 5.5 ? "gpa-average" : "gpa-poor";
+                                    <span class="fw-bold @gpaClass">@student.OverallGPA.ToString("F2")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">N/A</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge-modern badge-success">Hoạt động</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-modern badge-danger">Đã khóa</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    @if (student != null)
+                                    {
+                                        <button class="btn btn-ghost btn-sm" onclick="viewStudent(@student.StudentId)" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-ghost btn-sm" onclick="editStudent(@student.StudentId)" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Chưa có hồ sơ</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <h3>Chưa có sinh viên</h3>
+                                <p>Vui lòng tạo User với vai trò Student để bắt đầu.</p>
+                                <a asp-controller="Users" asp-action="Create" class="btn btn-primary mt-3">
+                                    <i class="fas fa-plus me-2"></i>Thêm sinh viên mới
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal - Chỉ cho phép cập nhật thông tin -->
+<div class="modal fade" id="studentModal" tabindex="-1" aria-labelledby="studentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="studentModalLabel">Cập nhật thông tin sinh viên</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i> 
+                    Một số thông tin liên kết với User không thể sửa tại đây (Email, Họ tên, SĐT).
+                </div>
+                <form id="studentForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="StudentId" name="StudentId" value="0" />
+                    <input type="hidden" id="UserId" name="UserId" />
+                    
+                    <div class="mb-3">
+                        <label for="StudentCode" class="form-label">Mã sinh viên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="StudentCode" name="StudentCode" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="FullName" class="form-label">Họ tên (từ User)</label>
+                        <input type="text" class="form-control" id="FullName" name="FullName" readonly disabled />
+                        <small class="text-muted">Sửa tại trang Quản lý Người dùng</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Email" class="form-label">Email (từ User)</label>
+                        <input type="email" class="form-control" id="Email" name="Email" readonly disabled />
+                        <small class="text-muted">Sửa tại trang Quản lý Người dùng</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="PhoneNumber" class="form-label">SĐT (từ User)</label>
+                        <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" readonly disabled />
+                        <small class="text-muted">Sửa tại trang Quản lý Người dùng</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="Major" class="form-label">Ngành học <span class="text-danger">*</span></label>
+                        <select class="form-control" id="Major" name="Major" required>
+                            <option value="">-- Chọn ngành --</option>
+                            <option value="Công nghệ thông tin">Công nghệ thông tin</option>
+                            <option value="Kỹ thuật phần mềm">Kỹ thuật phần mềm</option>
+                            <option value="Hệ thống thông tin">Hệ thống thông tin</option>
+                            <option value="An toàn thông tin">An toàn thông tin</option>
+                            <option value="Trí tuệ nhân tạo">Trí tuệ nhân tạo</option>
+                            <option value="Khoa học dữ liệu">Khoa học dữ liệu</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ClassCode" class="form-label">Lớp <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ClassCode" name="ClassCode" required placeholder="VD: SE1801" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="DateOfBirth" class="form-label">Ngày sinh <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="DateOfBirth" name="DateOfBirth" required />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+                <button type="button" class="btn btn-primary" onclick="saveStudent()">
+                    <i class="fas fa-save"></i> Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Không còn dùng clearForm vì không có chức năng Create
+        /*
+        function clearForm() {
+            $('#StudentId').val(0);
+            $('#studentForm')[0].reset();
+            $('#studentModalLabel').text("Thêm mới sinh viên");
+        }
+        */
+
+        function editStudent(id) {
+            $.get('/Students/GetStudent/' + id, function (data) {
+                $('#StudentId').val(data.studentId);
+                $('#UserId').val(data.userId);
+                $('#StudentCode').val(data.studentCode);
+                $('#FullName').val(data.fullName);
+                $('#Email').val(data.email);
+                $('#PhoneNumber').val(data.phoneNumber);
+                $('#Major').val(data.major);
+                $('#ClassCode').val(data.classCode);
+                
+                // Format date for setting value
+                if (data.dateOfBirth) {
+                    var dob = new Date(data.dateOfBirth);
+                    var day = ("0" + dob.getDate()).slice(-2);
+                    var month = ("0" + (dob.getMonth() + 1)).slice(-2);
+                    var dateStr = dob.getFullYear() + "-" + month + "-" + day;
+                    $('#DateOfBirth').val(dateStr);
+                }
+
+                $('#studentModalLabel').text("Cập nhật thông tin sinh viên");
+                $('#studentModal').modal('show');
+            }).fail(function() {
+                showAlert('danger', 'Không thể tải thông tin sinh viên!');
+            });
+        }
+
+        function saveStudent() {
+            var id = $('#StudentId').val();
+            
+            // Chỉ cho phép Edit, không Create
+            if (id == 0) {
+                showAlert('danger', 'Không thể tạo mới sinh viên! Vui lòng tạo User với vai trò Student.');
+                return;
+            }
+            
+            var url = '/Students/Edit/' + id;
+            var formData = $('#studentForm').serialize();
+
+            $.post(url, formData, function (response) {
+                if (response.success) {
+                    $('#studentModal').modal('hide');
+                    showAlert('success', response.message);
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    showAlert('danger', response.message);
+                }
+            }).fail(function() {
+                showAlert('danger', 'Có lỗi xảy ra khi lưu thông tin!');
+            });
+        }
+
+        // Delete function đã bị disable
+        /*
+        function deleteStudent(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
+                $.post('/Students/Delete/' + id, function (response) {
+                    if (response.success) {
+                        $('#row_' + id).remove();
+                        showAlert('success', response.message);
+                    } else {
+                        showAlert('danger', response.message);
+                    }
+                });
+            }
+        }
+        */
+
+        function showAlert(type, message) {
+            var alertBox = $('#alertMessage');
+            alertBox.removeClass('d-none alert-success alert-danger alert-warning alert-info');
+            alertBox.addClass('alert-' + type);
+            alertBox.html('<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '"></i> ' + message);
+            
+            // Auto hide after 5 seconds
+            setTimeout(function() {
+                alertBox.addClass('d-none');
+            }, 5000);
+        }
+
+        // DataTable initialization
+        $(document).ready(function() {
+            $('#studentsTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
+                },
+                order: [[0, 'asc']],
+                pageLength: 25,
+                columnDefs: [
+                    { orderable: false, targets: 9 } // Disable sort on Action column
+                ]
+            });
+        });
+    </script>
+}

@@ -1,0 +1,160 @@
+@model DataAccess.Entities.User
+
+@{
+    ViewData["Title"] = "Thêm người dùng mới";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-user-plus"></i> Thêm người dùng mới</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    <form asp-action="Create" method="post" id="createUserForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label">Họ và tên *</label>
+                            <input asp-for="FullName" class="form-control" required />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email *</label>
+                            <input asp-for="Email" class="form-control" type="email" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label">Số điện thoại *</label>
+                            <input asp-for="PhoneNumber" class="form-control" pattern="0[0-9]{9}" 
+                                   title="Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số" required />
+                            <small class="text-muted">Định dạng: 0xxxxxxxxx (10 chữ số)</small>
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3" id="dateOfBirthGroup">
+                            <label class="form-label">Ngày sinh <span id="dateOfBirthRequired" style="display:none;">*</span> <small class="text-info" id="dateOfBirthNote" style="display:none;">(Sinh viên: mật khẩu sẽ tự động tạo từ ngày sinh)</small></label>
+                            <input type="date" 
+                                   name="dateOfBirth" 
+                                   id="dateOfBirth" 
+                                   class="form-control" 
+                                   max="@DateTime.Now.AddYears(-16).ToString("yyyy-MM-dd")" 
+                                   min="@DateTime.Now.AddYears(-60).ToString("yyyy-MM-dd")"
+                                   value="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")" />
+                            <small class="text-muted" id="dateOfBirthHint" style="display:none;">Tuổi: 16-60. Mật khẩu tự động: DDMMyyyy@fpt (VD: 15052003@fpt)</small>
+                            <small class="text-muted">Click vào ô để chọn ngày/tháng/năm sinh</small>
+                        </div>
+
+                        <div class="mb-3" id="passwordGroup">
+                            <label for="password" class="form-label">Mật khẩu *</label>
+                            <input type="password" name="password" id="password" class="form-control" minlength="8" />
+                            <small class="text-muted">Tối thiểu 8 ký tự, gồm chữ HOA, thường, số và ký tự đặc biệt</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RoleId" class="form-label">Vai trò *</label>
+                            <select asp-for="RoleId" class="form-select" required id="roleSelect">
+                                <option value="">-- Chọn vai trò --</option>
+                                @foreach (var role in ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>)
+                                {
+                                    <option value="@role.RoleId" data-rolename="@role.RoleName">@role.RoleName - @role.Description</option>
+                                }
+                            </select>
+                            <span asp-validation-for="RoleId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                            <label asp-for="IsActive" class="form-check-label">Kích hoạt ngay</label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Lưu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Khi thay đổi role
+            $('#roleSelect').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                var roleName = selectedOption.data('rolename');
+                
+                if (roleName === 'Student') {
+                    // Hiện note và required cho DateOfBirth, ẩn Password
+                    $('#dateOfBirthRequired').show();
+                    $('#dateOfBirthNote').show();
+                    $('#dateOfBirthHint').show();
+                    $('#dateOfBirth').attr('required', true);
+                    $('#passwordGroup').hide();
+                    $('#password').attr('required', false);
+                } else {
+                    // Ẩn note, bỏ required cho DateOfBirth, hiện Password
+                    $('#dateOfBirthRequired').hide();
+                    $('#dateOfBirthNote').hide();
+                    $('#dateOfBirthHint').hide();
+                    $('#dateOfBirth').attr('required', false);
+                    $('#passwordGroup').show();
+                    $('#password').attr('required', true);
+                }
+            });
+            
+            // Validate form trước khi submit
+            $('#createUserForm').submit(function(e) {
+                var role = $('#roleSelect option:selected').data('rolename');
+                var phone = $('input[name="PhoneNumber"]').val();
+                
+                // Validate phone format
+                var phoneRegex = /^0[0-9]{9}$/;
+                if (phone && !phoneRegex.test(phone)) {
+                    alert('Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số!');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Validate age for Student
+                if (role === 'Student') {
+                    var dob = new Date($('#dateOfBirth').val());
+                    var today = new Date();
+                    var age = Math.floor((today - dob) / (365.25 * 24 * 60 * 60 * 1000));
+                    
+                    if (age < 16 || age > 60) {
+                        alert('Tuổi sinh viên phải từ 16 đến 60!');
+                        e.preventDefault();
+                        return false;
+                    }
+                } else {
+                    // Validate password complexity for non-Student
+                    var password = $('#password').val();
+                    var hasUpper = /[A-Z]/.test(password);
+                    var hasLower = /[a-z]/.test(password);
+                    var hasNumber = /[0-9]/.test(password);
+                    var hasSpecial = /[!@@#$%^&*(),.?":{}|<>]/.test(password);
+                    
+                    if (password.length < 8 || !hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+                        alert('Mật khẩu phải có ít nhất 8 ký tự, gồm chữ HOA, thường, số và ký tự đặc biệt!');
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+}

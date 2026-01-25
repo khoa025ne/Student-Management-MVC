@@ -1,0 +1,14 @@
+F:\ALL\StudentManagementMVC\DataAccess\bin\Debug\net9.0\DataAccess.deps.json
+F:\ALL\StudentManagementMVC\DataAccess\bin\Debug\net9.0\DataAccess.runtimeconfig.json
+F:\ALL\StudentManagementMVC\DataAccess\bin\Debug\net9.0\DataAccess.dll
+F:\ALL\StudentManagementMVC\DataAccess\bin\Debug\net9.0\DataAccess.pdb
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.csproj.AssemblyReference.cache
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.GeneratedMSBuildEditorConfig.editorconfig
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.AssemblyInfoInputs.cache
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.AssemblyInfo.cs
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.csproj.CoreCompileInputs.cache
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.dll
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\refint\DataAccess.dll
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.pdb
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.genruntimeconfig.cache
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\ref\DataAccess.dll

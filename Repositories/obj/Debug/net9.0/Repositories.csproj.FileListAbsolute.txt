@@ -1,0 +1,15 @@
+F:\ALL\StudentManagementMVC\Repositories\bin\Debug\net9.0\Repositories.deps.json
+F:\ALL\StudentManagementMVC\Repositories\bin\Debug\net9.0\Repositories.dll
+F:\ALL\StudentManagementMVC\Repositories\bin\Debug\net9.0\Repositories.pdb
+F:\ALL\StudentManagementMVC\Repositories\bin\Debug\net9.0\DataAccess.dll
+F:\ALL\StudentManagementMVC\Repositories\bin\Debug\net9.0\DataAccess.pdb
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Repositories.csproj.AssemblyReference.cache
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Repositories.GeneratedMSBuildEditorConfig.editorconfig
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Repositories.AssemblyInfoInputs.cache
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Repositories.AssemblyInfo.cs
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Repositories.csproj.CoreCompileInputs.cache
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Reposito.787EC4B2.Up2Date
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Repositories.dll
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\refint\Repositories.dll
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\Repositories.pdb
+F:\ALL\StudentManagementMVC\Repositories\obj\Debug\net9.0\ref\Repositories.dll

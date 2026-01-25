@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Student Compass</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+        
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Brand -->
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="sidebar-brand-text">
+                    <h1>Student Compass</h1>
+                    <p>Quản lý học tập</p>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Home" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a asp-controller="Users" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Quản lý tài khoản</span>
+                    </a>
+                    <a asp-controller="Semesters" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Semesters" ? "active" : "")">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Quản lý học kỳ</span>
+                    </a>
+                    <a asp-controller="Courses" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Courses" ? "active" : "")">
+                        <i class="fas fa-book"></i>
+                        <span>Quản lý môn học</span>
+                    </a>
+                    <a asp-controller="Classes" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Classes" ? "active" : "")">
+                        <i class="fas fa-chalkboard"></i>
+                        <span>Quản lý lớp học</span>
+                    </a>
+                    <a asp-controller="Students" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Students" ? "active" : "")">
+                        <i class="fas fa-users"></i>
+                        <span>Quản lý sinh viên</span>
+                    </a>
+                    <a asp-controller="EnrollmentGrades" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EnrollmentGrades" ? "active" : "")">
+                        <i class="fas fa-edit"></i>
+                        <span>Nhập điểm</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("Manager"))
+                {
+                    <a asp-controller="Home" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Quản lý học vụ</span>
+                    </a>
+                    <a asp-controller="Semesters" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Semesters" ? "active" : "")">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Quản lý học kỳ</span>
+                    </a>
+                    <a asp-controller="Classes" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Classes" ? "active" : "")">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Quản lý lớp học</span>
+                    </a>
+                    <a asp-controller="Students" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Students" ? "active" : "")">
+                        <i class="fas fa-users"></i>
+                        <span>Quản lý sinh viên</span>
+                    </a>
+                    <a asp-controller="EnrollmentGrades" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EnrollmentGrades" ? "active" : "")">
+                        <i class="fas fa-edit"></i>
+                        <span>Nhập điểm</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("Teacher"))
+                {
+                    <a asp-controller="Home" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Trang chủ</span>
+                    </a>
+                    <a asp-controller="Classes" asp-action="MyClasses" class="sidebar-nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "MyClasses" ? "active" : "")">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>Lớp giảng dạy</span>
+                    </a>
+                    <a asp-controller="EnrollmentGrades" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EnrollmentGrades" ? "active" : "")">
+                        <i class="fas fa-edit"></i>
+                        <span>Nhập điểm</span>
+                    </a>
+                }
+
+                @if (User.IsInRole("Student"))
+                {
+                    <a asp-controller="Home" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Trang chủ</span>
+                    </a>
+                    <a asp-controller="Schedule" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Schedule" ? "active" : "")">
+                        <i class="fas fa-calendar"></i>
+                        <span>Lịch học</span>
+                    </a>
+                    <a asp-controller="Enrollments" asp-action="Register" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Enrollments" ? "active" : "")">
+                        <i class="fas fa-book-open"></i>
+                        <span>Đăng ký môn học</span>
+                    </a>
+                    <a asp-controller="Scores" asp-action="MyGrades" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Scores" ? "active" : "")">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Bảng điểm</span>
+                    </a>
+                    <a asp-controller="Transfers" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Transfers" ? "active" : "")">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Chuyển lớp</span>
+                    </a>
+                    <a asp-controller="Notifications" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
+                        <i class="fas fa-bell"></i>
+                        <span>Thông báo</span>
+                    </a>
+                    <a asp-controller="StudentProfile" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "StudentProfile" ? "active" : "")">
+                        <i class="fas fa-user"></i>
+                        <span>Hồ sơ</span>
+                    </a>
+                }
+            </nav>
+            
+            <!-- User Section -->
+            <div class="sidebar-user">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-avatar">
+                            @{
+                                var userName = User.Identity.Name ?? "U";
+                                var initials = userName.Length >= 2 ? userName.Substring(0, 2).ToUpper() : userName.ToUpper();
+                            }
+                            @initials
+                        </div>
+                        <div class="sidebar-user-details">
+                            <h4>@User.Identity.Name</h4>
+                            <p>@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : User.IsInRole("Teacher") ? "Teacher" : "Student")</p>
+                        </div>
+                    </div>
+                    
+                    <a asp-controller="Auth" asp-action="Logout" class="sidebar-nav-item" style="color: var(--destructive);">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Đăng xuất</span>
+                    </a>
+                }
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Mobile Header -->
+            <div class="content-header d-lg-none">
+                <button class="btn btn-ghost" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <span class="fw-semibold">Student Compass</span>
+                <div style="width: 40px;"></div>
+            </div>
+            
+            <!-- Content Body -->
+            <div class="content-body">
+                <partial name="_Notifications" />
+                @RenderBody()
+            </div>
+            
+            <!-- Footer -->
+            <footer class="footer-modern">
+                &copy; 2026 Student Compass - Hệ thống quản lý sinh viên
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+            document.getElementById('mobileOverlay').classList.toggle('show');
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,165 @@
+@model StudentManagementMVC.ViewModels.CreateStudentViewModel
+
+@{
+    ViewData["Title"] = "Thêm sinh viên mới";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-user-plus"></i> Thêm sinh viên mới</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> Thông tin tạo sinh viên:</h6>
+                        <ul class="mb-0">
+                            <li>✅ <strong>Mã sinh viên</strong> sẽ được tạo tự động theo định dạng: <code>STU2026XXXXX</code></li>
+                            <li>✅ <strong>Mật khẩu mặc định</strong>: <code>NgaySinh@@fpt</code> (VD: 20052003@@fpt)</li>
+                            <li>✅ <strong>Email chào mừng</strong> sẽ được gửi tự động với thông tin đăng nhập</li>
+                            <li>⚠️ Sinh viên <strong>phải đổi mật khẩu</strong> khi đăng nhập lần đầu</li>
+                        </ul>
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FullName" class="form-label">
+                                    <i class="fas fa-user"></i> Họ và tên <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" required />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">
+                                    <i class="fas fa-envelope"></i> Email <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="student@@fpt.edu.vn" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PhoneNumber" class="form-label">
+                                    <i class="fas fa-phone"></i> Số điện thoại
+                                </label>
+                                <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="0901234567" pattern="^0\d{9}$" />
+                                <small class="text-muted">Bắt đầu bằng 0 và có 10 chữ số</small>
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DateOfBirth" class="form-label">
+                                    <i class="fas fa-calendar"></i> Ngày sinh <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" required />
+                                <small class="text-muted">Tuổi phải từ 16 đến 60</small>
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ClassCode" class="form-label">
+                                    <i class="fas fa-school"></i> Mã lớp <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="ClassCode" class="form-control" placeholder="SE1801" required />
+                                <span asp-validation-for="ClassCode" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Major" class="form-label">
+                                    <i class="fas fa-graduation-cap"></i> Chuyên ngành <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="Major" class="form-select" required>
+                                    <option value="">-- Chọn chuyên ngành --</option>
+                                    <option value="0">Chưa xác định</option>
+                                    <option value="1">Công nghệ thông tin</option>
+                                    <option value="2">Kỹ thuật phần mềm</option>
+                                    <option value="3">An toàn thông tin</option>
+                                    <option value="4">Hệ thống thông tin</option>
+                                    <option value="5">Trí tuệ nhân tạo</option>
+                                    <option value="6">Khoa học dữ liệu</option>
+                                </select>
+                                <span asp-validation-for="Major" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CurrentTermNo" class="form-label">
+                                    <i class="fas fa-book"></i> Kỳ học hiện tại
+                                </label>
+                                <input asp-for="CurrentTermNo" type="number" class="form-control" min="1" max="12" value="1" />
+                                <small class="text-muted">Mặc định là kỳ 1</small>
+                                <span asp-validation-for="CurrentTermNo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Tạo sinh viên
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Validation tuổi client-side
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var dob = new Date(document.getElementById('DateOfBirth').value);
+            var today = new Date();
+            var age = today.getFullYear() - dob.getFullYear();
+            var m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+
+            if (age < 16 || age > 60) {
+                e.preventDefault();
+                alert('Tuổi phải từ 16 đến 60!');
+                return false;
+            }
+        });
+
+        // Auto-generate ClassCode suggestion
+        const majorSelect = document.getElementById('Major');
+        const classCodeInput = document.getElementById('ClassCode');
+        
+        majorSelect.addEventListener('change', function() {
+            if (!classCodeInput.value) {
+                const majorCodes = {
+                    '1': 'IT',
+                    '2': 'SE',
+                    '3': 'IS',
+                    '4': 'HS',
+                    '5': 'AI',
+                    '6': 'DS'
+                };
+                const year = new Date().getFullYear() % 100;
+                const code = majorCodes[this.value];
+                if (code) {
+                    classCodeInput.placeholder = `${code}${year}01`;
+                }
+            }
+        });
+    </script>
+}

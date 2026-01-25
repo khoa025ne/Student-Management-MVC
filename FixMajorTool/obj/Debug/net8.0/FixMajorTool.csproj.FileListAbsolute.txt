@@ -1,0 +1,17 @@
+F:\ALL\StudentManagementMVC\FixMajorTool\bin\Debug\net8.0\FixMajorTool.exe
+F:\ALL\StudentManagementMVC\FixMajorTool\bin\Debug\net8.0\FixMajorTool.deps.json
+F:\ALL\StudentManagementMVC\FixMajorTool\bin\Debug\net8.0\FixMajorTool.runtimeconfig.json
+F:\ALL\StudentManagementMVC\FixMajorTool\bin\Debug\net8.0\FixMajorTool.dll
+F:\ALL\StudentManagementMVC\FixMajorTool\bin\Debug\net8.0\FixMajorTool.pdb
+F:\ALL\StudentManagementMVC\FixMajorTool\bin\Debug\net8.0\MySqlConnector.dll
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.csproj.AssemblyReference.cache
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.GeneratedMSBuildEditorConfig.editorconfig
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.AssemblyInfoInputs.cache
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.AssemblyInfo.cs
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.csproj.CoreCompileInputs.cache
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajor.24CEC929.Up2Date
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.dll
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\refint\FixMajorTool.dll
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.pdb
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\FixMajorTool.genruntimeconfig.cache
+F:\ALL\StudentManagementMVC\FixMajorTool\obj\Debug\net8.0\ref\FixMajorTool.dll

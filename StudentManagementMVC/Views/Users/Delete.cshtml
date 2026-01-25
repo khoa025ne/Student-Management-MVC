@@ -1,0 +1,95 @@
+@model DataAccess.Entities.User
+
+@{
+    ViewData["Title"] = "Xóa người dùng";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Xác nhận xóa người dùng
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-exclamation-circle"></i> Cảnh báo!</h5>
+                        <p class="mb-0">Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác!</p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Họ và tên:</div>
+                        <div class="col-md-8">@Model.FullName</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Email:</div>
+                        <div class="col-md-8">@Model.Email</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Vai trò:</div>
+                        <div class="col-md-8">
+                            @if (Model.Role != null)
+                            {
+                                <span class="badge bg-info">@Model.Role.RoleName</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Số điện thoại:</div>
+                        <div class="col-md-8">@Model.PhoneNumber</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Trạng thái:</div>
+                        <div class="col-md-8">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Đang hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Đã khóa</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Ngày tạo:</div>
+                        <div class="col-md-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+
+                    @if (Model.Role?.RoleName == "Admin")
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-shield-alt"></i> <strong>Không thể xóa tài khoản Admin!</strong>
+                        </div>
+                    }
+
+                    <hr />
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="UserId" />
+                        
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                            
+                            @if (Model.Role?.RoleName != "Admin")
+                            {
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng này?');">
+                                    <i class="fas fa-trash"></i> Xóa người dùng
+                                </button>
+                            }
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

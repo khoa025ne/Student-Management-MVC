@@ -1,0 +1,288 @@
+@model IEnumerable<DataAccess.Entities.Class>
+
+@{
+    ViewData["Title"] = "Danh sách Lớp học";
+    var totalClasses = Model.Count();
+    var activeClasses = Model.Count(c => c.CurrentEnrollment > 0);
+    var fullClasses = Model.Count(c => c.CurrentEnrollment >= c.MaxCapacity);
+    var totalStudents = Model.Sum(c => c.CurrentEnrollment);
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+        <div>
+            <h1><i class="fas fa-chalkboard-teacher"></i>Quản lý Lớp học</h1>
+            <p>Danh sách tất cả các lớp học phần</p>
+        </div>
+        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Tạo lớp mới
+            </a>
+        }
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn">
+                <div class="stat-card-icon">
+                    <i class="fas fa-chalkboard"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Tổng số lớp</p>
+                    <p class="stat-card-value">@totalClasses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.1s;">
+                <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Đang hoạt động</p>
+                    <p class="stat-card-value">@activeClasses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.2s;">
+                <div class="stat-card-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Đã đầy</p>
+                    <p class="stat-card-value">@fullClasses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card animate-fadeIn" style="animation-delay: 0.3s;">
+                <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div>
+                    <p class="stat-card-label">Tổng SV</p>
+                    <p class="stat-card-value">@totalStudents</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="glass-card">
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div class="input-group-modern flex-grow-1" style="max-width: 400px;">
+                <i class="fas fa-search input-icon"></i>
+                <input type="text" id="searchClass" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm kiếm lớp học...">
+            </div>
+            <select id="semesterFilter" class="form-control" style="width: auto; min-width: 180px;">
+                <option value="">Tất cả học kỳ</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Classes Grid -->
+    @if (Model.Any())
+    {
+        <div class="row g-4" id="classesGrid">
+            @foreach (var item in Model)
+            {
+                var capacityPercent = item.MaxCapacity > 0 ? (item.CurrentEnrollment * 100 / item.MaxCapacity) : 0;
+                var statusClass = capacityPercent >= 100 ? "danger" : capacityPercent >= 80 ? "warning" : "success";
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="course-card animate-fadeIn">
+                        <div class="course-card-header">
+                            <div>
+                                <h5 class="course-card-title">@item.Course?.CourseName</h5>
+                                <span class="course-card-code">@item.ClassCode</span>
+                            </div>
+                            <span class="badge-modern badge-@statusClass">
+                                @(capacityPercent >= 100 ? "Đầy" : capacityPercent >= 80 ? "Gần đầy" : "Còn chỗ")
+                            </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                                <i class="fas fa-clock"></i>
+                                <span>@item.DayOfWeekPair - @item.TimeSlot</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Phòng @item.Room</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 text-muted small">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>@item.Semester?.SemesterName</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-muted">Sĩ số</span>
+                                <span class="small fw-semibold">@item.CurrentEnrollment / @item.MaxCapacity</span>
+                            </div>
+                            <div class="progress" style="height: 6px; border-radius: 3px;">
+                                <div class="progress-bar bg-@statusClass" style="width: @capacityPercent%"></div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a asp-action="Details" asp-route-id="@item.ClassId" class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class="fas fa-info-circle me-1"></i>Chi tiết
+                            </a>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.ClassId" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button onclick="deleteClass(@item.ClassId, '@item.ClassCode')" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="glass-card">
+            <div class="empty-state">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h3>Chưa có lớp học</h3>
+                <p>Chưa có lớp học nào trong hệ thống.</p>
+                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                {
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Tạo lớp học đầu tiên
+                    </a>
+                }
+            </div>
+        </div>
+    }
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="glass-card">
+            <nav aria-label="Phân trang">
+                <ul class="pagination pagination-modern justify-content-center mb-0">
+                    <!-- First Page -->
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=1&pageSize=@ViewBag.PageSize">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    
+                    <!-- Previous Page -->
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)&pageSize=@ViewBag.PageSize">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+
+                    @{
+                        var currentPage = (int)ViewBag.CurrentPage;
+                        var totalPages = (int)ViewBag.TotalPages;
+                        var startPage = Math.Max(1, currentPage - 2);
+                        var endPage = Math.Min(totalPages, currentPage + 2);
+
+                        // Hiển thị trang đầu nếu cần
+                        if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1&pageSize=@ViewBag.PageSize">1</a>
+                            </li>
+                            if (startPage > 2)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                        }
+
+                        // Hiển thị các trang xung quanh trang hiện tại
+                        for (var i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i&pageSize=@ViewBag.PageSize">@i</a>
+                            </li>
+                        }
+
+                        // Hiển thị trang cuối nếu cần
+                        if (endPage < totalPages)
+                        {
+                            if (endPage < totalPages - 1)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="?page=@totalPages&pageSize=@ViewBag.PageSize">@totalPages</a>
+                            </li>
+                        }
+                    }
+
+                    <!-- Next Page -->
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)&pageSize=@ViewBag.PageSize">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    
+                    <!-- Last Page -->
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@ViewBag.TotalPages&pageSize=@ViewBag.PageSize">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <!-- Pagination Info -->
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    Hiển thị <strong>@((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1)</strong> - 
+                    <strong>@Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalItems)</strong> 
+                    trong tổng số <strong>@ViewBag.TotalItems</strong> lớp học
+                </small>
+            </div>
+        </div>
+    }</div>
+
+<form id="deleteForm" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function deleteClass(id, code) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: `Bạn có chắc muốn xóa lớp ${code}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('deleteForm');
+                    form.action = `/Classes/Delete/${id}`;
+                    form.submit();
+                }
+            });
+        }
+
+        // Search filter
+        document.getElementById('searchClass').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.course-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.closest('.col-md-6').style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
+}
