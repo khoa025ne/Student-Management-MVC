@@ -153,6 +153,9 @@ namespace DataAccess.Migrations
                     b.Property<int>("ClassId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Comment")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("EnrollmentDate")
                         .HasColumnType("datetime(6)");
 

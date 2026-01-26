@@ -27,5 +27,8 @@ namespace DataAccess.Entities
 
         // Đếm số lần học
         public int AttemptNumber { get; set; } = 1; // Lần học thứ mấy (1, 2, 3...)
+
+        // Nhận xét từ giảng viên
+        public string? Comment { get; set; } // Nhận xét, góp ý từ giảng viên
     }
 }

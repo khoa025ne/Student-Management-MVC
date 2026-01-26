@@ -1,0 +1,153 @@
+@model IEnumerable<DataAccess.Entities.Class>
+
+@{
+    ViewData["Title"] = "Xếp Lớp Tự Động";
+    var student = ViewBag.Student as DataAccess.Entities.Student;
+}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="page-header animate-fadeIn">
+        <div>
+            <h1><i class="fas fa-random"></i>Xếp Lớp Tự Động</h1>
+            <p>Hệ thống sẽ gợi ý các lớp phù hợp dựa trên tiến độ học tập của bạn</p>
+        </div>
+    </div>
+
+    <!-- Student Info -->
+    <div class="glass-card">
+        <div class="d-flex align-items-center gap-3">
+            <div class="sidebar-user-avatar" style="width: 50px; height: 50px;">
+                @(student?.FullName?.Substring(0, 2).ToUpper() ?? "SV")
+            </div>
+            <div>
+                <h5 class="mb-0 fw-semibold">@student?.FullName</h5>
+                <p class="text-muted mb-0">MSSV: @student?.StudentCode • GPA: @student?.OverallGPA.ToString("F2")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>Cách hoạt động:</strong>
+        <ul class="mb-0 mt-2">
+            <li>Hệ thống đã phân tích tiến độ học tập của bạn</li>
+            <li>Các lớp được gợi ý dựa trên: GPA, môn học mạnh/yếu, và tình trạng hiện tại</li>
+            <li>Bạn có thể chọn toàn bộ hoặc một số lớp để đăng ký</li>
+            <li>Sau khi xác nhận, email xác nhận sẽ được gửi ngay</li>
+        </ul>
+    </div>
+
+    @if (Model.Any())
+    {
+        <form method="post" asp-action="ConfirmRandomAssign">
+            @Html.AntiForgeryToken()
+
+            <div class="row g-4">
+                @foreach (var classItem in Model)
+                {
+                    var capacityPercent = classItem.MaxCapacity > 0 ? (classItem.CurrentEnrollment * 100 / classItem.MaxCapacity) : 0;
+                    var statusColor = capacityPercent >= 80 ? "warning" : "success";
+
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow-sm h-100 border-0">
+                            <div class="card-body">
+                                <!-- Class Info -->
+                                <div class="mb-3">
+                                    <h5 class="card-title mb-1">@classItem.Course?.CourseName</h5>
+                                    <p class="text-muted mb-2">
+                                        <small>
+                                            <strong>@classItem.ClassCode</strong> • 
+                                            <span class="badge bg-info">@classItem.Course?.Credits TC</span>
+                                        </small>
+                                    </p>
+                                </div>
+
+                                <!-- Class Details -->
+                                <div class="mb-3 border-top pt-3">
+                                    <p class="mb-2 small">
+                                        <i class="fas fa-calendar-alt text-muted"></i>
+                                        <strong>Kỳ:</strong> @classItem.Semester?.SemesterName
+                                    </p>
+                                    <p class="mb-2 small">
+                                        <i class="fas fa-clock text-muted"></i>
+                                        <strong>Lịch:</strong> @classItem.DayOfWeekPair - @classItem.TimeSlot
+                                    </p>
+                                    <p class="mb-2 small">
+                                        <i class="fas fa-map-marker-alt text-muted"></i>
+                                        <strong>Phòng:</strong> @(string.IsNullOrEmpty(classItem.Room) ? "N/A" : classItem.Room)
+                                    </p>
+                                </div>
+
+                                <!-- Capacity -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small><strong>Sĩ số:</strong></small>
+                                        <span class="badge bg-@statusColor">@classItem.CurrentEnrollment/@classItem.MaxCapacity</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-@statusColor" 
+                                             role="progressbar" 
+                                             style="width: @capacityPercent%;" 
+                                             aria-valuenow="@capacityPercent" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Checkbox -->
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           name="classIds" 
+                                           value="@classItem.ClassId" 
+                                           id="class_@classItem.ClassId">
+                                    <label class="form-check-label" for="class_@classItem.ClassId">
+                                        Chọn lớp này
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-4 d-flex gap-2 justify-content-between">
+                <a href="@Url.Action("MyEnrollments", "Enrollments")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-check-circle"></i> Xác Nhận Đăng Ký
+                </button>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="glass-card">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Không có lớp được gợi ý</h3>
+                <p>Tất cả lớp phù hợp đều đã đầy hoặc bạn đã đăng ký hết. Vui lòng quay lại sau.</p>
+                <a href="@Url.Action("MyEnrollments", "Enrollments")" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Auto select all checkboxes
+        document.addEventListener('DOMContentLoaded', function() {
+            var checkboxes = document.querySelectorAll('input[name="classIds"]');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = true;
+            });
+        });
+    </script>
+}

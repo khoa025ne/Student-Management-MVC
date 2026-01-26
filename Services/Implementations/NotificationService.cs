@@ -35,6 +35,11 @@ namespace Services.Implementations
             return await _notificationRepo.GetByStudentIdAsync(student.StudentId);
         }
 
+        public async Task<Notification> GetByIdAsync(int id)
+        {
+            return await _notificationRepo.GetByIdAsync(id);
+        }
+
         public async Task<Notification> CreateNotificationAsync(Notification notification)
         {
             return await _notificationRepo.AddAsync(notification);

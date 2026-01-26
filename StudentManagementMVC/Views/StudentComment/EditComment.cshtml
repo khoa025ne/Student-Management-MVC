@@ -1,0 +1,115 @@
+@model StudentManagementMVC.Controllers.StudentCommentModel
+
+@{
+    ViewData["Title"] = "Nhận Xét Sinh Viên";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-comment-dots"></i> Nhận Xét Sinh Viên</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    <!-- Thông tin sinh viên -->
+                    <div class="alert alert-light border-left border-primary">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong>Sinh Viên:</strong> @Model.StudentName
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Mã SV:</strong> <span class="badge bg-info">@Model.StudentCode</span>
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Email:</strong> <small>@Model.StudentEmail</small>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-2">
+                                    <strong>Lớp Học:</strong> @Model.ClassName
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Môn Học:</strong> @Model.CourseName
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Điểm:</strong> 
+                                    <span class="badge bg-info">@Model.Score?.ToString("F2") ?? "N/A"</span>
+                                    <strong class="ms-2">Xếp Loại:</strong>
+                                    <span class="badge bg-success">@Model.Grade</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form nhận xét -->
+                    <form asp-action="SaveComment" method="post" class="mt-4">
+                        <input type="hidden" asp-for="EnrollmentId" />
+
+                        <div class="mb-3">
+                            <label for="CurrentComment" class="form-label">
+                                <strong>Nhận Xét / Góp Ý</strong>
+                            </label>
+                            <textarea class="form-control @(string.IsNullOrEmpty(ViewBag.ErrorMessage) ? "" : "is-invalid")" 
+                                      id="CurrentComment" 
+                                      name="CurrentComment" 
+                                      rows="6" 
+                                      placeholder="Nhập nhận xét, góp ý về thái độ học tập, năng lực, điểm mạnh, điểm yếu...">@Model.CurrentComment</textarea>
+                            <small class="form-text text-muted d-block mt-2">
+                                <i class="fas fa-info-circle"></i> 
+                                Hãy viết những nhận xét xây dựng để giúp sinh viên cải thiện.
+                            </small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" 
+                                   class="form-check-input" 
+                                   id="SendEmail" 
+                                   name="SendEmail" 
+                                   value="true" 
+                                   checked />
+                            <label class="form-check-label" for="SendEmail">
+                                <strong>Gửi email nhận xét cho sinh viên</strong>
+                                <small class="d-block text-muted">
+                                    Nếu bạn tích chọn, sinh viên sẽ nhận được email chứa nhận xét của bạn.
+                                </small>
+                            </label>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fas fa-exclamation-triangle"></i> @ViewBag.ErrorMessage
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
+                        {
+                            <div class="alert alert-success" role="alert">
+                                <i class="fas fa-check-circle"></i> @ViewBag.SuccessMessage
+                            </div>
+                        }
+
+                        <div class="mt-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Lưu Nhận Xét
+                            </button>
+                            <a href="@Url.Action("SelectClass", "StudentComment")" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left {
+        border-left: 4px solid;
+    }
+</style>

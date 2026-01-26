@@ -1,0 +1,86 @@
+@{
+    ViewData["Title"] = "Yêu Cầu Chuyển Lớp";
+    var enrolledClasses = ViewBag.EnrolledClasses as IEnumerable<DataAccess.Entities.Enrollment>;
+    var student = ViewBag.Student as DataAccess.Entities.Student;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-exchange-alt"></i> Yêu Cầu Chuyển Lớp Học</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    @if (enrolledClasses != null && enrolledClasses.Any())
+                    {
+                        <form method="post" asp-action="RequestTransfer">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label for="fromClassId" class="form-label">Lớp Hiện Tại *</label>
+                                <select id="fromClassId" name="fromClassId" class="form-select" required>
+                                    <option value="">-- Chọn lớp muốn rời --</option>
+                                    @foreach (var enrollment in enrolledClasses)
+                                    {
+                                        <option value="@enrollment.ClassId">
+                                            @enrollment.Class?.ClassName - @enrollment.Class?.Course?.CourseName
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Lưu ý:</strong> Hãy chọn lớp khác cùng môn học hoặc liên hệ admin để xin chuyển.
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="toClassId" class="form-label">Lớp Muốn Chuyển Sang *</label>
+                                <input type="text" id="toClassId" name="toClassId" class="form-control" 
+                                       placeholder="Nhập ID lớp hoặc liên hệ phòng đào tạo để xem danh sách"
+                                       required />
+                                <small class="text-muted">Liên hệ phòng đào tạo để biết ID lớp khác</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="reason" class="form-label">Lý Do Chuyển Lớp *</label>
+                                <textarea id="reason" name="reason" class="form-control" rows="4" 
+                                          placeholder="Vui lòng nêu rõ lý do chuyển lớp..." required></textarea>
+                                <small class="text-muted">Ví dụ: xung đột với lịch khác, muốn học với bạn cùng lớp, v.v.</small>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirm" required>
+                                <label class="form-check-label" for="confirm">
+                                    Tôi xác nhận rằng thông tin trên là chính xác
+                                </label>
+                            </div>
+
+                            <div class="mt-4 d-flex gap-2 justify-content-between">
+                                <a href="@Url.Action("MyEnrollments", "Enrollments")" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-paper-plane"></i> Gửi Yêu Cầu
+                                </button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Bạn chưa đăng ký lớp nào!</strong> Vui lòng đăng ký lớp trước.
+                        </div>
+                        <a href="@Url.Action("Register", "Enrollments")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Đăng Ký Lớp
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

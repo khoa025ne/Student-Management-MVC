@@ -1,0 +1,104 @@
+@model DataAccess.Entities.Class
+
+@{
+    ViewData["Title"] = $"Chi tiết lớp học - {Model?.ClassName}";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="fas fa-info-circle"></i> Chi tiết lớp học</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    @if (Model != null)
+                    {
+                        <table class="table table-borderless">
+                            <tr>
+                                <th style="width: 30%;">Mã lớp:</th>
+                                <td><strong>@Model.ClassCode</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Tên lớp:</th>
+                                <td>@Model.ClassName</td>
+                            </tr>
+                            <tr>
+                                <th>Môn học:</th>
+                                <td>
+                                    <strong>@Model.Course?.CourseName</strong> 
+                                    <small class="text-muted">(@Model.Course?.CourseCode)</small>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Học kỳ:</th>
+                                <td>@Model.Semester?.SemesterName <small class="text-muted">(@Model.Semester?.SemesterCode)</small></td>
+                            </tr>
+                            <tr>
+                                <th>Phòng học:</th>
+                                <td>@(string.IsNullOrEmpty(Model.Room) ? "N/A" : Model.Room)</td>
+                            </tr>
+                            <tr>
+                                <th>Lịch học:</th>
+                                <td>@(string.IsNullOrEmpty(Model.DayOfWeekPair) ? "N/A" : Model.DayOfWeekPair)</td>
+                            </tr>
+                            <tr>
+                                <th>Giờ học:</th>
+                                <td>@(string.IsNullOrEmpty(Model.TimeSlot) ? "N/A" : Model.TimeSlot)</td>
+                            </tr>
+                            <tr>
+                                <th>Sĩ số:</th>
+                                <td>
+                                    <span class="badge bg-primary">@Model.CurrentEnrollment/@Model.MaxCapacity</span>
+                                    @{
+                                        var capacity = (Model.CurrentEnrollment * 100 / Model.MaxCapacity);
+                                        var statusColor = capacity >= 100 ? "danger" : capacity >= 80 ? "warning" : "success";
+                                    }
+                                    <span class="badge bg-@statusColor">@capacity%</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Tín chỉ:</th>
+                                <td>@Model.Course?.Credits</td>
+                            </tr>
+                            <tr>
+                                <th>Ngày tạo:</th>
+                                <td>@Model.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        </table>
+
+                        <hr />
+
+                        <div class="mt-4">
+                            <a href="@Url.Action("Index", "Classes")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                            </a>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            {
+                                <a href="@Url.Action("Edit", "Classes", new { id = Model.ClassId })" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> Chỉnh sửa
+                                </a>
+                                <form method="post" asp-action="Delete" style="display: inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@Model.ClassId" />
+                                    <button type="submit" class="btn btn-danger" 
+                                            onclick="return confirm('Bạn có chắc muốn xóa lớp này? Hành động này không thể hoàn tác!');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            Không tìm thấy thông tin lớp học!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

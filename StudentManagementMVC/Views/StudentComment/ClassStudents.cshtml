@@ -1,0 +1,105 @@
+@model (DataAccess.Entities.Class ClassInfo, IEnumerable<(DataAccess.Entities.Enrollment Enrollment, DataAccess.Entities.Student Student, DataAccess.Entities.Score Score)> StudentList)
+
+@{
+    ViewData["Title"] = "Danh Sách Sinh Viên - " + Model.ClassInfo.ClassName;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-list"></i> Danh Sách Sinh Viên - @Model.ClassInfo.ClassName</h4>
+                    <small class="text-white-50">
+                        @Model.ClassInfo.Course?.CourseName (@Model.ClassInfo.ClassCode)
+                    </small>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    @if (Model.StudentList.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã Sinh Viên</th>
+                                        <th>Họ Tên</th>
+                                        <th>Email</th>
+                                        <th>Điểm Số</th>
+                                        <th>Xếp Loại</th>
+                                        <th>Nhận Xét</th>
+                                        <th>Hành Động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.StudentList)
+                                    {
+                                        var scoreDisplay = item.Score?.ScoreValue > 0 ? item.Score.ScoreValue.ToString("F2") : "N/A";
+                                        var gradeDisplay = item.Enrollment.Grade ?? "N/A";
+                                        var hasComment = !string.IsNullOrEmpty(item.Enrollment.Comment);
+                                        
+                                        <tr>
+                                            <td><strong>@item.Student.StudentCode</strong></td>
+                                            <td>@item.Student.FullName</td>
+                                            <td>
+                                                <small>@item.Student.Email</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@scoreDisplay</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">@gradeDisplay</span>
+                                            </td>
+                                            <td>
+                                                @if (hasComment)
+                                                {
+                                                    <small class="text-muted">
+                                                        @{
+                                                            var preview = item.Enrollment.Comment?.Length > 50 
+                                                                ? item.Enrollment.Comment.Substring(0, 50) + "..." 
+                                                                : item.Enrollment.Comment;
+                                                        }
+                                                        @preview
+                                                    </small>
+                                                }
+                                                else
+                                                {
+                                                    <small class="text-muted"><em>Chưa có</em></small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("EditComment", "StudentComment", new { enrollmentId = item.Enrollment.EnrollmentId })" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit"></i> Nhận Xét
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-inbox"></i> Lớp học này không có sinh viên đăng ký.
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        <a href="@Url.Action("SelectClass", "StudentComment")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+</style>

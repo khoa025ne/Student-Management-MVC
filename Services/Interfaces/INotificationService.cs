@@ -8,6 +8,7 @@ namespace Services.Interfaces
     {
         Task<IEnumerable<Notification>> GetAllAsync();
         Task<IEnumerable<Notification>> GetMyNotificationsAsync(int userId);
+        Task<Notification> GetByIdAsync(int id);
         Task<Notification> CreateNotificationAsync(Notification notification);
         Task MarkAsReadAsync(int id);
         Task DeleteAsync(int id);
