@@ -71,11 +71,23 @@ namespace StudentManagementMVC.Controllers
                         model.PhoneNumber
                     );
 
-                    TempData["SuccessMessage"] = $"Tạo sinh viên thành công! Mã sinh viên: {student.StudentCode}. Email chào mừng đã được gửi.";
+                    TempData["SuccessMessage"] = $"Tạo sinh viên thành công! Mã sinh viên: {student.StudentCode}. Email chào mừng đã được gửi tới {model.Email}.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
+                    if (ex.Message.Contains("Email") || ex.Message.Contains("email"))
+                    {
+                        TempData["ErrorMessage"] = $"Email {model.Email} đã được sử dụng! Vui lòng sử dụng email khác.";
+                    }
+                    else if (ex.Message.Contains("phone") || ex.Message.Contains("Phone"))
+                    {
+                        TempData["ErrorMessage"] = $"Số điện thoại {model.PhoneNumber} đã được sử dụng! Vui lòng sử dụng số khác.";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = $"Không thể tạo sinh viên: {ex.Message}. Vui lòng kiểm tra lại thông tin!";
+                    }
                     ModelState.AddModelError("", ex.Message);
                 }
             }
@@ -86,9 +98,17 @@ namespace StudentManagementMVC.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStudent(int id)
         {
-            if (id == 0) return NotFound();
+            if (id == 0) 
+            {
+                TempData["ErrorMessage"] = "ID sinh viên không hợp lệ!";
+                return NotFound();
+            }
             var student = await _studentService.GetByIdAsync(id);
-            if (student == null) return NotFound();
+            if (student == null) 
+            {
+                TempData["ErrorMessage"] = $"Không tìm thấy sinh viên với ID: {id}!";
+                return NotFound();
+            }
             return Json(student); // Trả về JSON để fill form trong popup
         }
 
@@ -125,7 +145,7 @@ namespace StudentManagementMVC.Controllers
         {
             if (id != student.StudentId)
             {
-                return Json(new { success = false, message = "ID không khớp" });
+                return Json(new { success = false, message = "❌ Lỗi: ID không khớp! Vui lòng thử lại." });
             }
 
             if (ModelState.IsValid)
@@ -133,14 +153,15 @@ namespace StudentManagementMVC.Controllers
                 try
                 {
                     await _studentService.UpdateAsync(student);
-                    return Json(new { success = true, message = "Cập nhật sinh viên thành công" });
+                    return Json(new { success = true, message = $"✅ Cập nhật thông tin sinh viên {student.FullName} thành công!" });
                 }
                 catch (System.Exception ex)
                 {
-                    return Json(new { success = false, message = ex.Message });
+                    return Json(new { success = false, message = $"❌ Không thể cập nhật sinh viên: {ex.Message}. Vui lòng kiểm tra lại thông tin!" });
                 }
             }
-            return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+            return Json(new { success = false, message = "❌ Dữ liệu không hợp lệ! Vui lòng kiểm tra lại tất cả các trường.", errors = errors });
         }
 
         // POST: Students/Delete/5
@@ -149,12 +170,17 @@ namespace StudentManagementMVC.Controllers
         {
             try
             {
+                var student = await _studentService.GetByIdAsync(id);
+                if (student == null)
+                {
+                    return Json(new { success = false, message = $"❌ Không tìm thấy sinh viên với ID: {id}!" });
+                }
                 await _studentService.DeleteAsync(id);
-                return Json(new { success = true, message = "Xóa sinh viên thành công" });
+                return Json(new { success = true, message = $"✅ Xóa sinh viên {student.FullName} thành công!" });
             }
             catch (System.Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = $"❌ Không thể xóa sinh viên: {ex.Message}. Có thể sinh viên đã đăng ký lớp học hoặc có dữ liệu liên quan!" });
             }
         }
     }

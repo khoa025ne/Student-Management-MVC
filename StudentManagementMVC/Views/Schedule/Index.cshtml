@@ -5,8 +5,15 @@
     var activeEnrollments = Model.Where(e => e.Status == "Active" || e.Status == "Enrolled").ToList();
     var totalCredits = activeEnrollments.Sum(e => e.Class?.Course?.Credits ?? 0);
     
+    var currentWeek = ViewBag.CurrentWeek ?? 1;
+    var totalWeeks = ViewBag.TotalWeeks ?? 16;
+    var weekStartDate = ViewBag.WeekStartDate as DateTime?;
+    var weekEndDate = ViewBag.WeekEndDate as DateTime?;
+    var activeSemester = ViewBag.ActiveSemester as DataAccess.Entities.Semester;
+    
     // Group by time slots for schedule grid
     var days = new[] { "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7" };
+    var dayNums = new[] { 1, 2, 3, 4, 5, 6 }; // Monday=1, Tuesday=2...Saturday=6
     var slots = new[] { "Slot1", "Slot2", "Slot3", "Slot4" };
     var slotTimes = new Dictionary<string, string> {
         { "Slot1", "7:00 - 9:15" },
@@ -15,6 +22,16 @@
         { "Slot4", "15:00 - 17:15" }
     };
     var dayColors = new[] { "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4" };
+    
+    // Helper function để map DayOfWeekPair to actual days
+    Func<DataAccess.Enums.DayOfWeekPair, int[]> GetDaysFromPair = (pair) => {
+        return pair switch {
+            DataAccess.Enums.DayOfWeekPair.MonThu => new[] { 1, 4 }, // Monday, Thursday
+            DataAccess.Enums.DayOfWeekPair.TueFri => new[] { 2, 5 }, // Tuesday, Friday
+            DataAccess.Enums.DayOfWeekPair.WedSat => new[] { 3, 6 }, // Wednesday, Saturday
+            _ => new int[] { }
+        };
+    };
 }
 
 <div class="space-y-6">
@@ -23,6 +40,14 @@
         <div>
             <h1><i class="fas fa-calendar-alt"></i>Lịch học của tôi</h1>
             <p>Xem thời khóa biểu và lịch học hàng tuần</p>
+            @if (activeSemester != null)
+            {
+                <p class="small text-muted mt-1">
+                    <i class="fas fa-calendar-check me-1"></i>
+                    Học kỳ: <strong>@activeSemester.SemesterName</strong>
+                    (@activeSemester.StartDate.ToString("dd/MM/yyyy") - @activeSemester.EndDate.ToString("dd/MM/yyyy"))
+                </p>
+            }
         </div>
         <a asp-controller="Enrollments" asp-action="Register" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Đăng ký thêm
@@ -44,6 +69,43 @@
     }
     else
     {
+        <!-- Week Selector -->
+        <div class="glass-card">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h5 class="mb-1 fw-semibold">
+                        <i class="fas fa-calendar-week me-2" style="color: var(--primary);"></i>
+                        Tuần @currentWeek / @totalWeeks
+                    </h5>
+                    @if (weekStartDate.HasValue && weekEndDate.HasValue)
+                    {
+                        <p class="small text-muted mb-0">
+                            <i class="fas fa-clock me-1"></i>
+                            @weekStartDate.Value.ToString("dd/MM/yyyy") - @weekEndDate.Value.ToString("dd/MM/yyyy")
+                        </p>
+                    }
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a asp-action="Index" asp-route-week="@(currentWeek > 1 ? currentWeek - 1 : 1)" 
+                       class="btn btn-sm @(currentWeek <= 1 ? "btn-secondary disabled" : "btn-outline-primary")">
+                        <i class="fas fa-chevron-left"></i> Tuần trước
+                    </a>
+                    
+                    <select id="weekSelector" class="form-select form-select-sm" style="width: auto;" onchange="changeWeek(this.value)">
+                        @for (int w = 1; w <= totalWeeks; w++)
+                        {
+                            var isSelected = (w == currentWeek);
+                            <option value="@w" selected="@isSelected">Tuần @w</option>
+                        }
+                    </select>
+                    
+                    <a asp-action="Index" asp-route-week="@(currentWeek < totalWeeks ? currentWeek + 1 : totalWeeks)" 
+                       class="btn btn-sm @(currentWeek >= totalWeeks ? "btn-secondary disabled" : "btn-outline-primary")">
+                        Tuần sau <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
         <!-- Stats Cards -->
         <div class="row g-4">
             <div class="col-6 col-md-3">
@@ -99,16 +161,24 @@
         <!-- Schedule Grid -->
         <div class="glass-card">
             <h5 class="mb-4 fw-semibold">
-                <i class="fas fa-th me-2" style="color: var(--primary);"></i>Thời khóa biểu
+                <i class="fas fa-th me-2" style="color: var(--primary);"></i>Thời khóa biểu - Tuần @currentWeek
             </h5>
             <div class="schedule-grid-container">
                 <div class="schedule-grid">
                     <!-- Header Row -->
-                    <div class="schedule-header schedule-time-col"></div>
+                    <div class="schedule-header schedule-time-col">
+                        <div class="fw-bold">Ca học</div>
+                        <div class="small text-muted">Thời gian</div>
+                    </div>
                     @for (int d = 0; d < days.Length; d++)
                     {
+                        var dayDate = weekStartDate?.AddDays(d);
                         <div class="schedule-header" style="border-bottom: 3px solid @dayColors[d];">
-                            @days[d]
+                            <div class="fw-bold">@days[d]</div>
+                            @if (dayDate.HasValue)
+                            {
+                                <div class="small text-muted">@dayDate.Value.ToString("dd/MM")</div>
+                            }
                         </div>
                     }
 
@@ -120,26 +190,54 @@
                             <div class="schedule-slot-time">@slotTimes[slot]</div>
                         </div>
                         
-                        @for (int d = 0; d < days.Length; d++)
+                        @for (int d = 0; d < dayNums.Length; d++)
                         {
-                            var dayNum = d + 2; // Thứ 2 = 2, Thứ 3 = 3...
+                            var dayNum = dayNums[d]; // 1=Monday, 2=Tuesday...
                             var matchingClasses = activeEnrollments
-                                .Where(e => e.Class?.TimeSlot.ToString() == slot && 
-                                           (e.Class?.DayOfWeekPair.ToString().Contains(dayNum.ToString()) ?? false))
+                                .Where(e => {
+                                    if (e.Class == null) return false;
+                                    var slotMatch = e.Class.TimeSlot.ToString() == slot;
+                                    var dayPairDays = GetDaysFromPair(e.Class.DayOfWeekPair);
+                                    var dayMatch = dayPairDays.Contains(dayNum);
+                                    return slotMatch && dayMatch;
+                                })
                                 .ToList();
                             
                             <div class="schedule-cell">
-                                @foreach (var item in matchingClasses)
+                                @if (!matchingClasses.Any())
                                 {
-                                    <div class="schedule-item animate-fadeIn" style="background: linear-gradient(135deg, @(dayColors[d])22 0%, @(dayColors[d])11 100%); border-left: 3px solid @dayColors[d];">
-                                        <div class="schedule-item-title">@item.Class?.Course?.CourseName</div>
-                                        <div class="schedule-item-detail">
-                                            <i class="fas fa-map-marker-alt"></i> @item.Class?.Room
-                                        </div>
-                                        <div class="schedule-item-detail">
-                                            <i class="fas fa-hashtag"></i> @item.Class?.ClassCode
-                                        </div>
+                                    <div class="schedule-empty">
+                                        <i class="fas fa-moon text-muted" style="font-size: 1.5rem; opacity: 0.3;"></i>
                                     </div>
+                                }
+                                else
+                                {
+                                    @foreach (var item in matchingClasses)
+                                    {
+                                        var slotIndex = Array.IndexOf(slots, slot);
+                                        var itemColor = dayColors[d];
+                                        <div class="schedule-item animate-fadeIn" style="background: linear-gradient(135deg, @(itemColor)22 0%, @(itemColor)11 100%); border-left: 3px solid @itemColor;">
+                                            <div class="schedule-item-title">
+                                                <i class="fas fa-book-open me-1"></i>
+                                                @item.Class?.Course?.CourseName
+                                            </div>
+                                            <div class="schedule-item-detail">
+                                                <i class="fas fa-map-marker-alt"></i> Phòng @item.Class?.Room
+                                            </div>
+                                            <div class="schedule-item-detail">
+                                                <i class="fas fa-hashtag"></i> @item.Class?.ClassCode
+                                            </div>
+                                            <div class="schedule-item-detail">
+                                                <i class="fas fa-clock"></i> @slotTimes[slot]
+                                            </div>
+                                            @if (item.Class?.Course?.Credits != null)
+                                            {
+                                                <div class="schedule-item-detail">
+                                                    <i class="fas fa-graduation-cap"></i> @item.Class.Course.Credits TC
+                                                </div>
+                                            }
+                                        </div>
+                                    }
                                 }
                             </div>
                         }
@@ -231,18 +329,29 @@
                 <div class="col-md-6">
                     <p class="small mb-2 fw-semibold">Ngày học:</p>
                     <div class="d-flex flex-wrap gap-2">
-                        <span class="badge-modern badge-info">2_4</span><span class="small text-muted">Thứ 2 & 5</span>
-                        <span class="badge-modern badge-info">3_6</span><span class="small text-muted">Thứ 3 & 6</span>
-                        <span class="badge-modern badge-info">4_7</span><span class="small text-muted">Thứ 4 & 7</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-modern badge-info">MonThu</span>
+                            <span class="small text-muted">Thứ 2 & Thứ 5</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-modern badge-info">TueFri</span>
+                            <span class="small text-muted">Thứ 3 & Thứ 6</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-modern badge-info">WedSat</span>
+                            <span class="small text-muted">Thứ 4 & Thứ 7</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <p class="small mb-2 fw-semibold">Ca học:</p>
-                    <div class="d-flex flex-wrap gap-2">
+                    <div class="d-flex flex-wrap gap-3">
                         @foreach (var slot in slotTimes)
                         {
-                            <span class="badge-modern badge-warning">@slot.Key</span>
-                            <span class="small text-muted me-2">@slot.Value</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge-modern badge-warning">@slot.Key</span>
+                                <span class="small text-muted">@slot.Value</span>
+                            </div>
                         }
                     </div>
                 </div>
@@ -251,18 +360,48 @@
     }
 </div>
 
+<script>
+    function changeWeek(week) {
+        window.location.href = '@Url.Action("Index", "Schedule")?week=' + week;
+    }
+
+    // Highlight today's column
+    document.addEventListener('DOMContentLoaded', function() {
+        @if (weekStartDate.HasValue && weekEndDate.HasValue)
+        {
+            @:var today = new Date();
+            @:var weekStart = new Date(@weekStartDate.Value.Year, @(weekStartDate.Value.Month - 1), @weekStartDate.Value.Day);
+            @:var weekEnd = new Date(@weekEndDate.Value.Year, @(weekEndDate.Value.Month - 1), @weekEndDate.Value.Day);
+            @:
+            @:if (today >= weekStart && today <= weekEnd) {
+            @:    var dayOfWeek = today.getDay();
+            @:    if (dayOfWeek >= 1 && dayOfWeek <= 6) {
+            @:        var columnIndex = dayOfWeek;
+            @:        var headers = document.querySelectorAll('.schedule-header');
+            @:        
+            @:        if (headers[columnIndex]) {
+            @:            headers[columnIndex].style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+            @:            headers[columnIndex].innerHTML += '<div class="small mt-1"><i class="fas fa-calendar-day"></i> Hôm nay</div>';
+            @:        }
+            @:    }
+            @:}
+        }
+    });
+</script>
+
 <style>
     .schedule-grid-container {
         overflow-x: auto;
+        border-radius: 12px;
     }
     .schedule-grid {
         display: grid;
-        grid-template-columns: 100px repeat(6, 1fr);
+        grid-template-columns: 120px repeat(6, 1fr);
         gap: 1px;
         background: var(--border-color);
         border-radius: 12px;
         overflow: hidden;
-        min-width: 800px;
+        min-width: 900px;
     }
     .schedule-header {
         background: var(--bg-secondary);
@@ -270,43 +409,118 @@
         font-weight: 600;
         text-align: center;
         font-size: 0.875rem;
+        transition: all 0.3s ease;
     }
     .schedule-time-col {
         background: var(--bg-card);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
     .schedule-time {
         background: var(--bg-secondary);
         padding: 1rem 0.5rem;
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.25rem;
     }
     .schedule-slot-name {
-        font-weight: 600;
+        font-weight: 700;
         font-size: 0.875rem;
-        color: var(--text-primary);
+        color: var(--primary);
     }
     .schedule-slot-time {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: var(--text-muted);
+        white-space: nowrap;
     }
     .schedule-cell {
         background: var(--bg-card);
         padding: 0.5rem;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        transition: background 0.3s ease;
+    }
+    .schedule-cell:hover {
+        background: rgba(59, 130, 246, 0.03);
+    }
+    .schedule-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
         min-height: 100px;
     }
     .schedule-item {
-        padding: 0.5rem;
+        padding: 0.625rem;
         border-radius: 8px;
         margin-bottom: 0.25rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .schedule-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     .schedule-item-title {
         font-weight: 600;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         color: var(--text-primary);
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.375rem;
         line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     .schedule-item-detail {
         font-size: 0.7rem;
         color: var(--text-muted);
+        margin-bottom: 0.125rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .schedule-item-detail i {
+        width: 12px;
+        font-size: 0.65rem;
+    }
+
+    /* Week selector styling */
+    #weekSelector {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    #weekSelector:hover {
+        border-color: var(--primary);
+    }
+    #weekSelector:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .schedule-grid {
+            grid-template-columns: 90px repeat(6, minmax(100px, 1fr));
+        }
+        .schedule-item-title {
+            font-size: 0.7rem;
+        }
+        .schedule-item-detail {
+            font-size: 0.65rem;
+        }
     }
 </style>

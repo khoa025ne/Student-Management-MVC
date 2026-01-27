@@ -65,13 +65,9 @@
                                 <label asp-for="DayOfWeekPair" class="form-label">Lịch học</label>
                                 <select asp-for="DayOfWeekPair" class="form-select">
                                     <option value="">-- Chọn --</option>
-                                    <option value="Thứ 2 - Thứ 4">Thứ 2 - Thứ 4</option>
-                                    <option value="Thứ 3 - Thứ 5">Thứ 3 - Thứ 5</option>
-                                    <option value="Thứ 4 - Thứ 6">Thứ 4 - Thứ 6</option>
-                                    <option value="Thứ 2 - Thứ 5">Thứ 2 - Thứ 5</option>
-                                    <option value="Thứ 3 - Thứ 6">Thứ 3 - Thứ 6</option>
-                                    <option value="Thứ 7">Thứ 7</option>
-                                    <option value="Chủ nhật">Chủ nhật</option>
+                                    <option value="1">Thứ 2 - Thứ 5 (MonThu)</option>
+                                    <option value="2">Thứ 3 - Thứ 6 (TueFri)</option>
+                                    <option value="3">Thứ 4 - Thứ 7 (WedSat)</option>
                                 </select>
                                 <span asp-validation-for="DayOfWeekPair" class="text-danger"></span>
                             </div>
@@ -79,11 +75,10 @@
                                 <label asp-for="TimeSlot" class="form-label">Giờ học</label>
                                 <select asp-for="TimeSlot" class="form-select">
                                     <option value="">-- Chọn --</option>
-                                    <option value="7:00 - 9:00">7:00 - 9:00</option>
-                                    <option value="9:00 - 11:00">9:00 - 11:00</option>
-                                    <option value="13:00 - 15:00">13:00 - 15:00</option>
-                                    <option value="15:00 - 17:00">15:00 - 17:00</option>
-                                    <option value="17:00 - 19:00">17:00 - 19:00</option>
+                                    <option value="1">Slot 1 (7:00 - 9:00)</option>
+                                    <option value="2">Slot 2 (9:00 - 11:00)</option>
+                                    <option value="3">Slot 3 (13:00 - 15:00)</option>
+                                    <option value="4">Slot 4 (15:00 - 17:00)</option>
                                 </select>
                                 <span asp-validation-for="TimeSlot" class="text-danger"></span>
                             </div>

@@ -1,0 +1,196 @@
+@model IEnumerable<DataAccess.Entities.Student>
+
+@{
+    ViewData["Title"] = "Thêm sinh viên vào lớp";
+    var classEntity = ViewBag.Class as DataAccess.Entities.Class;
+    var availableSlots = (int)ViewBag.AvailableSlots;
+    var currentEnrollment = (int)ViewBag.CurrentEnrollment;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-user-plus"></i> Chọn sinh viên thêm vào lớp</h4>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    @if (classEntity != null)
+                    {
+                        <div class="alert alert-info mb-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-chalkboard"></i> Lớp học:</strong> @classEntity.ClassName (@classEntity.ClassCode)
+                                </div>
+                                <div class="col-md-6">
+                                    <strong><i class="fas fa-users"></i> Sĩ số:</strong> 
+                                    <span class="badge bg-primary">@currentEnrollment/@classEntity.MaxStudents</span>
+                                    <span class="badge bg-success">Còn trống: @availableSlots</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model != null && Model.Any())
+                        {
+                            <form method="post" asp-action="AddSelectedStudents" asp-controller="Classes" id="addStudentsForm">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="classId" value="@classEntity.ClassId" />
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="selectAll()">
+                                                <i class="fas fa-check-square"></i> Chọn tất cả
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="deselectAll()">
+                                                <i class="fas fa-square"></i> Bỏ chọn tất cả
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-info">Đã chọn: <span id="selectedCount">0</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <input type="text" id="searchBox" class="form-control" placeholder="🔍 Tìm kiếm sinh viên (Mã SV, Họ tên, Email)...">
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th style="width: 50px;">
+                                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleAll(this)">
+                                                </th>
+                                                <th>Mã SV</th>
+                                                <th>Họ và tên</th>
+                                                <th>Email</th>
+                                                <th>Chuyên ngành</th>
+                                                <th>Kỳ học</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="studentTableBody">
+                                            @foreach (var student in Model)
+                                            {
+                                                <tr class="student-row" 
+                                                    data-code="@student.StudentCode" 
+                                                    data-name="@student.User?.FullName" 
+                                                    data-email="@student.User?.Email">
+                                                    <td>
+                                                        <input type="checkbox" name="studentIds" value="@student.StudentId" 
+                                                               class="student-checkbox" onchange="updateCount()">
+                                                    </td>
+                                                    <td><strong>@student.StudentCode</strong></td>
+                                                    <td>@student.User?.FullName</td>
+                                                    <td>@student.User?.Email</td>
+                                                    <td>
+                                                        <span class="badge bg-secondary">@student.Major</span>
+                                                    </td>
+                                                    <td>@(student.CurrentTermNo.HasValue ? $"Kỳ {student.CurrentTermNo}" : "N/A")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="mt-4">
+                                    <a href="@Url.Action("Details", "Classes", new { id = classEntity.ClassId })" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Quay lại
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                                        <i class="fas fa-save"></i> Thêm sinh viên đã chọn
+                                    </button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Không có sinh viên nào khả dụng để thêm vào lớp này!
+                                <br><small>Tất cả sinh viên đã được đăng ký vào lớp hoặc không có sinh viên trong hệ thống.</small>
+                            </div>
+                            <a href="@Url.Action("Details", "Classes", new { id = classEntity.ClassId })" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const availableSlots = @availableSlots;
+
+        function updateCount() {
+            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            const count = checkboxes.length;
+            document.getElementById('selectedCount').textContent = count;
+            document.getElementById('submitBtn').disabled = count === 0;
+
+            if (count > availableSlots) {
+                alert(`Chỉ còn ${availableSlots} chỗ trống! Vui lòng chọn ít hơn.`);
+                checkboxes[checkboxes.length - 1].checked = false;
+                updateCount();
+            }
+        }
+
+        function selectAll() {
+            const visibleCheckboxes = document.querySelectorAll('.student-row:not([style*="display: none"]) .student-checkbox');
+            const maxSelect = Math.min(visibleCheckboxes.length, availableSlots);
+            
+            for (let i = 0; i < visibleCheckboxes.length; i++) {
+                visibleCheckboxes[i].checked = (i < maxSelect);
+            }
+            updateCount();
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllCheckbox').checked = false;
+            updateCount();
+        }
+
+        function toggleAll(checkbox) {
+            if (checkbox.checked) {
+                selectAll();
+            } else {
+                deselectAll();
+            }
+        }
+
+        // Search functionality
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.student-row');
+            
+            rows.forEach(row => {
+                const code = row.dataset.code.toLowerCase();
+                const name = row.dataset.name.toLowerCase();
+                const email = row.dataset.email.toLowerCase();
+                
+                if (code.includes(searchTerm) || name.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Prevent form submission if exceeds limit
+        document.getElementById('addStudentsForm').addEventListener('submit', function(e) {
+            const count = document.querySelectorAll('.student-checkbox:checked').length;
+            if (count > availableSlots) {
+                e.preventDefault();
+                alert(`Chỉ còn ${availableSlots} chỗ trống! Bạn đã chọn ${count} sinh viên.`);
+                return false;
+            }
+        });
+    </script>
+}

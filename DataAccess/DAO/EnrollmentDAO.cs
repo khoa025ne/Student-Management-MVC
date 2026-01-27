@@ -76,6 +76,9 @@ namespace DataAccess.DAO
                 return await _context.Enrollments
                     .Where(e => e.ClassId == classId)
                     .Include(e => e.Student)
+                        .ThenInclude(s => s.User)
+                    .Include(e => e.Class)
+                    .OrderBy(e => e.Student.StudentCode)
                     .ToListAsync();
             }
             catch (Exception ex)

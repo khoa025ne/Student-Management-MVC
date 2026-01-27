@@ -40,6 +40,12 @@ namespace DataAccess.Entities
         // Ai dạy? (Tạm thời để null nếu chưa làm Teacher)
         public int? TeacherId { get; set; }
 
+        // Sĩ số tối đa (alias cho MaxCapacity)
+        public int MaxStudents { get; set; } = 30; // Mặc định 30
+
+        // Ngày tạo lớp học
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         // Danh sách sinh viên đăng ký vào lớp này
         public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     }

@@ -36,6 +36,7 @@ namespace StudentManagementMVC.Controllers
         {
             if (!ModelState.IsValid)
             {
+                TempData["ErrorMessage"] = "Vui lòng điền đầy đủ thông tin đăng nhập!";
                 return View(model);
             }
 
@@ -44,21 +45,24 @@ namespace StudentManagementMVC.Controllers
                 var user = await _authService.LoginAsync(model.Email, model.Password);
                 if (user == null)
                 {
-                    ModelState.AddModelError("", "Email hoặc mật khẩu không chính xác");
+                    TempData["ErrorMessage"] = "❌ Tên tài khoản (email) hoặc mật khẩu không chính xác! Vui lòng kiểm tra lại và thử lại.";
+                    ModelState.AddModelError("", "Thông tin đăng nhập không chính xác");
                     return View(model);
                 }
 
                 if (!user.IsActive)
                 {
+                    TempData["ErrorMessage"] = "Tài khoản của bạn đã bị khóa! Vui lòng liên hệ quản trị viên để được hỗ trợ.";
                     ModelState.AddModelError("", "Tài khoản đã bị khóa");
                     return View(model);
                 }
 
                 // Kiểm tra nếu phải đổi mật khẩu
-                if (user.MustChangePassword)
+                // Staff (RoleId=4) và Lecturer (RoleId=2) không cần đổi mk lần đầu
+                if (user.MustChangePassword && user.RoleId != 2 && user.RoleId != 4) // 2=Lecturer, 4=Staff
                 {
                     TempData["MustChangePasswordEmail"] = user.Email;
-                    TempData["WarningMessage"] = "Bạn phải đổi mật khẩu trước khi đăng nhập!";
+                    TempData["WarningMessage"] = "Đây là lần đăng nhập đầu tiên hoặc tài khoản yêu cầu đổi mật khẩu. Vui lòng đổi mật khẩu để tiếp tục!";
                     return RedirectToAction("ChangePassword");
                 }
 
@@ -82,10 +86,12 @@ namespace StudentManagementMVC.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
+                TempData["SuccessMessage"] = $"Chào mừng {user.FullName}! Đăng nhập thành công.";
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
+                TempData["ErrorMessage"] = $"Đã xảy ra lỗi khi đăng nhập: {ex.Message}. Vui lòng thử lại sau!";
                 ModelState.AddModelError("", "Lỗi đăng nhập: " + ex.Message);
                 return View(model);
             }
@@ -94,6 +100,8 @@ namespace StudentManagementMVC.Controllers
         [HttpGet]
         public IActionResult Register()
         {
+            // Chỉ cho phép admin/staff tạo tài khoản qua trang này
+            // Sinh viên tự đăng ký thông qua form đặc biệt hoặc bị admin/staff tạo
             return View();
         }
 
@@ -116,11 +124,19 @@ namespace StudentManagementMVC.Controllers
 
                 await _authService.RegisterAsync(user, model.Password);
 
-                TempData["SuccessMessage"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+                TempData["SuccessMessage"] = $"Đăng ký tài khoản thành công! Xin chào {model.FullName}, vui lòng đăng nhập để tiếp tục.";
                 return RedirectToAction("Login");
             }
             catch (Exception ex)
             {
+                if (ex.Message.Contains("Email") || ex.Message.Contains("email"))
+                {
+                    TempData["ErrorMessage"] = "Email này đã được sử dụng! Vui lòng sử dụng email khác hoặc đăng nhập nếu bạn đã có tài khoản.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = $"Đăng ký thất bại: {ex.Message}. Vui lòng kiểm tra lại thông tin và thử lại!";
+                }
                 ModelState.AddModelError("", "Lỗi đăng ký: " + ex.Message);
                 return View(model);
             }
@@ -220,6 +236,16 @@ namespace StudentManagementMVC.Controllers
                 ViewBag.Email = email;
                 return View();
             }
+        }
+
+        /// <summary>
+        /// Trang thông báo truy cập bị từ chối
+        /// </summary>
+        [HttpGet]
+        public IActionResult AccessDenied(string? returnUrl = null)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
         }
     }
 }

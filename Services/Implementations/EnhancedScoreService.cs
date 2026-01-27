@@ -119,9 +119,16 @@ namespace Services.Implementations
                     // TODO: Implement AcademicAnalysisRepository
                     
                     // Gửi email phân tích AI
+                    var strongSubjectsJson = System.Text.Json.JsonSerializer.Serialize(analysis.StrongSubjects ?? Array.Empty<string>());
+                    var weakSubjectsJson = System.Text.Json.JsonSerializer.Serialize(analysis.WeakSubjects ?? Array.Empty<string>());
+                    
                     await emailService.SendAIAnalysisNotificationAsync(
                         student.Email, 
-                        student.FullName);
+                        student.FullName,
+                        strongSubjectsJson,
+                        weakSubjectsJson,
+                        analysis.Recommendations ?? "Chưa có khuyến nghị",
+                        newGPA);
                 }
 
                 // 3. Gửi email thông báo điểm mới

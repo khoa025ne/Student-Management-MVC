@@ -132,9 +132,13 @@ namespace Services.Implementations
 
                 var result = await _enrollmentRepository.AddAsync(enrollment);
 
-                // Cập nhật sĩ số lớp
-                classEntity.CurrentEnrollment++;
-                await _classRepository.UpdateAsync(classEntity);
+                // Cập nhật sĩ số lớp - Load lại từ DB để có tracking context
+                var classToUpdate = await _classRepository.GetByIdAsync(enrollment.ClassId);
+                if (classToUpdate != null)
+                {
+                    classToUpdate.CurrentEnrollment++;
+                    await _classRepository.UpdateAsync(classToUpdate);
+                }
 
                 return result;
             }

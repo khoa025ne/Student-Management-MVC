@@ -9,7 +9,7 @@ using System;
 
 namespace StudentManagementMVC.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Manager")]
     public class UsersController : Controller
     {
         private readonly IUserService _userService;
@@ -28,7 +28,18 @@ namespace StudentManagementMVC.Controllers
         public async Task<IActionResult> Index()
         {
             var users = await _userService.GetAllAsync();
+            var students = await _studentService.GetAllAsync();
+            
+            // Map student data to users for display
+            var usersWithStudentInfo = users.Select(u => new
+            {
+                User = u,
+                Student = students.FirstOrDefault(s => s.UserId == u.UserId)
+            }).ToList();
+            
             ViewBag.Roles = await _roleService.GetAllAsync();
+            ViewBag.UsersWithStudentInfo = usersWithStudentInfo;
+            
             return View(users);
         }
 
@@ -40,7 +51,7 @@ namespace StudentManagementMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string email, string fullName, string phoneNumber, string? password, int roleId, DateTime? dateOfBirth, bool isActive = true)
+        public async Task<IActionResult> Create(string email, string fullName, string phoneNumber, string? password, int roleId, DateTime? dateOfBirth, bool isActive = true, string? majorCode = null)
         {
             try
             {
@@ -139,6 +150,16 @@ namespace StudentManagementMVC.Controllers
                         var createdUser = await _userService.GetByEmailAsync(email);
                         if (createdUser != null)
                         {
+                            // Parse major code
+                            var major = MajorType.Undefined;
+                            if (!string.IsNullOrEmpty(majorCode))
+                            {
+                                if (Enum.TryParse<MajorType>(majorCode, true, out var parsedMajor))
+                                {
+                                    major = parsedMajor;
+                                }
+                            }
+
                             var student = new Student
                             {
                                 UserId = createdUser.UserId,
@@ -147,14 +168,14 @@ namespace StudentManagementMVC.Controllers
                                 Email = email,
                                 PhoneNumber = phoneNumber,
                                 DateOfBirth = dateOfBirth!.Value,
-                                Major = MajorType.Undefined,
+                                Major = major,
                                 ClassCode = "Chưa phân lớp",
                                 OverallGPA = 0.0,
                                 CurrentTermNo = 1
                             };
 
                             await _studentService.CreateAsync(student);
-                            TempData["InfoMessage"] = $"Hồ sơ sinh viên đã được tạo tự động. Mã SV: {studentCode}";
+                            TempData["InfoMessage"] = $"Hồ sơ sinh viên đã được tạo tự động. Mã SV: {studentCode} - Ngành: {major}";
                         }
                     }
                     catch (Exception studentEx)
@@ -172,11 +193,11 @@ namespace StudentManagementMVC.Controllers
                         studentCode: string.IsNullOrEmpty(studentCode) ? email.Split('@')[0] : studentCode,
                         tempPassword: finalPassword
                     );
-                    TempData["SuccessMessage"] = $"Tạo người dùng thành công! Email chào mừng đã được gửi. Mật khẩu: {finalPassword}";
+                    TempData["SuccessMessage"] = $"Tạo người dùng thành công! Email chào mừng đã được gửi. Mật khẩu tạm: {finalPassword}";
                 }
                 catch (Exception emailEx)
                 {
-                    TempData["WarningMessage"] = $"Tạo người dùng thành công nhưng gửi email thất bại: {emailEx.Message}. Mật khẩu: {finalPassword}";
+                    TempData["WarningMessage"] = $"Tạo người dùng thành công nhưng gửi email thất bại: {emailEx.Message}. Mật khẩu tạm: {finalPassword}";
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -194,7 +215,8 @@ namespace StudentManagementMVC.Controllers
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = $"Không tìm thấy người dùng với ID: {id}!";
+                return RedirectToAction(nameof(Index));
             }
 
             ViewBag.Roles = await _roleService.GetAllAsync();
@@ -207,21 +229,44 @@ namespace StudentManagementMVC.Controllers
         {
             if (id != user.UserId)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = $"Không khớp ID: URL ID ({id}) khác với User ID ({user.UserId})!";
+                return RedirectToAction(nameof(Index));
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Kiểm tra user tồn tại
+                    var existingUser = await _userService.GetByIdAsync(id);
+                    if (existingUser == null)
+                    {
+                        TempData["ErrorMessage"] = $"Không tìm thấy người dùng với ID: {id}!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    // Kiểm tra email duplicate (trừ chính nó)
+                    var emailExists = await _userService.GetByEmailAsync(user.Email);
+                    if (emailExists != null && emailExists.UserId != user.UserId)
+                    {
+                        TempData["ErrorMessage"] = $"Email '{user.Email}' đã được sử dụng bởi người dùng khác!";
+                        ViewBag.Roles = await _roleService.GetAllAsync();
+                        return View(user);
+                    }
+
                     await _userService.UpdateAsync(user);
-                    TempData["SuccessMessage"] = "Cập nhật người dùng thành công!";
+                    TempData["SuccessMessage"] = $"Cập nhật người dùng '{user.FullName}' thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
+                    TempData["ErrorMessage"] = $"Lỗi khi cập nhật người dùng: {ex.Message}";
                     ModelState.AddModelError("", ex.Message);
                 }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
             }
 
             ViewBag.Roles = await _roleService.GetAllAsync();
@@ -237,21 +282,22 @@ namespace StudentManagementMVC.Controllers
                 var user = await _userService.GetByIdAsync(id);
                 if (user == null)
                 {
-                    return NotFound();
+                    TempData["ErrorMessage"] = $"Không tìm thấy người dùng với ID: {id}!";
+                    return RedirectToAction(nameof(Index));
                 }
 
                 user.IsActive = !user.IsActive;
                 await _userService.UpdateAsync(user);
 
                 TempData["SuccessMessage"] = user.IsActive 
-                    ? "Đã mở khóa tài khoản!" 
-                    : "Đã khóa tài khoản!";
+                    ? $"Đã mở khóa tài khoản '{user.FullName}' ({user.Email})!" 
+                    : $"Đã khóa tài khoản '{user.FullName}' ({user.Email})!";
 
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = ex.Message;
+                TempData["ErrorMessage"] = $"Lỗi khi thay đổi trạng thái tài khoản: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -265,7 +311,8 @@ namespace StudentManagementMVC.Controllers
                 var user = await _userService.GetByIdAsync(id);
                 if (user == null)
                 {
-                    return NotFound();
+                    TempData["ErrorMessage"] = $"Không tìm thấy người dùng với ID: {id}!";
+                    return RedirectToAction(nameof(Index));
                 }
 
                 // Reset to default password: ddMMyyyy@fpt (based on DateOfBirth or 01011990@fpt)
@@ -275,12 +322,12 @@ namespace StudentManagementMVC.Controllers
                 
                 await _userService.UpdateAsync(user);
 
-                TempData["SuccessMessage"] = $"Đã reset mật khẩu! Mật khẩu mặc định: {defaultPassword}";
+                TempData["SuccessMessage"] = $"Đã reset mật khẩu cho '{user.FullName}'! Mật khẩu mặc định: {defaultPassword}. Người dùng sẽ được yêu cầu đổi mật khẩu khi đăng nhập lần sau.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = ex.Message;
+                TempData["ErrorMessage"] = $"Lỗi khi reset mật khẩu: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -308,30 +355,40 @@ namespace StudentManagementMVC.Controllers
                 var user = await _userService.GetByIdAsync(id);
                 if (user == null)
                 {
-                    TempData["ErrorMessage"] = "Không tìm thấy người dùng!";
+                    TempData["ErrorMessage"] = $"Không tìm thấy người dùng với ID: {id}!";
                     return RedirectToAction(nameof(Index));
                 }
 
                 // Không cho xóa Admin
                 if (user.Role?.RoleName == "Admin")
                 {
-                    TempData["ErrorMessage"] = "Không thể xóa tài khoản Admin!";
+                    TempData["ErrorMessage"] = $"Không thể xóa tài khoản Admin '{user.FullName}'! Tài khoản Admin không thể bị xóa khỏi hệ thống.";
                     return RedirectToAction(nameof(Index));
                 }
 
+                var userName = user.FullName;
+                var userEmail = user.Email;
+                
                 await _userService.DeleteAsync(id);
-                TempData["SuccessMessage"] = "Xóa người dùng thành công!";
+                TempData["SuccessMessage"] = $"Xóa người dùng '{userName}' ({userEmail}) thành công!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
+                if (ex.Message.Contains("FOREIGN KEY") || ex.Message.Contains("foreign key"))
+                {
+                    TempData["ErrorMessage"] = $"Không thể xóa người dùng: {ex.Message}. Có thể người dùng này đang có dữ liệu liên quan (hồ sơ sinh viên, điểm số, thông báo...)!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = $"Lỗi khi xóa người dùng: {ex.Message}";
+                }
                 return RedirectToAction(nameof(Index));
             }
         }
 
         /// <summary>
-        /// Cập nhật Role cho User
+        /// Cập nhật Role cho User với tự động tạo hồ sơ
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -354,17 +411,90 @@ namespace StudentManagementMVC.Controllers
                 }
 
                 var oldRole = user.Role?.RoleName;
+                var newRole = (await _roleService.GetByIdAsync(newRoleId))?.RoleName;
+                
+                // Cập nhật role
                 user.RoleId = newRoleId;
                 await _userService.UpdateAsync(user);
 
-                var newRole = (await _roleService.GetByIdAsync(newRoleId))?.RoleName;
-                TempData["SuccessMessage"] = $"Đã cập nhật role từ '{oldRole}' sang '{newRole}' thành công!";
+                // Tự động tạo hồ sơ Student nếu đổi sang role Student
+                if (newRole == "Student")
+                {
+                    // Kiểm tra xem user đã có hồ sơ Student chưa
+                    var students = await _studentService.GetAllAsync();
+                    var existingStudent = students.FirstOrDefault(s => s.UserId == userId);
+                    
+                    if (existingStudent == null)
+                    {
+                        // Tạo hồ sơ Student mới với thông tin cơ bản
+                        var newStudent = new Student
+                        {
+                            UserId = userId,
+                            StudentCode = $"SV{DateTime.Now:yyyyMMddHHmmss}",
+                            FullName = user.FullName,
+                            Email = user.Email,
+                            PhoneNumber = user.PhoneNumber,
+                            DateOfBirth = DateTime.Now.AddYears(-20), // Default 20 tuổi
+                            ClassCode = "TBD", // To Be Determined - cần cập nhật sau
+                            Major = DataAccess.Enums.MajorType.Undefined,
+                            User = user
+                        };
+                        
+                        await _studentService.CreateAsync(newStudent);
+                        
+                        TempData["SuccessMessage"] = $"Đã cập nhật role từ '{oldRole}' sang '{newRole}' và tạo hồ sơ sinh viên (Mã SV: {newStudent.StudentCode})!";
+                        TempData["InfoMessage"] = "Vui lòng cập nhật đầy đủ thông tin sinh viên (Ngành, Lớp, v.v.) trong phần Quản lý sinh viên.";
+                    }
+                    else
+                    {
+                        TempData["SuccessMessage"] = $"Đã cập nhật role từ '{oldRole}' sang '{newRole}' (Hồ sơ sinh viên đã tồn tại: {existingStudent.StudentCode})!";
+                    }
+                }
+                else if (newRole == "Teacher")
+                {
+                    // TODO: Tạo hồ sơ Teacher nếu có Teacher entity
+                    TempData["SuccessMessage"] = $"Đã cập nhật role từ '{oldRole}' sang '{newRole}' thành công!";
+                    TempData["InfoMessage"] = "Lưu ý: Chưa hỗ trợ tạo tự động hồ sơ giáo viên. Vui lòng tạo thủ công nếu cần.";
+                }
+                else
+                {
+                    // Admin, Manager không cần hồ sơ
+                    TempData["SuccessMessage"] = $"Đã cập nhật role từ '{oldRole}' sang '{newRole}' thành công!";
+                }
+
+                // Gửi email thông báo cho user
+                try
+                {
+                    await _emailService.SendEmailAsync(
+                        user.Email,
+                        "Thông báo thay đổi quyền hạn tài khoản",
+                        $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                            <h2 style='color: #4e73df;'>Thông báo thay đổi quyền hạn</h2>
+                            <p>Xin chào <strong>{user.FullName}</strong>,</p>
+                            <p>Quyền hạn tài khoản của bạn đã được cập nhật:</p>
+                            <div style='background: #f8f9fc; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                                <p style='margin: 5px 0;'><strong>Quyền hạn cũ:</strong> {oldRole ?? "Chưa phân loại"}</p>
+                                <p style='margin: 5px 0;'><strong>Quyền hạn mới:</strong> <span style='color: #28a745; font-weight: 600;'>{newRole}</span></p>
+                                <p style='margin: 5px 0;'><strong>Thời gian:</strong> {DateTime.Now:dd/MM/yyyy HH:mm}</p>
+                            </div>
+                            {(newRole == "Student" ? "<p style='color: #dc3545;'><strong>Lưu ý:</strong> Hồ sơ sinh viên của bạn đã được tạo. Vui lòng đăng nhập và cập nhật đầy đủ thông tin cá nhân.</p>" : "")}
+                            <p>Vui lòng đăng nhập lại để cập nhật quyền truy cập mới.</p>
+                            <p>Trân trọng,<br>Ban quản trị Student Compass</p>
+                        </div>
+                        "
+                    );
+                }
+                catch
+                {
+                    // Email gửi lỗi không ảnh hưởng đến quá trình cập nhật
+                }
 
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
+                TempData["ErrorMessage"] = $"Lỗi khi cập nhật role: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }

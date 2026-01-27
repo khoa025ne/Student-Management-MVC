@@ -25,14 +25,21 @@
                             <th>Email</th>
                             <th>Số điện thoại</th>
                             <th>Vai trò</th>
+                            <th>Hồ sơ</th>
                             <th>Trạng thái</th>
-                            <th>Ngày tạo</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var user in Model)
+                        @{
+                            var usersWithInfo = ViewBag.UsersWithStudentInfo as IEnumerable<dynamic>;
+                        }
+                        @foreach (var userInfo in usersWithInfo)
                         {
+                            var user = userInfo.User as DataAccess.Entities.User;
+                            var student = userInfo.Student as DataAccess.Entities.Student;
+                            var hasStudentProfile = student != null;
+                            
                             <tr>
                                 <td>@user.UserId</td>
                                 <td>
@@ -55,10 +62,9 @@
                                         }
                                         else
                                         {
-                                            <form asp-action="UpdateRole" asp-route-userId="@user.UserId" method="post" class="d-inline">
+                                            <form asp-action="UpdateRole" asp-route-userId="@user.UserId" method="post" class="d-inline role-update-form">
                                                 @Html.AntiForgeryToken()
-                                                <select name="newRoleId" class="form-select form-select-sm d-inline-block" style="width: auto;"
-                                                        onchange="if(confirm('Bạn có chắc muốn thay đổi role?')) this.form.submit();">
+                                                <select name="newRoleId" class="form-select form-select-sm d-inline-block role-selector" style="width: auto;" data-original-role="@user.RoleId">
                                                     @foreach (var role in ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>)
                                                     {
                                                         <option value="@role.RoleId" selected="@(role.RoleId == user.RoleId)">
@@ -68,6 +74,38 @@
                                                 </select>
                                             </form>
                                         }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Chưa phân lớp</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (user.Role?.RoleName == "Student")
+                                    {
+                                        @if (hasStudentProfile)
+                                        {
+                                            <a href="@Url.Action("Edit", "Students", new { id = student.StudentId })" 
+                                               class="badge bg-success text-decoration-none" title="Xem hồ sơ sinh viên">
+                                                <i class="fas fa-user-graduate"></i> @student.StudentCode
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark" title="Chưa có hồ sơ sinh viên">
+                                                <i class="fas fa-exclamation-triangle"></i> Chưa có hồ sơ
+                                            </span>
+                                        }
+                                    }
+                                    else if (user.Role?.RoleName == "Teacher")
+                                    {
+                                        <span class="badge bg-info" title="Giáo viên">
+                                            <i class="fas fa-chalkboard-teacher"></i> Giáo viên
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">N/A</span>
                                     }
                                 </td>
                                 <td>
@@ -84,7 +122,6 @@
                                         </span>
                                     }
                                 </td>
-                                <td>@user.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a asp-action="Edit" asp-route-id="@user.UserId" 
@@ -136,7 +173,64 @@
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json'
                 },
                 order: [[0, 'desc']],
-                pageLength: 25
+                pageLength: 25,
+                columnDefs: [
+                    { orderable: false, targets: [7] } // Disable sorting for action column
+                ]
+            });
+            
+            // Handle role change with confirmation
+            $('.role-selector').on('change', function() {
+                const form = $(this).closest('.role-update-form');
+                const newRole = $(this).find('option:selected').text();
+                const originalRoleId = $(this).data('original-role');
+                
+                Swal.fire({
+                    title: 'Xác nhận thay đổi quyền hạn',
+                    html: `
+                        <div style="text-align: left;">
+                            <p>Bạn có chắc muốn thay đổi quyền hạn sang <strong style="color: #4e73df;">${newRole}</strong>?</p>
+                            <div style="background: #f8f9fc; padding: 12px; border-radius: 8px; margin-top: 15px;">
+                                <p style="margin: 5px 0; font-size: 13px;">
+                                    <i class="fas fa-info-circle" style="color: #17a2b8;"></i> 
+                                    <strong>Điều gì sẽ xảy ra:</strong>
+                                </p>
+                                <ul style="font-size: 13px; margin: 8px 0; padding-left: 20px;">
+                                    ${newRole === 'Student' ? 
+                                        '<li>Hệ thống sẽ <strong>tự động tạo hồ sơ sinh viên</strong> nếu chưa có</li><li>User sẽ có quyền truy cập các tính năng dành cho sinh viên</li><li>Email thông báo sẽ được gửi đến user</li>' : 
+                                        newRole === 'Teacher' ? 
+                                        '<li>User sẽ có quyền truy cập các tính năng dành cho giáo viên</li><li>Email thông báo sẽ được gửi đến user</li>' : 
+                                        '<li>User sẽ có quyền quản trị hệ thống</li><li>Email thông báo sẽ được gửi đến user</li>'
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#4e73df',
+                    cancelButtonColor: '#858796',
+                    confirmButtonText: '<i class="fas fa-check"></i> Xác nhận',
+                    cancelButtonText: '<i class="fas fa-times"></i> Hủy',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading
+                        Swal.fire({
+                            title: 'Đang xử lý...',
+                            html: 'Vui lòng đợi trong giây lát',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            willOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        form.submit();
+                    } else {
+                        // Reset to original role
+                        $(this).val(originalRoleId);
+                    }
+                });
             });
         });
     </script>

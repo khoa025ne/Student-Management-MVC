@@ -47,9 +47,9 @@ namespace Services.Implementations
                             <p>Chúc mừng bạn đã được tạo tài khoản trong Hệ thống Quản lý Sinh viên. Dưới đây là thông tin đăng nhập của bạn:</p>
                             
                             <div class='info-box'>
-                                <p><strong>Mã sinh viên:</strong> {studentCode}</p>
-                                <p><strong>Email:</strong> {toEmail}</p>
-                                <p><strong>Mật khẩu tạm thời:</strong> {tempPassword}</p>
+                                <p><strong>🆔 Mã sinh viên:</strong> <span style='color: #007bff; font-weight: bold;'>{studentCode}</span></p>
+                                <p><strong>📧 Email:</strong> {toEmail}</p>
+                                <p><strong>🔐 Mật khẩu tạm thời:</strong> <span style='background-color: #e9ecef; padding: 5px 10px; font-family: monospace;'>{tempPassword}</span></p>
                             </div>
                             
                             <p><strong style='color: red;'>⚠️ LƯU Ý QUAN TRỌNG:</strong></p>
@@ -124,25 +124,91 @@ namespace Services.Implementations
             await SendEmailAsync(toEmail, subject, body);
         }
 
-        public async Task SendAIAnalysisNotificationAsync(string toEmail, string studentName)
+        public async Task SendAIAnalysisNotificationAsync(string toEmail, string studentName, string strongSubjects, string weakSubjects, string recommendations, double overallGPA)
         {
-            var subject = "AI đã phân tích kết quả học tập của bạn";
+            var subject = "🎓 Phân tích kết quả học tập của bạn";
+            
+            // Parse JSON arrays
+            var strongList = string.IsNullOrEmpty(strongSubjects) || strongSubjects == "[]" 
+                ? "<li style='color: #999;'>Chưa có dữ liệu</li>" 
+                : string.Join("", Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(strongSubjects)
+                    .Select(s => $"<li style='margin: 8px 0;'><span style='color: #28a745; font-size: 18px;'>✓</span> <strong>{s}</strong></li>"));
+            
+            var weakList = string.IsNullOrEmpty(weakSubjects) || weakSubjects == "[]"
+                ? "<li style='color: #999;'>Chưa có dữ liệu</li>"
+                : string.Join("", Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(weakSubjects)
+                    .Select(s => $"<li style='margin: 8px 0;'><span style='color: #dc3545; font-size: 18px;'>!</span> <strong>{s}</strong></li>"));
+
             var body = $@"
                 <html>
-                <body style='font-family: Arial, sans-serif;'>
-                    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                        <h2 style='color: #6f42c1;'>🤖 Phân tích AI mới</h2>
-                        <p>Xin chào <strong>{studentName}</strong>,</p>
-                        <p>Hệ thống AI đã hoàn tất phân tích kết quả học tập của bạn!</p>
-                        <p>Phân tích bao gồm:</p>
-                        <ul>
-                            <li>Các môn học bạn đang làm tốt</li>
-                            <li>Các môn học cần cải thiện</li>
-                            <li>Khuyến nghị học tập cụ thể</li>
-                        </ul>
-                        <p style='text-align: center; margin: 30px 0;'>
-                            <a href='#' style='display: inline-block; padding: 12px 30px; background-color: #6f42c1; color: white; text-decoration: none; border-radius: 5px;'>Xem phân tích</a>
-                        </p>
+                <head>
+                    <style>
+                        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }}
+                        .container {{ max-width: 650px; margin: 20px auto; background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
+                        .header {{ background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%); color: white; padding: 30px 20px; text-align: center; }}
+                        .header h1 {{ margin: 0; font-size: 28px; font-weight: 700; }}
+                        .header p {{ margin: 10px 0 0 0; font-size: 14px; opacity: 0.95; }}
+                        .content {{ padding: 30px; }}
+                        .greeting {{ font-size: 16px; color: #333; margin-bottom: 20px; }}
+                        .gpa-box {{ background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); border-left: 5px solid #FF6B35; padding: 20px; margin: 25px 0; border-radius: 8px; text-align: center; }}
+                        .gpa-box h2 {{ margin: 0 0 10px 0; color: #FF6B35; font-size: 42px; font-weight: 700; }}
+                        .gpa-box p {{ margin: 0; color: #666; font-size: 14px; }}
+                        .section {{ margin: 30px 0; }}
+                        .section-title {{ color: #FF6B35; font-size: 20px; font-weight: 600; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #FF6B35; }}
+                        .subject-list {{ list-style: none; padding: 0; margin: 15px 0; }}
+                        .subject-list li {{ padding: 10px 15px; background-color: #fafafa; margin: 8px 0; border-radius: 6px; font-size: 15px; }}
+                        .recommendations-box {{ background-color: #FFF8F0; border: 2px solid #FF6B35; border-radius: 8px; padding: 20px; margin: 20px 0; }}
+                        .recommendations-box h3 {{ color: #FF6B35; margin-top: 0; font-size: 18px; }}
+                        .recommendations-box p {{ color: #555; line-height: 1.8; margin: 10px 0; white-space: pre-line; }}
+                        .footer {{ background-color: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eee; }}
+                        .footer p {{ margin: 5px 0; font-size: 12px; color: #999; }}
+                        .icon {{ font-size: 24px; margin-right: 8px; }}
+                    </style>
+                </head>
+                <body>
+                    <div class='container'>
+                        <div class='header'>
+                            <h1>🤖 Phân tích AI hoàn tất</h1>
+                            <p>Hệ thống AI đã phân tích kết quả học tập của bạn</p>
+                        </div>
+                        
+                        <div class='content'>
+                            <p class='greeting'>Xin chào <strong>{studentName}</strong>,</p>
+                            
+                            <div class='gpa-box'>
+                                <h2>{overallGPA:F2}</h2>
+                                <p>Điểm GPA tổng kết</p>
+                            </div>
+
+                            <div class='section'>
+                                <div class='section-title'><span class='icon'>✨</span> Điểm mạnh của bạn</div>
+                                <ul class='subject-list'>
+                                    {strongList}
+                                </ul>
+                            </div>
+
+                            <div class='section'>
+                                <div class='section-title'><span class='icon'>📊</span> Môn học cần cải thiện</div>
+                                <ul class='subject-list'>
+                                    {weakList}
+                                </ul>
+                            </div>
+
+                            <div class='recommendations-box'>
+                                <h3>💡 Khuyến nghị từ AI</h3>
+                                <p>{recommendations}</p>
+                            </div>
+
+                            <p style='color: #666; font-size: 14px; margin-top: 30px; padding: 15px; background-color: #f9f9f9; border-radius: 6px;'>
+                                <strong>💬 Lưu ý:</strong> Đây là phân tích tự động dựa trên kết quả học tập của bạn. 
+                                Vui lòng tham khảo ý kiến từ giảng viên để có lộ trình học tập phù hợp nhất.
+                            </p>
+                        </div>
+
+                        <div class='footer'>
+                            <p>Email này được gửi tự động từ Hệ thống Quản lý Sinh viên</p>
+                            <p>&copy; 2026 Student Compass - Định hướng thành công</p>
+                        </div>
                     </div>
                 </body>
                 </html>

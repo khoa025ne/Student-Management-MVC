@@ -35,8 +35,14 @@ namespace DataAccess.DAO
                         Schedule = c.Schedule,
                         Room = c.Room,
                         MaxCapacity = c.MaxCapacity,
+                        MaxStudents = c.MaxStudents,
+                        CurrentEnrollment = c.CurrentEnrollment,
+                        CreatedAt = c.CreatedAt,
+                        DayOfWeekPair = c.DayOfWeekPair,
+                        TimeSlot = c.TimeSlot,
                         CourseId = c.CourseId,
                         SemesterId = c.SemesterId,
+                        TeacherId = c.TeacherId,
                         Course = c.Course,
                         Semester = c.Semester,
                         Enrollments = c.Enrollments.Take(0).ToList() // Không load enrollments ở Index
@@ -118,7 +124,18 @@ namespace DataAccess.DAO
         {
             try
             {
-                _context.Classes.Update(classEntity);
+                // Attach entity nếu không được track
+                var existingEntity = await _context.Classes.FindAsync(classEntity.ClassId);
+                if (existingEntity != null)
+                {
+                    // Update từng property thay vì replace toàn bộ entity
+                    _context.Entry(existingEntity).CurrentValues.SetValues(classEntity);
+                }
+                else
+                {
+                    _context.Classes.Update(classEntity);
+                }
+                
                 await _context.SaveChangesAsync();
                 return classEntity;
             }

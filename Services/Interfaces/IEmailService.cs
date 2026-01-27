@@ -25,7 +25,7 @@ namespace Services.Interfaces
         /// <summary>
         /// Gửi email phân tích AI
         /// </summary>
-        Task SendAIAnalysisNotificationAsync(string toEmail, string studentName);
+        Task SendAIAnalysisNotificationAsync(string toEmail, string studentName, string strongSubjects, string weakSubjects, string recommendations, double overallGPA);
 
         /// <summary>
         /// Gửi email cảnh báo học vụ

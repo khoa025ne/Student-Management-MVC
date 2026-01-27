@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 @import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
 
@@ -7,7 +8,9 @@
     align-items: center;
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .animated-login-page * {
@@ -75,6 +78,7 @@
     color: #333;
     font-size: 15px;
     font-weight: 500;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif;
     border: none;
     outline: none;
     border-bottom: 2px solid #ddd;
@@ -82,8 +86,31 @@
     padding-right: 30px;
 }
 
+/* Fix browser autofill styling */
+.animated-login-page .input-box input:-webkit-autofill,
+.animated-login-page .input-box input:-webkit-autofill:hover,
+.animated-login-page .input-box input:-webkit-autofill:focus,
+.animated-login-page .input-box input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #333 !important;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Firefox autofill */
+.animated-login-page .input-box input:-moz-autofill,
+.animated-login-page .input-box input:-moz-autofill-preview {
+    filter: none !important;
+    background-color: transparent !important;
+    color: #333 !important;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif !important;
+}
+
 .animated-login-page .input-box input:focus,
-.animated-login-page .input-box input:valid {
+.animated-login-page .input-box input:valid,
+.animated-login-page .input-box input:-webkit-autofill {
     border-bottom-color: #667eea;
 }
 
@@ -101,13 +128,15 @@
     left: 0;
     transform: translateY(-50%);
     font-size: 14px;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif;
     color: #888;
     pointer-events: none;
     transition: 0.5s;
 }
 
 .animated-login-page .input-box input:focus~label,
-.animated-login-page .input-box input:valid~label {
+.animated-login-page .input-box input:valid~label,
+.animated-login-page .input-box input:-webkit-autofill~label {
     top: -5px;
     font-size: 12px;
     color: #667eea;

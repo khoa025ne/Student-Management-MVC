@@ -9,8 +9,10 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - Student Compass</title>
     <link rel="stylesheet" href="~/css/animated-login.css" asp-append-version="true" />
 </head>
@@ -25,6 +27,12 @@
                 <h2 class="title animation" style="--i: 0; --j: 21;">
                     Đăng Nhập
                 </h2>
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger animation" style="--i: 0; --j: 21;">
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
                 <form asp-action="Login" method="post">
                     <div class="input-box animation" style="--i: 1; --j: 22;">
                         <input asp-for="Email" type="email" required />

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Services.Interfaces;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace StudentManagementMVC.Controllers
 {
@@ -13,12 +14,16 @@ namespace StudentManagementMVC.Controllers
         private readonly IScoreService _scoreService;
         private readonly IStudentService _studentService;
         private readonly ICourseService _courseService;
+        private readonly IEmailService _emailService;
+        private readonly IGeminiAIService _geminiAIService;
 
-        public GradesController(IScoreService scoreService, IStudentService studentService, ICourseService courseService)
+        public GradesController(IScoreService scoreService, IStudentService studentService, ICourseService courseService, IEmailService emailService, IGeminiAIService geminiAIService)
         {
             _scoreService = scoreService;
             _studentService = studentService;
             _courseService = courseService;
+            _emailService = emailService;
+            _geminiAIService = geminiAIService;
         }
 
         // GET: Grades
@@ -46,8 +51,105 @@ namespace StudentManagementMVC.Controllers
             {
                 try
                 {
+                    // Get student and course info for email
+                    var student = await _studentService.GetByIdAsync(score.StudentId);
+                    var course = await _courseService.GetByIdAsync(score.CourseId);
+                    
                     await _scoreService.AddOrUpdateScoreAsync(score.StudentId, score.CourseId, score.ScoreValue);
-                    TempData["SuccessMessage"] = "Thêm điểm thành công!";
+                    
+                    // Gửi email thông báo điểm
+                    try
+                    {
+                        if (student != null && course != null)
+                        {
+                            // Tính grade
+                            var scoreValue = score.ScoreValue;
+                            string grade = scoreValue >= 8.5 ? "A" : scoreValue >= 8 ? "B+" : scoreValue >= 7 ? "B" : 
+                                         scoreValue >= 6 ? "C+" : scoreValue >= 5.5 ? "C" : scoreValue >= 4 ? "D" : "F";
+                            
+                            // Tính GPA (simplified - assuming 4.0 scale)
+                            var gpa = (scoreValue / 10) * 4;
+                            
+                            await _emailService.SendScoreNotificationAsync(
+                                toEmail: student.Email,
+                                studentName: student.FullName,
+                                courseName: course.CourseName,
+                                gpa: gpa,
+                                grade: grade
+                            );
+                            
+                            // 🤖 THÊM: Chạy AI analysis nếu sinh viên có nhiều môn học
+                            try
+                            {
+                                var allEnrollments = await _scoreService.GetAllAsync();
+                                var studentEnrollments = allEnrollments.Where(e => e.StudentId == student.StudentId && e.TotalScore.HasValue).ToList();
+                                
+                                // Nếu sinh viên đã học >= 3 môn, chạy AI analysis
+                                if (studentEnrollments.Count >= 3)
+                                {
+                                    var analysis = await _geminiAIService.AnalyzeStudentPerformanceAsync(student.StudentId);
+                                    
+                                    if (analysis.Success)
+                                    {
+                                        // Gửi email phân tích
+                                        var analysisEmail = $@"
+                                            <html>
+                                            <body style='font-family: Arial, sans-serif;'>
+                                                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                                                    <h2 style='color: #6f42c1;'>🤖 AI Phân Tích Học Tập Mới</h2>
+                                                    <p>Xin chào <strong>{student.FullName}</strong>,</p>
+                                                    <p>Dựa trên kết quả học tập hiện tại, AI đã phân tích:</p>
+                                                    
+                                                    <div style='background-color: #f0f0f0; padding: 15px; margin: 20px 0; border-radius: 8px;'>
+                                                        <h4 style='color: #28a745;'>✅ Điểm Mạnh:</h4>
+                                                        <ul>
+                                                            {string.Join("", analysis.StrongSubjects.Select(s => $"<li>{s}</li>"))}
+                                                        </ul>
+                                                        
+                                                        <h4 style='color: #dc3545;'>⚠️ Điểm Yếu:</h4>
+                                                        <ul>
+                                                            {string.Join("", analysis.WeakSubjects.Select(s => $"<li>{s}</li>"))}
+                                                        </ul>
+                                                    </div>
+                                                    
+                                                    <div style='background-color: #e7f3ff; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0;'>
+                                                        <h4>💡 Khuyến Nghị:</h4>
+                                                        <p>{analysis.Recommendations}</p>
+                                                    </div>
+                                                    
+                                                    <p style='color: #666; font-size: 12px;'>Email này được tạo tự động bởi hệ thống AI.</p>
+                                                </div>
+                                            </body>
+                                            </html>
+                                        ";
+                                        
+                                        await _emailService.SendEmailAsync(
+                                            toEmail: student.Email,
+                                            subject: "🤖 Phân Tích AI Kết Quả Học Tập Của Bạn",
+                                            htmlBody: analysisEmail
+                                        );
+                                        
+                                        TempData["InfoMessage"] = "✨ Email phân tích AI đã được gửi!";
+                                    }
+                                }
+                            }
+                            catch (Exception aiEx)
+                            {
+                                // Không fail nếu AI analysis fail
+                                Console.WriteLine($"AI Analysis error: {aiEx.Message}");
+                            }
+                            
+                            TempData["SuccessMessage"] = $"Thêm điểm thành công! Email thông báo đã được gửi đến {student.Email}";
+                        }
+                        else
+                        {
+                            TempData["SuccessMessage"] = "Thêm điểm thành công!";
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        TempData["WarningMessage"] = $"Thêm điểm thành công nhưng không gửi được email: {emailEx.Message}";
+                    }
                     return RedirectToAction(nameof(Index));
                 }
                 catch (System.Exception ex)

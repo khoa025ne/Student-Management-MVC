@@ -18,6 +18,7 @@ namespace StudentManagementMVC.Controllers
         private readonly ISemesterService _semesterService;
         private readonly IGeminiAIService _geminiAIService;
         private readonly IEmailService _emailService;
+        private readonly INotificationService _notificationService;
         private readonly IAcademicAnalysisRepository _academicAnalysisRepository;
 
         public EnrollmentGradesController(
@@ -26,6 +27,7 @@ namespace StudentManagementMVC.Controllers
             ISemesterService semesterService,
             IGeminiAIService geminiAIService,
             IEmailService emailService,
+            INotificationService notificationService,
             IAcademicAnalysisRepository academicAnalysisRepository)
         {
             _enrollmentService = enrollmentService;
@@ -33,6 +35,7 @@ namespace StudentManagementMVC.Controllers
             _semesterService = semesterService;
             _geminiAIService = geminiAIService;
             _emailService = emailService;
+            _notificationService = notificationService;
             _academicAnalysisRepository = academicAnalysisRepository;
         }
 
@@ -113,21 +116,55 @@ namespace StudentManagementMVC.Controllers
                 // Reload để lấy thông tin đầy đủ với navigation properties
                 enrollment = await _enrollmentService.GetByIdAsync(enrollmentId);
 
-                // Send email notification về điểm số
                 if (enrollment != null && enrollment.Student?.User != null && enrollment.TotalScore.HasValue)
                 {
                     var courseName = enrollment.Class?.Course?.CourseName ?? "N/A";
-                    
-                    await _emailService.SendScoreNotificationAsync(
-                        enrollment.Student.User.Email,
-                        enrollment.Student.User.FullName,
+                    var grade = enrollment.Grade ?? "N/A";
+                    var score = enrollment.TotalScore.Value;
+
+                    // ═══════════════════════════════════════════════════════════════
+                    // EVENT 1: SCORE UPDATE → Email + In-app Notification
+                    // ═══════════════════════════════════════════════════════════════
+                    await _notificationService.SendScoreUpdateNotificationAsync(
+                        enrollment.StudentId,
                         courseName,
-                        enrollment.TotalScore.Value,
-                        enrollment.Grade ?? "N/A"
+                        score,
+                        grade
                     );
+
+                    // ═══════════════════════════════════════════════════════════════
+                    // EVENT 2: ACHIEVEMENT → Chúc mừng đạt A/A+
+                    // ═══════════════════════════════════════════════════════════════
+                    if (grade == "A+" || grade == "A")
+                    {
+                        await _notificationService.SendAchievementNotificationAsync(
+                            enrollment.StudentId,
+                            courseName,
+                            grade
+                        );
+                    }
+
+                    // ═══════════════════════════════════════════════════════════════
+                    // EVENT 3: PERFORMANCE ALERT → Cảnh báo môn yếu D/F
+                    // ═══════════════════════════════════════════════════════════════
+                    if (grade == "D" || grade == "F")
+                    {
+                        var reason = grade == "F" 
+                            ? "Môn học chưa đạt yêu cầu. Bạn cần học lại môn này."
+                            : "Kết quả chưa tốt. Cần cải thiện để tránh ảnh hưởng đến GPA.";
+                        
+                        await _notificationService.SendPerformanceAlertNotificationAsync(
+                            enrollment.StudentId,
+                            courseName,
+                            grade,
+                            reason
+                        );
+                    }
                 }
 
-                // FLOW 2: Trigger AI Analysis nếu đủ điểm
+                // ═══════════════════════════════════════════════════════════════
+                // FLOW 2: AI ANALYSIS + LEARNING PATH RECOMMENDATION
+                // ═══════════════════════════════════════════════════════════════
                 if (midtermScore.HasValue && finalScore.HasValue && enrollment != null)
                 {
                     try
@@ -136,30 +173,58 @@ namespace StudentManagementMVC.Controllers
                         
                         if (aiResult.Success)
                         {
-                            // FLOW 2 - Task 6: Lưu AcademicAnalysis vào database
+                            // Lưu AcademicAnalysis vào database
                             var academicAnalysis = new AcademicAnalysis
                             {
                                 StudentId = enrollment.StudentId,
                                 AnalysisDate = DateTime.Now,
-                                OverallGPA = enrollment.TotalScore ?? 0,
+                                OverallGPA = enrollment.Student?.OverallGPA ?? 0,
                                 StrongSubjectsJson = JsonConvert.SerializeObject(aiResult.StrongSubjects),
                                 WeakSubjectsJson = JsonConvert.SerializeObject(aiResult.WeakSubjects),
                                 Recommendations = aiResult.Recommendations,
-                                AiModelUsed = "Gemini-AI"
+                                AiModelUsed = "Gemini-1.5-Pro"
                             };
 
                             await _academicAnalysisRepository.AddAsync(academicAnalysis);
 
-                            // Gửi email với kết quả AI
+                            // Gửi email AI analysis với insights chi tiết
                             if (enrollment.Student?.User != null)
                             {
                                 await _emailService.SendAIAnalysisNotificationAsync(
                                     enrollment.Student.User.Email,
-                                    enrollment.Student.User.FullName
+                                    enrollment.Student.User.FullName,
+                                    academicAnalysis.StrongSubjectsJson,
+                                    academicAnalysis.WeakSubjectsJson,
+                                    academicAnalysis.Recommendations,
+                                    academicAnalysis.OverallGPA
                                 );
                             }
 
-                            TempData["SuccessMessage"] = "Cập nhật điểm thành công! AI đã phân tích và lưu báo cáo.";
+                            // ═══════════════════════════════════════════════════════════════
+                            // EVENT 4: LEARNING PATH → Gợi ý môn học kỳ tới
+                            // ═══════════════════════════════════════════════════════════════
+                            var activeSemester = await _semesterService.GetActiveAsync();
+                            if (activeSemester != null)
+                            {
+                                var learningPath = await _geminiAIService.GenerateLearningPathAsync(
+                                    enrollment.StudentId, 
+                                    activeSemester.SemesterId
+                                );
+
+                                if (learningPath.Success && learningPath.RecommendedCourses != null)
+                                {
+                                    var recommendedCourseNames = learningPath.RecommendedCourses
+                                        .Select(c => c.CourseName)
+                                        .ToArray();
+
+                                    await _notificationService.SendLearningPathNotificationAsync(
+                                        enrollment.StudentId,
+                                        recommendedCourseNames
+                                    );
+                                }
+                            }
+
+                            TempData["SuccessMessage"] = "Cập nhật điểm thành công! AI đã phân tích và gửi gợi ý lộ trình học tập.";
                         }
                         else
                         {

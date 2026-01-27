@@ -53,9 +53,12 @@ namespace Services.Implementations
                     .Select(e => new
                     {
                         CourseName = e.Class?.Course?.CourseName ?? "Unknown",
-                        GPA = e.TotalScore ?? 0,
+                        MidtermScore = e.MidtermScore ?? 0,
+                        FinalScore = e.FinalScore ?? 0,
+                        TotalScore = e.TotalScore ?? 0,
                         Grade = e.Grade ?? "N/A",
-                        Credits = e.Class?.Course?.Credits ?? 0
+                        Credits = e.Class?.Course?.Credits ?? 0,
+                        Improvement = (e.FinalScore ?? 0) - (e.MidtermScore ?? 0)
                     })
                     .ToList();
 
@@ -70,22 +73,53 @@ namespace Services.Implementations
                     };
                 }
 
-                // 3. Chuẩn bị prompt cho Gemini
+                // 3. Chuẩn bị prompt cho Gemini với thông tin chi tiết
                 var coursesJson = JsonSerializer.Serialize(completedCourses);
+                var avgImprovement = completedCourses.Average(c => c.Improvement);
+                var totalCredits = completedCourses.Sum(c => c.Credits);
+                
                 var prompt = $@"
-Bạn là cố vấn học tập chuyên nghiệp. Phân tích kết quả học tập sau:
+Bạn là cố vấn học tập AI chuyên nghiệp. Phân tích CHI TIẾT kết quả học tập sau:
 
-- GPA tổng: {student.OverallGPA:F2}
-- Các môn đã hoàn thành: {coursesJson}
+📊 THÔNG TIN TỔNG QUAN:
+- GPA tổng kết: {student.OverallGPA:F2}
+- Số môn đã hoàn thành: {completedCourses.Count}
+- Tổng tín chỉ: {totalCredits}
+- Xu hướng cải thiện TB: {avgImprovement:+0.0;-0.0;0} điểm (Final - Midterm)
 
-Yêu cầu trả về JSON format:
+📚 CHI TIẾT TỪNG MÔN HỌC:
+{coursesJson}
+
+YÊU CẦU PHÂN TÍCH:
+
+1️⃣ ĐIỂM MẠNH (strongSubjects):
+   - Liệt kê các môn có Grade A+, A, B+ (điểm cao)
+   - Ưu tiên môn có xu hướng tiến bộ (FinalScore > MidtermScore)
+   - Format: ""[Tên môn] (Điểm TB: X.X, Tiến bộ: +Y.Y)""
+
+2️⃣ ĐIỂM YẾU (weakSubjects):
+   - Liệt kê các môn có Grade D, F hoặc điểm < 5.0
+   - Chú ý môn tụt điểm (FinalScore < MidtermScore)
+   - Format: ""[Tên môn] (Điểm TB: X.X, Xu hướng: -Y.Y)""
+
+3️⃣ KHUYẾN NGHỊ (recommendations):
+   - So sánh ĐIỂM GIỮA KÌ vs ĐIỂM CUỐI KÌ: Phân tích xu hướng học tập
+   - Đánh giá SỰ ỔN ĐỊNH: Sinh viên học đều hay chỉ tốt ở một số môn?
+   - Đề xuất cải thiện: Cần tập trung ôn tập trước thi, rèn luyện thường xuyên, hay phân bổ thời gian đều hơn
+   - Lưu ý môn có điểm giữa kì cao nhưng cuối kì thấp (suy giảm)
+   - Tối đa 250 từ, rõ ràng, thực tế
+
+⚠️ LƯU Ý QUAN TRỌNG:
+- Phân tích dựa trên DỮ LIỆU THỰC TẾ, không chung chung
+- Nhắc đến TÊN MÔN CỤ THỂ trong recommendations
+- So sánh xu hướng midterm vs final để đánh giá khả năng duy trì
+
+Trả về JSON format (KHÔNG thêm markdown ```json):
 {{
-  ""strongSubjects"": [""Danh sách tên môn điểm cao (Grade A, B)""],
-  ""weakSubjects"": [""Danh sách tên môn điểm thấp (Grade D, F)""],
-  ""recommendations"": ""Khuyến nghị cải thiện (tối đa 200 từ)""
-}}
-
-Chỉ trả về JSON, không thêm text khác.";
+  ""strongSubjects"": [""Tên môn (Điểm: X.X, Tiến bộ: +Y)""],
+  ""weakSubjects"": [""Tên môn (Điểm: X.X, Xu hướng: -Y)""],
+  ""recommendations"": ""Phân tích chi tiết với số liệu cụ thể""
+}}";
 
                 // 4. Gọi Gemini API
                 var response = await CallGeminiAPIAsync(prompt);
@@ -123,14 +157,19 @@ Chỉ trả về JSON, không thêm text khác.";
             }
             catch (Exception ex)
             {
-                // Fallback nếu AI fail
+                // Fallback nếu AI fail - dùng dữ liệu đầy đủ
                 var enrollments = await _enrollmentService.GetByStudentAsync(studentId);
                 var completedCourses = enrollments
                     .Where(e => e.TotalScore.HasValue && e.Grade != null)
                     .Select(e => new
                     {
                         CourseName = e.Class?.Course?.CourseName ?? "Unknown",
-                        Grade = e.Grade ?? "N/A"
+                        MidtermScore = e.MidtermScore ?? 0,
+                        FinalScore = e.FinalScore ?? 0,
+                        TotalScore = e.TotalScore ?? 0,
+                        Grade = e.Grade ?? "N/A",
+                        Credits = e.Class?.Course?.Credits ?? 0,
+                        Improvement = (e.FinalScore ?? 0) - (e.MidtermScore ?? 0)
                     })
                     .ToList();
 
@@ -290,22 +329,60 @@ Chỉ trả về JSON, không thêm text khác.";
             
             var strong = coursesList
                 .Where(c => c.Grade == "A" || c.Grade == "A+" || c.Grade == "B" || c.Grade == "B+")
-                .Select(c => (string)c.CourseName)
+                .Select(c => $"{c.CourseName} (Điểm: {c.TotalScore:F1}, Tiến bộ: {c.Improvement:+0.0;-0.0;0})")
                 .ToArray();
 
             var weak = coursesList
-                .Where(c => c.Grade == "D" || c.Grade == "F")
-                .Select(c => (string)c.CourseName)
+                .Where(c => c.Grade == "D" || c.Grade == "F" || c.TotalScore < 5.0)
+                .Select(c => $"{c.CourseName} (Điểm: {c.TotalScore:F1}, Xu hướng: {c.Improvement:+0.0;-0.0;0})")
                 .ToArray();
+
+            var avgImprovement = coursesList.Average(c => (double)c.Improvement);
+            var decliningCourses = coursesList.Where(c => c.Improvement < -1.0).ToList();
+            var improvingCourses = coursesList.Where(c => c.Improvement > 1.0).ToList();
+            
+            var recommendations = "";
+            
+            if (avgImprovement > 0.5)
+            {
+                recommendations = $"🎯 Xu hướng tích cực: Bạn đã cải thiện {avgImprovement:F1} điểm từ giữa kì đến cuối kì. ";
+            }
+            else if (avgImprovement < -0.5)
+            {
+                recommendations = $"⚠️ Cảnh báo: Điểm cuối kì giảm {Math.Abs(avgImprovement):F1} điểm so với giữa kì. ";
+            }
+            
+            if (decliningCourses.Any())
+            {
+                var declining = string.Join(", ", decliningCourses.Select(c => c.CourseName).Take(2));
+                recommendations += $"Cần chú ý: {declining} có xu hướng suy giảm. Hãy ôn tập thường xuyên hơn, không chỉ tập trung trước kỳ thi. ";
+            }
+            
+            if (improvingCourses.Any())
+            {
+                var improving = string.Join(", ", improvingCourses.Select(c => c.CourseName).Take(2));
+                recommendations += $"Tiến bộ tốt ở: {improving}. Hãy duy trì phương pháp học này! ";
+            }
+
+            if (weak.Any())
+            {
+                recommendations += $"Tập trung cải thiện các môn yếu. Tham gia học bổ trợ, lập nhóm học tập, và phân bổ thời gian đều cho tất cả các môn.";
+            }
+            else if (strong.Length > weak.Length * 2)
+            {
+                recommendations += "Bạn đang học tốt! Hãy duy trì sự ổn định và phát huy thêm ở tất cả các môn.";
+            }
+            else
+            {
+                recommendations += "Kết quả chưa đồng đều giữa các môn. Hãy phân bổ thời gian học tập cân bằng hơn để tất cả môn đều đạt điểm cao.";
+            }
 
             return new AcademicAnalysisResult
             {
                 Success = true,
                 StrongSubjects = strong,
                 WeakSubjects = weak,
-                Recommendations = weak.Any()
-                    ? "Tập trung ôn tập các môn yếu. Tham gia học bổ trợ nếu cần. Sắp xếp thời gian học tập hợp lý hơn."
-                    : "Bạn đang học tốt! Hãy duy trì và phát huy thêm."
+                Recommendations = recommendations.Trim()
             };
         }
 

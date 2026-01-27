@@ -42,11 +42,11 @@
                             </tr>
                             <tr>
                                 <th>Lịch học:</th>
-                                <td>@(string.IsNullOrEmpty(Model.DayOfWeekPair) ? "N/A" : Model.DayOfWeekPair)</td>
+                                <td>@Model.DayOfWeekPair</td>
                             </tr>
                             <tr>
                                 <th>Giờ học:</th>
-                                <td>@(string.IsNullOrEmpty(Model.TimeSlot) ? "N/A" : Model.TimeSlot)</td>
+                                <td>@Model.TimeSlot</td>
                             </tr>
                             <tr>
                                 <th>Sĩ số:</th>
@@ -65,7 +65,7 @@
                             </tr>
                             <tr>
                                 <th>Ngày tạo:</th>
-                                <td>@Model.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                                <td>@Model.CreatedAt.ToString("dd/MM/yyyy")</td>
                             </tr>
                         </table>
 
@@ -80,6 +80,17 @@
                                 <a href="@Url.Action("Edit", "Classes", new { id = Model.ClassId })" class="btn btn-warning">
                                     <i class="fas fa-edit"></i> Chỉnh sửa
                                 </a>
+                                
+                                <!-- Add Students Button -->
+                                <a href="@Url.Action("AddStudents", "Classes", new { classId = Model.ClassId })" class="btn btn-primary">
+                                    <i class="fas fa-user-plus"></i> Chọn sinh viên thêm
+                                </a>
+                                
+                                <!-- Random Add Students Button -->
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#randomStudentsModal">
+                                    <i class="fas fa-random"></i> Thêm ngẫu nhiên
+                                </button>
+                                
                                 <form method="post" asp-action="Delete" style="display: inline;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@Model.ClassId" />
@@ -99,6 +110,53 @@
                     }
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Random Add Students -->
+<div class="modal fade" id="randomStudentsModal" tabindex="-1" aria-labelledby="randomStudentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="randomStudentsModalLabel">
+                    <i class="fas fa-random"></i> Thêm sinh viên ngẫu nhiên
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-action="RandomAddStudents" asp-controller="Classes">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="classId" value="@Model?.ClassId" />
+                
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Chức năng này sẽ tự động thêm ngẫu nhiên sinh viên vào lớp học.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Số lượng sinh viên muốn thêm:</label>
+                        <input type="number" name="count" class="form-control" value="5" min="1" max="50" required />
+                        <small class="text-muted">
+                            Sĩ số hiện tại: <strong>@Model?.CurrentEnrollment/@Model?.MaxCapacity</strong>
+                            (Còn trống: <strong>@(Model != null ? Model.MaxCapacity - Model.CurrentEnrollment : 0)</strong>)
+                        </small>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Hệ thống sẽ chọn ngẫu nhiên sinh viên chưa đăng ký lớp này.
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Thêm ngẫu nhiên
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

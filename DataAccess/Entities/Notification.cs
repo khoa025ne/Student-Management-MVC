@@ -21,8 +21,14 @@ namespace DataAccess.Entities
         public string Message { get; set; } = string.Empty;
 
         // Kiểu thông báo + trạng thái đọc
-        public string Type { get; set; } = string.Empty;  // "AiAnalysis", "ScoreUpdate", ...
+        public string Type { get; set; } = string.Empty;  // "Achievement", "Performance Alert", "Learning Path", "Score Update"
         public bool IsRead { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        
+        /// <summary>
+        /// Link đến trang liên quan (ví dụ: /Students/MyGrades)
+        /// </summary>
+        [MaxLength(200)]
+        public string? Link { get; set; }
     }
 }

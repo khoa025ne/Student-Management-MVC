@@ -1,72 +1,160 @@
-// SignalR Notification Client
+// Notification System - SignalR + REST API Integration
 (function () {
     'use strict';
 
-    // Khởi tạo SignalR connection
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/notificationHub")
-        .withAutomaticReconnect()
-        .build();
+    // Khởi tạo SignalR connection (nếu có hub)
+    let connection = null;
+    if (typeof signalR !== 'undefined') {
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.start()
+            .then(() => {
+                console.log("✅ SignalR Connected: Notification Hub");
+                loadUnreadNotifications();
+            })
+            .catch(err => console.error("❌ SignalR Connection Error:", err));
+
+        connection.onreconnected(() => {
+            console.log("🔄 SignalR Reconnected");
+            loadUnreadNotifications();
+        });
+
+        // Nhận notification mới từ server
+        connection.on("ReceiveNotification", (notification) => {
+            console.log("📬 New Notification:", notification);
+            unreadCount++;
+            updateNotificationBadge();
+            showNotificationToast(notification);
+            addNotificationToDropdown(notification);
+        });
+    }
 
     // Counter cho số thông báo chưa đọc
     let unreadCount = 0;
 
-    // Kết nối
-    connection.start()
-        .then(() => {
-            console.log("✅ SignalR Connected: Notification Hub");
-            loadUnreadNotifications();
-        })
-        .catch(err => console.error("❌ SignalR Connection Error:", err));
+    // DOM Elements
+    const bellButton = document.getElementById('notificationBell');
+    const bellButtonMobile = document.getElementById('notificationBellMobile');
+    const dropdown = document.getElementById('notificationDropdown');
+    const countBadge = document.getElementById('notificationCount');
+    const countBadgeMobile = document.getElementById('notificationCountMobile');
+    const notificationList = document.getElementById('notificationList');
 
-    // Xử lý reconnect
-    connection.onreconnected(() => {
-        console.log("🔄 SignalR Reconnected");
-        loadUnreadNotifications();
-    });
-
-    // Nhận notification mới từ server
-    connection.on("ReceiveNotification", (notification) => {
-        console.log("📬 New Notification:", notification);
+    // Toggle dropdown
+    function toggleDropdown(e) {
+        e?.stopPropagation();
+        dropdown?.classList.toggle('show');
         
-        // Tăng counter
-        unreadCount++;
-        updateNotificationBadge();
+        // Load notifications khi mở dropdown lần đầu
+        if (dropdown?.classList.contains('show') && !dropdown.dataset.loaded) {
+            loadNotifications();
+            dropdown.dataset.loaded = 'true';
+        }
+    }
 
-        // Hiển thị toast
-        showNotificationToast(notification);
+    bellButton?.addEventListener('click', toggleDropdown);
+    bellButtonMobile?.addEventListener('click', toggleDropdown);
 
-        // Thêm vào dropdown list
-        addNotificationToList(notification);
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (dropdown && !dropdown.contains(e.target) && 
+            e.target !== bellButton && e.target !== bellButtonMobile) {
+            dropdown.classList.remove('show');
+        }
     });
 
-    // Load số lượng notification chưa đọc khi page load
+    // Load số lượng notification chưa đọc
     function loadUnreadNotifications() {
         fetch('/Notifications/GetUnreadCount')
             .then(response => response.json())
-            .then(data => {
-                unreadCount = data.count || 0;
+            .then(count => {
+                unreadCount = count;
                 updateNotificationBadge();
             })
             .catch(err => console.error("Error loading unread count:", err));
     }
 
-    // Update badge hiển thị số notification
-    function updateNotificationBadge() {
-        const badge = document.querySelector('.notification-badge');
-        if (badge) {
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                badge.style.display = 'inline-block';
-            } else {
-                badge.style.display = 'none';
+    // Load danh sách notifications
+    async function loadNotifications() {
+        if (!notificationList) return;
+
+        try {
+            const response = await fetch('/Notifications/GetRecentNotifications');
+            
+            if (!response.ok) {
+                throw new Error('Failed to load notifications');
             }
+
+            const notifications = await response.json();
+
+            if (notifications.length === 0) {
+                notificationList.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="fas fa-inbox"></i>
+                        <p class="mb-0">Chưa có thông báo mới</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render notifications
+            notificationList.innerHTML = notifications.map(notif => {
+                const icon = getNotificationIcon(notif.type);
+                const typeClass = notif.type.replace(/\s+/g, '-').toLowerCase();
+                const timeAgo = getTimeAgo(new Date(notif.createdAt));
+
+                return `
+                    <div class="notification-dropdown-item ${notif.isRead ? '' : 'unread'}" 
+                         onclick="handleNotificationClick(${notif.notificationId}, '${notif.link || ''}')">
+                        <div class="notification-item-icon ${typeClass}">
+                            ${icon}
+                        </div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">${escapeHtml(notif.title)}</div>
+                            <div class="notification-item-message">${escapeHtml(notif.message)}</div>
+                            <div class="notification-item-time">
+                                <i class="far fa-clock"></i> ${timeAgo}
+                            </div>
+                        </div>
+                        ${!notif.isRead ? '<div class="notification-item-badge"></div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            notificationList.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p class="mb-0">Không thể tải thông báo</p>
+                </div>
+            `;
         }
     }
 
-    // Hiển thị toast notification
+    // Update notification badge
+    function updateNotificationBadge() {
+        if (unreadCount > 0) {
+            const displayCount = unreadCount > 99 ? '99+' : unreadCount;
+            if (countBadge) {
+                countBadge.textContent = displayCount;
+                countBadge.style.display = 'block';
+            }
+            if (countBadgeMobile) {
+                countBadgeMobile.textContent = displayCount;
+                countBadgeMobile.style.display = 'block';
+            }
+        } else {
+            if (countBadge) countBadge.style.display = 'none';
+            if (countBadgeMobile) countBadgeMobile.style.display = 'none';
+        }
+    }
+
+    // Hiển thị toast notification khi nhận thông báo real-time
     function showNotificationToast(notification) {
-        // Sử dụng Toast library hoặc tự tạo
         const toastHtml = `
             <div class="toast-notification" style="
                 position: fixed; 
@@ -74,106 +162,192 @@
                 right: 20px; 
                 background: white; 
                 padding: 15px 20px; 
-                border-radius: 8px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border-radius: 12px; 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
                 border-left: 4px solid ${getNotificationColor(notification.type)};
-                max-width: 350px;
-                animation: slideIn 0.3s ease-out;
-                z-index: 9999;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fas ${getNotificationIcon(notification.type)}" 
-                       style="color: ${getNotificationColor(notification.type)}; font-size: 20px;"></i>
-                    <div style="flex: 1;">
-                        <strong style="display: block; margin-bottom: 5px;">${notification.title}</strong>
-                        <small style="color: #666;">${notification.message}</small>
+                max-width: 380px;
+                animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                z-index: 99999;">
+                <div style="display: flex; align-items: start; gap: 12px;">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, ${getNotificationColor(notification.type)}, ${getNotificationColor(notification.type)}99);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 20px;
+                        flex-shrink: 0;">
+                        ${getNotificationIcon(notification.type)}
                     </div>
-                    <button onclick="this.parentElement.parentElement.remove()" 
-                            style="border: none; background: none; cursor: pointer; color: #999;">
+                    <div style="flex: 1; min-width: 0;">
+                        <strong style="display: block; margin-bottom: 6px; font-size: 14px; color: #1a202c;">
+                            ${notification.title}
+                        </strong>
+                        <p style="margin: 0; color: #718096; font-size: 13px; line-height: 1.4;">
+                            ${notification.message}
+                        </p>
+                        ${notification.link ? `
+                            <a href="${notification.link}" style="
+                                display: inline-block;
+                                margin-top: 8px;
+                                color: ${getNotificationColor(notification.type)};
+                                font-size: 12px;
+                                font-weight: 600;
+                                text-decoration: none;">
+                                Xem chi tiết →
+                            </a>
+                        ` : ''}
+                    </div>
+                    <button onclick="this.closest('.toast-notification').remove()" 
+                            style="
+                                border: none; 
+                                background: none; 
+                                cursor: pointer; 
+                                color: #cbd5e0;
+                                font-size: 18px;
+                                padding: 0;
+                                line-height: 1;
+                                flex-shrink: 0;">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
         `;
 
-        const div = document.createElement('div');
-        div.innerHTML = toastHtml;
-        document.body.appendChild(div.firstElementChild);
+        const container = document.createElement('div');
+        container.innerHTML = toastHtml;
+        document.body.appendChild(container.firstElementChild);
 
-        // Auto remove sau 5 giây
+        // Auto remove sau 6 giây
         setTimeout(() => {
             const toast = document.querySelector('.toast-notification');
             if (toast) {
-                toast.style.animation = 'slideOut 0.3s ease-in';
+                toast.style.animation = 'slideOut 0.3s ease-in forwards';
                 setTimeout(() => toast.remove(), 300);
             }
-        }, 5000);
+        }, 6000);
     }
 
-    // Thêm notification vào dropdown list
-    function addNotificationToList(notification) {
-        const list = document.querySelector('.notification-dropdown-list');
-        if (!list) return;
+    // Thêm notification mới vào dropdown (real-time)
+    function addNotificationToDropdown(notification) {
+        if (!notificationList || !dropdown.dataset.loaded) return;
 
-        const item = document.createElement('a');
-        item.className = 'dropdown-item notification-item unread';
-        item.href = notification.link || '#';
-        item.innerHTML = `
-            <div class="d-flex align-items-center">
-                <div class="notification-icon ${notification.type}">
-                    <i class="fas ${getNotificationIcon(notification.type)}"></i>
+        const icon = getNotificationIcon(notification.type);
+        const typeClass = notification.type.replace(/\s+/g, '-').toLowerCase();
+
+        const itemHtml = `
+            <div class="notification-dropdown-item unread" 
+                 onclick="handleNotificationClick(${notification.notificationId}, '${notification.link || ''}')"
+                 style="animation: slideInRight 0.3s ease-out;">
+                <div class="notification-item-icon ${typeClass}">
+                    ${icon}
                 </div>
-                <div class="flex-grow-1 ms-3">
-                    <strong>${notification.title}</strong>
-                    <p class="mb-0 text-muted small">${notification.message}</p>
-                    <small class="text-muted">${getRelativeTime(notification.createdAt)}</small>
+                <div class="notification-item-content">
+                    <div class="notification-item-title">${escapeHtml(notification.title)}</div>
+                    <div class="notification-item-message">${escapeHtml(notification.message)}</div>
+                    <div class="notification-item-time">
+                        <i class="far fa-clock"></i> Vừa xong
+                    </div>
                 </div>
+                <div class="notification-item-badge"></div>
             </div>
         `;
 
-        // Thêm vào đầu list
-        list.insertBefore(item, list.firstChild);
+        // Thêm vào đầu danh sách
+        notificationList.insertAdjacentHTML('afterbegin', itemHtml);
     }
 
-    // Helper functions
+    // Get notification icon based on type
     function getNotificationIcon(type) {
         const icons = {
-            'success': 'fa-check-circle',
-            'info': 'fa-info-circle',
-            'warning': 'fa-exclamation-triangle',
-            'error': 'fa-times-circle',
-            'score': 'fa-star',
-            'ai': 'fa-brain',
-            'default': 'fa-bell'
+            'Achievement': '🎉',
+            'Performance Alert': '⚠️',
+            'Learning Path': '💡',
+            'Score Update': '📊'
         };
-        return icons[type] || icons.default;
+        return icons[type] || '📢';
     }
 
+    // Get notification color
     function getNotificationColor(type) {
         const colors = {
-            'success': '#4caf50',
-            'info': '#2196f3',
-            'warning': '#ff9800',
-            'error': '#f44336',
-            'score': '#ffc107',
-            'ai': '#9c27b0',
-            'default': '#607d8b'
+            'Achievement': '#28a745',
+            'Performance Alert': '#dc3545',
+            'Learning Path': '#6f42c1',
+            'Score Update': '#17a2b8'
         };
-        return colors[type] || colors.default;
+        return colors[type] || '#6c757d';
     }
 
-    function getRelativeTime(dateString) {
-        const date = new Date(dateString);
+    // Get time ago text
+    function getTimeAgo(date) {
         const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        
-        if (diffMins < 1) return 'Vừa xong';
-        if (diffMins < 60) return `${diffMins} phút trước`;
-        if (diffMins < 1440) return `${Math.floor(diffMins / 60)} giờ trước`;
-        return `${Math.floor(diffMins / 1440)} ngày trước`;
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return 'Vừa xong';
+        if (hours < 1) return `${minutes} phút trước`;
+        if (days < 1) return `${hours} giờ trước`;
+        if (days < 7) return `${days} ngày trước`;
+
+        return date.toLocaleDateString('vi-VN');
     }
 
-    // CSS Animation
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Handle notification click (global function)
+    window.handleNotificationClick = async function(notificationId, link) {
+        try {
+            // Mark as read
+            await fetch(`/Notifications/MarkRead/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Update count
+            if (unreadCount > 0) {
+                unreadCount--;
+                updateNotificationBadge();
+            }
+
+            // Navigate to link
+            if (link) {
+                window.location.href = link;
+            } else {
+                window.location.href = '/Notifications/MyNotifications';
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            // Still navigate even if marking fails
+            if (link) {
+                window.location.href = link;
+            }
+        }
+    };
+
+    // Load initial notification count khi page load
+    loadUnreadNotifications();
+
+    // Auto-refresh mỗi 30 giây (fallback nếu không dùng SignalR)
+    setInterval(() => {
+        loadUnreadNotifications();
+        if (dropdown?.dataset.loaded === 'true' && dropdown.classList.contains('show')) {
+            loadNotifications();
+        }
+    }, 30000);
+
+    // CSS Animations
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
@@ -196,24 +370,22 @@
                 opacity: 0;
             }
         }
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #f44336;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
+        @keyframes slideInRight {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
     `;
     document.head.appendChild(style);
 
-    // Export connection để sử dụng ở nơi khác
+    // Export để sử dụng ở nơi khác
     window.notificationHub = connection;
+    window.reloadNotifications = loadNotifications;
+    window.reloadNotificationCount = loadUnreadNotifications;
 })();
+

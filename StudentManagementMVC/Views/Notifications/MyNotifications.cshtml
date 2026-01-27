@@ -2,46 +2,329 @@
 
 @{
     ViewData["Title"] = "Thông báo của tôi";
+    var unreadCount = Model.Count(n => !n.IsRead);
 }
 
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Thông báo</h1>
+<style>
+    .notification-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid #ddd;
+        cursor: pointer;
+    }
+    
+    .notification-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15) !important;
+    }
+    
+    .notification-card.unread {
+        background: linear-gradient(to right, #f8f9fc 0%, #ffffff 100%);
+    }
+    
+    .notification-card.achievement {
+        border-left-color: #28a745;
+    }
+    
+    .notification-card.performance-alert {
+        border-left-color: #dc3545;
+    }
+    
+    .notification-card.learning-path {
+        border-left-color: #6f42c1;
+    }
+    
+    .notification-card.score-update {
+        border-left-color: #17a2b8;
+    }
+    
+    .notification-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-right: 15px;
+    }
+    
+    .icon-achievement {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+    
+    .icon-performance-alert {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        color: white;
+    }
+    
+    .icon-learning-path {
+        background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+        color: white;
+    }
+    
+    .icon-score-update {
+        background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+        color: white;
+    }
+    
+    .notification-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .badge-achievement {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-performance-alert {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .badge-learning-path {
+        background: #e7d5f5;
+        color: #4a148c;
+    }
+    
+    .badge-score-update {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .notification-time {
+        font-size: 12px;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .mark-read-btn {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
+    .notification-card:hover .mark-read-btn {
+        opacity: 1;
+    }
+    
+    .filter-tabs {
+        border-bottom: 2px solid #e3e6f0;
+        margin-bottom: 20px;
+    }
+    
+    .filter-tab {
+        padding: 10px 20px;
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        cursor: pointer;
+        font-weight: 500;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .filter-tab:hover {
+        color: #4e73df;
+        background: #f8f9fc;
+    }
+    
+    .filter-tab.active {
+        color: #4e73df;
+        border-bottom-color: #4e73df;
+    }
+    
+    .notification-link {
+        color: #4e73df;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 13px;
+    }
+    
+    .notification-link:hover {
+        text-decoration: underline;
+    }
+    
+    .fade-out {
+        animation: fadeOut 0.5s forwards;
+    }
+    
+    @@keyframes fadeOut {
+        to {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+</style>
 
-    <div class="row">
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-bell"></i> Thông báo
+            @if (unreadCount > 0)
+            {
+                <span class="badge badge-danger">@unreadCount mới</span>
+            }
+        </h1>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="sortBy('date')">
+                <i class="fas fa-sort-amount-down"></i> Ngày
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="sortBy('type')">
+                <i class="fas fa-filter"></i> Loại
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all" onclick="filterNotifications('all', this)">
+            <i class="fas fa-list"></i> Tất cả (@Model.Count())
+        </button>
+        <button class="filter-tab" data-filter="unread" onclick="filterNotifications('unread', this)">
+            <i class="fas fa-envelope"></i> Chưa đọc (@unreadCount)
+        </button>
+        <button class="filter-tab" data-filter="Achievement" onclick="filterNotifications('Achievement', this)">
+            <i class="fas fa-trophy"></i> Thành tích
+        </button>
+        <button class="filter-tab" data-filter="Score Update" onclick="filterNotifications('Score Update', this)">
+            <i class="fas fa-chart-line"></i> Điểm số
+        </button>
+        <button class="filter-tab" data-filter="Performance Alert" onclick="filterNotifications('Performance Alert', this)">
+            <i class="fas fa-exclamation-triangle"></i> Cảnh báo
+        </button>
+        <button class="filter-tab" data-filter="Learning Path" onclick="filterNotifications('Learning Path', this)">
+            <i class="fas fa-lightbulb"></i> Gợi ý học tập
+        </button>
+    </div>
+
+    <!-- Notifications Grid -->
+    <div class="row" id="notificationsContainer">
         @if (!Model.Any())
         {
             <div class="col-12">
-                <div class="alert alert-info">Bạn không có thông báo nào.</div>
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h4>Chưa có thông báo</h4>
+                    <p>Bạn sẽ nhận được thông báo về điểm số, thành tích và gợi ý học tập tại đây.</p>
+                </div>
             </div>
         }
         else
         {
-            @foreach (var item in Model)
+            @foreach (var notification in Model.OrderByDescending(n => n.CreatedAt))
             {
-                <div class="col-lg-6 mb-4">
-                    <div class="card shadow border-left-@((item.IsRead ? "secondary" : "primary"))">
+                var typeClass = notification.Type.Replace(" ", "-").ToLower();
+                var iconClass = "";
+                var icon = "";
+                
+                switch (notification.Type)
+                {
+                    case "Achievement":
+                        iconClass = "icon-achievement";
+                        icon = "🎉";
+                        break;
+                    case "Performance Alert":
+                        iconClass = "icon-performance-alert";
+                        icon = "⚠️";
+                        break;
+                    case "Learning Path":
+                        iconClass = "icon-learning-path";
+                        icon = "💡";
+                        break;
+                    case "Score Update":
+                        iconClass = "icon-score-update";
+                        icon = "📊";
+                        break;
+                    default:
+                        iconClass = "icon-score-update";
+                        icon = "📢";
+                        break;
+                }
+
+                <div class="col-lg-6 mb-4 notification-item" 
+                     data-type="@notification.Type" 
+                     data-read="@notification.IsRead.ToString().ToLower()"
+                     data-date="@notification.CreatedAt.ToString("yyyyMMddHHmmss")"
+                     data-id="@notification.NotificationId">
+                    <div class="card notification-card shadow-sm @typeClass @(notification.IsRead ? "" : "unread")"
+                         onclick="@(notification.Link != null ? $"window.location.href='{notification.Link}'" : "")">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        @item.Type - @item.CreatedAt.ToShortDateString()
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">@item.Title</div>
-                                    <p class="mb-0 mt-2">@item.Message</p>
+                            <div class="d-flex align-items-start">
+                                <div class="notification-icon @iconClass">
+                                    @icon
                                 </div>
-                                <div class="col-auto">
-                                    @if (!item.IsRead)
-                                    {
-                                         <form asp-action="MarkRead" asp-route-id="@item.NotificationId" method="post">
-                                            <button type="submit" class="btn btn-sm btn-success" title="Đánh dấu đã đọc">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <i class="fas fa-check-circle text-gray-300 fa-2x"></i>
-                                    }
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="notification-badge badge-@typeClass">
+                                            @notification.Type
+                                        </span>
+                                        <div class="d-flex align-items-center">
+                                            @if (!notification.IsRead)
+                                            {
+                                                <span class="badge badge-primary mr-2">MỚI</span>
+                                                <form asp-action="MarkRead" asp-route-id="@notification.NotificationId" 
+                                                      method="post" 
+                                                      class="mark-read-form"
+                                                      onclick="event.stopPropagation()">
+                                                    <button type="submit" class="btn btn-sm btn-success mark-read-btn" title="Đánh dấu đã đọc">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-check-circle text-success"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <h5 class="mb-2 font-weight-bold">@notification.Title</h5>
+                                    <p class="mb-2 text-dark">@notification.Message</p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="notification-time">
+                                            <i class="far fa-clock"></i>
+                                            @{
+                                                var timeAgo = DateTime.Now - notification.CreatedAt;
+                                                var timeText = "";
+                                                if (timeAgo.TotalMinutes < 1)
+                                                    timeText = "Vừa xong";
+                                                else if (timeAgo.TotalHours < 1)
+                                                    timeText = $"{(int)timeAgo.TotalMinutes} phút trước";
+                                                else if (timeAgo.TotalDays < 1)
+                                                    timeText = $"{(int)timeAgo.TotalHours} giờ trước";
+                                                else if (timeAgo.TotalDays < 7)
+                                                    timeText = $"{(int)timeAgo.TotalDays} ngày trước";
+                                                else
+                                                    timeText = notification.CreatedAt.ToString("dd/MM/yyyy HH:mm");
+                                            }
+                                            @timeText
+                                        </span>
+                                        
+                                        @if (!string.IsNullOrEmpty(notification.Link))
+                                        {
+                                            <a href="@notification.Link" class="notification-link" onclick="event.stopPropagation()">
+                                                Xem chi tiết <i class="fas fa-arrow-right"></i>
+                                            </a>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -51,3 +334,75 @@
         }
     </div>
 </div>
+
+<script>
+    // Filter notifications
+    function filterNotifications(filter, button) {
+        // Update active tab
+        document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+        button.classList.add('active');
+        
+        const items = document.querySelectorAll('.notification-item');
+        
+        items.forEach(item => {
+            const type = item.dataset.type;
+            const isRead = item.dataset.read === 'true';
+            
+            let show = false;
+            
+            if (filter === 'all') {
+                show = true;
+            } else if (filter === 'unread') {
+                show = !isRead;
+            } else {
+                show = type === filter;
+            }
+            
+            if (show) {
+                item.style.display = '';
+                item.classList.remove('fade-out');
+            } else {
+                item.classList.add('fade-out');
+                setTimeout(() => {
+                    item.style.display = 'none';
+                }, 500);
+            }
+        });
+    }
+    
+    // Sort notifications
+    function sortBy(criteria) {
+        const container = document.getElementById('notificationsContainer');
+        const items = Array.from(document.querySelectorAll('.notification-item'));
+        
+        if (criteria === 'date') {
+            items.sort((a, b) => b.dataset.date.localeCompare(a.dataset.date));
+        } else if (criteria === 'type') {
+            items.sort((a, b) => a.dataset.type.localeCompare(b.dataset.type));
+        }
+        
+        items.forEach(item => container.appendChild(item));
+    }
+    
+    // Handle mark as read with animation
+    document.querySelectorAll('.mark-read-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const card = this.closest('.notification-card');
+            card.classList.add('fade-out');
+            
+            // Allow form to submit after animation
+            setTimeout(() => {
+                // Form will submit naturally
+            }, 500);
+        });
+    });
+    
+    // Auto-refresh every 30 seconds to check for new notifications
+    setInterval(() => {
+        const unreadBadges = document.querySelectorAll('.badge-primary');
+        if (unreadBadges.length > 0) {
+            // Optional: You can add SignalR here for real-time updates
+            console.log('Checking for new notifications...');
+        }
+    }, 30000);
+</script>

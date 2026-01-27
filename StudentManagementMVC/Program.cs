@@ -10,8 +10,12 @@ using Services.Interfaces;
 using Services.Models;
 using StudentManagementMVC.Middlewares;
 using StudentManagementMVC.Hubs;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ✅ Configure UTF-8 encoding globally
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -32,6 +36,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Require HTTPS
         options.Cookie.SameSite = SameSiteMode.Strict;
