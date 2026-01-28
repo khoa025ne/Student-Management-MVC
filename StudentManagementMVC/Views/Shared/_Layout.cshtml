@@ -32,9 +32,13 @@
             <nav class="sidebar-nav">
                 @if (User.IsInRole("Admin"))
                 {
+                    <a asp-controller="Dashboard" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Thống kê Dashboard</span>
+                    </a>
                     <a asp-controller="Home" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
                         <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
+                        <span>Trang chủ</span>
                     </a>
                     <a asp-controller="Users" asp-action="Index" class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")">
                         <i class="fas fa-shield-alt"></i>
@@ -170,6 +174,7 @@
                 </button>
                 <span class="fw-semibold">Student Compass</span>
                 
+                @* Notification bell disabled - only show on notifications page
                 @if (User.IsInRole("Student"))
                 {
                     <!-- Notification Bell for Mobile -->
@@ -184,9 +189,11 @@
                 {
                     <div style="width: 40px;"></div>
                 }
+                *@
             </div>
             
             <!-- Desktop Header with Notification -->
+            @* Notification bell disabled - only show on notifications page
             @if (User.IsInRole("Student"))
             {
                 <div class="desktop-header d-none d-lg-flex">
@@ -209,6 +216,7 @@
                     </div>
                 </div>
             }
+            *@
             
             <!-- Content Body -->
             <div class="content-body">

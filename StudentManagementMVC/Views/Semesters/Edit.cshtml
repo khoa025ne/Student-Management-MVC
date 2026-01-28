@@ -4,58 +4,167 @@
     ViewData["Title"] = "Chỉnh sửa Học kỳ";
 }
 
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Chỉnh sửa Học kỳ</h1>
-
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Thông tin Học kỳ</h6>
-        </div>
-        <div class="card-body">
-            <form asp-action="Edit">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <input type="hidden" asp-for="SemesterId" />
-                
-                <div class="form-group">
-                    <label asp-for="SemesterName" class="control-label">Tên Học kỳ</label>
-                    <input asp-for="SemesterName" class="form-control" />
-                    <span asp-validation-for="SemesterName" class="text-danger"></span>
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-card animate-fadeIn">
+                <div class="card-header bg-gradient-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Chỉnh sửa Học kỳ
+                    </h5>
                 </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
 
-                <div class="form-group">
-                    <label asp-for="SemesterCode" class="control-label">Mã Học kỳ</label>
-                    <input asp-for="SemesterCode" class="form-control" />
-                    <span asp-validation-for="SemesterCode" class="text-danger"></span>
-                </div>
+                    <form asp-action="Edit" method="post" id="editSemesterForm">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <input type="hidden" asp-for="SemesterId" />
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="SemesterName" class="form-control" id="semesterName" placeholder="Tên học kỳ" required />
+                                    <label for="semesterName">
+                                        <i class="fas fa-calendar-alt me-2"></i>Tên Học kỳ
+                                    </label>
+                                    <span asp-validation-for="SemesterName" class="text-danger small"></span>
+                                </div>
+                            </div>
 
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label asp-for="StartDate" class="control-label">Ngày Bắt đầu</label>
-                        <input asp-for="StartDate" class="form-control" type="date" />
-                        <span asp-validation-for="StartDate" class="text-danger"></span>
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label asp-for="EndDate" class="control-label">Ngày Kết thúc</label>
-                        <input asp-for="EndDate" class="form-control" type="date" />
-                        <span asp-validation-for="EndDate" class="text-danger"></span>
-                    </div>
-                </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="SemesterCode" class="form-control" id="semesterCode" placeholder="Mã học kỳ" required />
+                                    <label for="semesterCode">
+                                        <i class="fas fa-code me-2"></i>Mã Học kỳ
+                                    </label>
+                                    <span asp-validation-for="SemesterCode" class="text-danger small"></span>
+                                </div>
+                            </div>
 
-                <div class="form-group form-check">
-                    <label class="form-check-label">
-                        <input class="form-check-input" asp-for="IsActive" /> @Html.DisplayNameFor(model => model.IsActive)
-                    </label>
-                </div>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="StartDate" class="form-control" id="startDate" type="date" required />
+                                    <label for="startDate">
+                                        <i class="fas fa-calendar-check me-2"></i>Ngày Bắt đầu
+                                    </label>
+                                    <span asp-validation-for="StartDate" class="text-danger small"></span>
+                                </div>
+                            </div>
 
-                <div class="form-group">
-                    <input type="submit" value="Lưu thay đổi" class="btn btn-primary" />
-                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input asp-for="EndDate" class="form-control" id="endDate" type="date" required />
+                                    <label for="endDate">
+                                        <i class="fas fa-calendar-times me-2"></i>Ngày Kết thúc
+                                    </label>
+                                    <span asp-validation-for="EndDate" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" asp-for="IsActive" id="isActive" />
+                                    <label class="form-check-label" for="isActive">
+                                        <i class="fas fa-toggle-on me-2"></i>Kích hoạt học kỳ
+                                    </label>
+                                </div>
+                                <small class="text-muted">Chỉ được kích hoạt 1 học kỳ tại một thời điểm</small>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-warning" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        const form = document.getElementById('editSemesterForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', function(e) {
+            console.log('[Form Submit] Bắt đầu submit form');
+            console.log('[Form Submit] SemesterId:', document.querySelector('input[name="SemesterId"]')?.value);
+            console.log('[Form Submit] SemesterName:', document.querySelector('input[name="SemesterName"]')?.value);
+            console.log('[Form Submit] StartDate:', document.querySelector('input[name="StartDate"]')?.value);
+            console.log('[Form Submit] EndDate:', document.querySelector('input[name="EndDate"]')?.value);
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang lưu...';
+        });
+
+        // Validation ngày
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+
+        endDate.addEventListener('change', function() {
+            if (startDate.value && endDate.value) {
+                if (new Date(startDate.value) >= new Date(endDate.value)) {
+                    endDate.setCustomValidity('Ngày kết thúc phải sau ngày bắt đầu');
+                    console.log('[Validation] Ngày không hợp lệ');
+                } else {
+                    endDate.setCustomValidity('');
+                    console.log('[Validation] Ngày hợp lệ');
+                }
+            }
+        });
+
+        startDate.addEventListener('change', function() {
+            if (startDate.value && endDate.value) {
+                if (new Date(startDate.value) >= new Date(endDate.value)) {
+                    startDate.setCustomValidity('Ngày bắt đầu phải trước ngày kết thúc');
+                    console.log('[Validation] Ngày không hợp lệ');
+                } else {
+                    startDate.setCustomValidity('');
+                    console.log('[Validation] Ngày hợp lệ');
+                }
+            }
+        });
+
+        // Debug: Log khi trang load xong
+        console.log('[Page Load] Edit semester page loaded');
+        console.log('[Page Load] Model:', {
+            SemesterId: '@Model.SemesterId',
+            SemesterName: '@Model.SemesterName',
+            SemesterCode: '@Model.SemesterCode',
+            StartDate: '@Model.StartDate.ToString("yyyy-MM-dd")',
+            EndDate: '@Model.EndDate.ToString("yyyy-MM-dd")',
+            IsActive: @Json.Serialize(Model.IsActive)
+        });
+    </script>
 }
+
+<style>
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .form-floating > label {
+        color: var(--text-muted);
+    }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        color: var(--primary-color);
+    }
+
+    .form-check-input:checked {
+        background-color: #10b981;
+        border-color: #10b981;
+    }
+</style>

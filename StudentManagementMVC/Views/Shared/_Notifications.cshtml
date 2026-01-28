@@ -1,31 +1,286 @@
+@* Toast Notifications Container *@
+<div id="toast-container" class="toast-notifications-container"></div>
+
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showToast('success', '@Html.Raw(TempData["SuccessMessage"])');
+        });
+    </script>
 }
 
 @if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showToast('error', '@Html.Raw(TempData["ErrorMessage"])');
+        });
+    </script>
 }
 
 @if (TempData["WarningMessage"] != null)
 {
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle"></i> @TempData["WarningMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showToast('warning', '@Html.Raw(TempData["WarningMessage"])');
+        });
+    </script>
 }
 
 @if (TempData["InfoMessage"] != null)
 {
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <i class="fas fa-info-circle"></i> @TempData["InfoMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showToast('info', '@Html.Raw(TempData["InfoMessage"])');
+        });
+    </script>
 }
+
+<style>
+    .toast-notifications-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 420px;
+        pointer-events: none;
+    }
+
+    .toast-notification {
+        pointer-events: auto;
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        min-width: 350px;
+        max-width: 420px;
+        animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        border-left: 4px solid;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .toast-notification::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        width: 100%;
+        animation: progressBar 5s linear;
+    }
+
+    .toast-notification.success {
+        border-left-color: #10b981;
+    }
+
+    .toast-notification.success::before {
+        background: #10b981;
+    }
+
+    .toast-notification.error {
+        border-left-color: #ef4444;
+    }
+
+    .toast-notification.error::before {
+        background: #ef4444;
+    }
+
+    .toast-notification.warning {
+        border-left-color: #f59e0b;
+    }
+
+    .toast-notification.warning::before {
+        background: #f59e0b;
+    }
+
+    .toast-notification.info {
+        border-left-color: #3b82f6;
+    }
+
+    .toast-notification.info::before {
+        background: #3b82f6;
+    }
+
+    .toast-notification.hiding {
+        animation: slideOutRight 0.3s ease-in-out forwards;
+    }
+
+    .toast-icon {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .toast-notification.success .toast-icon {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .toast-notification.error .toast-icon {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
+
+    .toast-notification.warning .toast-icon {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+    .toast-notification.info .toast-icon {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .toast-content {
+        flex: 1;
+        padding-top: 2px;
+    }
+
+    .toast-title {
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 4px;
+        color: #1f2937;
+        line-height: 1.4;
+    }
+
+    .toast-message {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .toast-close {
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: 20px;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s;
+        margin-top: -2px;
+    }
+
+    .toast-close:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes progressBar {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .toast-notifications-container {
+            top: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+
+        .toast-notification {
+            min-width: 100%;
+            max-width: 100%;
+        }
+    }
+</style>
+
+<script>
+    function showToast(type, message, duration = 5000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const titles = {
+            success: 'Thành công!',
+            error: 'Lỗi!',
+            warning: 'Cảnh báo!',
+            info: 'Thông tin'
+        };
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas ${icons[type]}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${titles[type]}</div>
+                <p class="toast-message">${message}</p>
+            </div>
+            <button class="toast-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        // Auto remove after duration
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+
+        // Close button
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        });
+    }
+</script>

@@ -1,0 +1,500 @@
+@model Services.Models.DashboardStatistics
+
+@{
+    ViewData["Title"] = "Dashboard - Thống kê tổng quan";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-chart-line me-2"></i>Dashboard - Thống kê hệ thống</h2>
+                <button class="btn btn-danger btn-lg" onclick="exportDashboardPDF()">
+                    <i class="fas fa-file-pdf me-2"></i>Xuất PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <partial name="_Notifications" />
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-primary">
+                <div class="stats-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.TotalStudents</h3>
+                    <p class="stats-label">Tổng sinh viên</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-success">
+                <div class="stats-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.TotalCourses</h3>
+                    <p class="stats-label">Môn học</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-warning">
+                <div class="stats-icon">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.TotalClasses</h3>
+                    <p class="stats-label">Lớp học</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-info">
+                <div class="stats-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.TotalEnrollments</h3>
+                    <p class="stats-label">Đăng ký</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-secondary">
+                <div class="stats-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.ActiveUsers</h3>
+                    <p class="stats-label">Người dùng hoạt động</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-danger">
+                <div class="stats-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.TotalTeachers</h3>
+                    <p class="stats-label">Giảng viên</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-purple">
+                <div class="stats-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.AverageGPA.ToString("F2")</h3>
+                    <p class="stats-label">GPA Trung bình</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card stats-card-teal">
+                <div class="stats-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stats-info">
+                    <h3 class="stats-number">@Model.ClassFillRate.ToString("F1")%</h3>
+                    <p class="stats-label">Tỷ lệ lấp đầy lớp</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Score Distribution Chart -->
+        <div class="col-xl-6">
+            <div class="glass-card">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Phân bố điểm số</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="scoreDistributionChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students by Major Chart -->
+        <div class="col-xl-6">
+            <div class="glass-card">
+                <div class="card-header bg-gradient-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Sinh viên theo ngành</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="studentsByMajorChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Status Chart -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-6">
+            <div class="glass-card">
+                <div class="card-header bg-gradient-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Trạng thái đăng ký</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="enrollmentStatusChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Students -->
+        <div class="col-xl-6">
+            <div class="glass-card">
+                <div class="card-header bg-gradient-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Top 10 Sinh viên xuất sắc</h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Hạng</th>
+                                    <th>Mã SV</th>
+                                    <th>Họ tên</th>
+                                    <th>Ngành</th>
+                                    <th>GPA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var student in Model.TopStudents)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (student.Rank == 1)
+                                            {
+                                                <span class="badge bg-warning">🥇 @student.Rank</span>
+                                            }
+                                            else if (student.Rank == 2)
+                                            {
+                                                <span class="badge bg-secondary">🥈 @student.Rank</span>
+                                            }
+                                            else if (student.Rank == 3)
+                                            {
+                                                <span class="badge bg-danger">🥉 @student.Rank</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info">@student.Rank</span>
+                                            }
+                                        </td>
+                                        <td><strong>@student.StudentCode</strong></td>
+                                        <td>@student.FullName</td>
+                                        <td>@student.Major</td>
+                                        <td><span class="badge bg-success">@student.GPA</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Statistics Table -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="glass-card">
+                <div class="card-header bg-gradient-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Thống kê lớp học (Top 15)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Mã lớp</th>
+                                    <th>Tên lớp</th>
+                                    <th>Môn học</th>
+                                    <th>Sĩ số tối đa</th>
+                                    <th>Đã đăng ký</th>
+                                    <th>Tỷ lệ (%)</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var classInfo in Model.ClassStatistics)
+                                {
+                                    <tr>
+                                        <td><strong>@classInfo.ClassCode</strong></td>
+                                        <td>@classInfo.ClassName</td>
+                                        <td>@classInfo.CourseName</td>
+                                        <td>@classInfo.MaxStudents</td>
+                                        <td>@classInfo.CurrentEnrollment</td>
+                                        <td>
+                                            <div class="progress" style="height: 25px;">
+                                                <div class="progress-bar @(classInfo.FillRate >= 80 ? "bg-danger" : classInfo.FillRate >= 50 ? "bg-warning" : "bg-success")" 
+                                                     role="progressbar" 
+                                                     style="width: @classInfo.FillRate%"
+                                                     aria-valuenow="@classInfo.FillRate" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    @classInfo.FillRate%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (classInfo.Status == "Full")
+                                            {
+                                                <span class="badge bg-danger">Đầy</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Còn chỗ</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.3s;
+        height: 100%;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .stats-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        color: white;
+    }
+
+    .stats-card-primary .stats-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stats-card-success .stats-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stats-card-warning .stats-icon { background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); }
+    .stats-card-info .stats-icon { background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); }
+    .stats-card-secondary .stats-icon { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+    .stats-card-danger .stats-icon { background: linear-gradient(135deg, #f77062 0%, #fe5196 100%); }
+    .stats-card-purple .stats-icon { background: linear-gradient(135deg, #c471f5 0%, #fa71cd 100%); }
+    .stats-card-teal .stats-icon { background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); }
+
+    .stats-info {
+        flex: 1;
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0;
+        color: #333;
+    }
+
+    .stats-label {
+        color: #666;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        overflow: hidden;
+    }
+
+    .glass-card .card-header {
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1rem 1.5rem;
+    }
+
+    .bg-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-gradient-success { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .bg-gradient-warning { background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%); }
+    .bg-gradient-info { background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); }
+    .bg-gradient-danger { background: linear-gradient(135deg, #f77062 0%, #fe5196 100%); }
+</style>
+}
+
+@section Scripts {
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    // Score Distribution Chart
+    const scoreCtx = document.getElementById('scoreDistributionChart');
+    const scoreChart = new Chart(scoreCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Xuất sắc (9-10)', 'Giỏi (8-8.9)', 'Khá (7-7.9)', 'Trung bình (5.5-6.9)', 'Yếu (4-5.4)', 'Kém (<4)'],
+            datasets: [{
+                data: [@Model.ScoreStats.Excellent, @Model.ScoreStats.VeryGood, @Model.ScoreStats.Good, 
+                       @Model.ScoreStats.Average, @Model.ScoreStats.BelowAverage, @Model.ScoreStats.Poor],
+                backgroundColor: [
+                    '#28a745',
+                    '#17a2b8',
+                    '#ffc107',
+                    '#fd7e14',
+                    '#dc3545',
+                    '#6c757d'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            let value = context.parsed || 0;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value / total) * 100).toFixed(1);
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Students by Major Chart
+    const majorCtx = document.getElementById('studentsByMajorChart');
+    const majorChart = new Chart(majorCtx, {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.StudentsByMajor.Keys)),
+            datasets: [{
+                label: 'Số sinh viên',
+                data: @Html.Raw(Json.Serialize(Model.StudentsByMajor.Values)),
+                backgroundColor: [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(237, 100, 166, 0.8)',
+                    'rgba(255, 159, 64, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ],
+                borderColor: [
+                    'rgb(102, 126, 234)',
+                    'rgb(237, 100, 166)',
+                    'rgb(255, 159, 64)',
+                    'rgb(75, 192, 192)',
+                    'rgb(153, 102, 255)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Enrollment Status Chart
+    const enrollmentCtx = document.getElementById('enrollmentStatusChart');
+    const enrollmentChart = new Chart(enrollmentCtx, {
+        type: 'pie',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.EnrollmentsByStatus.Keys)),
+            datasets: [{
+                data: @Html.Raw(Json.Serialize(Model.EnrollmentsByStatus.Values)),
+                backgroundColor: [
+                    '#28a745',
+                    '#ffc107',
+                    '#dc3545',
+                    '#17a2b8',
+                    '#6c757d'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                }
+            }
+        }
+    });
+
+    // Export PDF function (placeholder)
+    function exportDashboardPDF() {
+        Swal.fire({
+            title: 'Xuất báo cáo PDF',
+            text: 'Chức năng xuất PDF đang được phát triển...',
+            icon: 'info',
+            confirmButtonText: 'OK'
+        });
+        // TODO: Implement PDF export
+        // window.location.href = '/Dashboard/ExportPDF';
+    }
+</script>
+}

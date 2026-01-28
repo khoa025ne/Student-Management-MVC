@@ -107,13 +107,13 @@
                                             <i class="fas fa-book-open"></i>
                                         </div>
                                         <div>
-                                            <div class="fw-semibold">Môn học @item.CourseId</div>
-                                            <div class="small text-muted">Tín chỉ</div>
+                                            <div class="fw-semibold">@(item.Course?.CourseName ?? "N/A")</div>
+                                            <div class="small text-muted">@(item.Course?.Credits ?? 0) Tín chỉ</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <code class="small">@item.CourseId</code>
+                                    <code class="small">@(item.Course?.CourseCode ?? item.CourseId.ToString())</code>
                                 </td>
                                 <td style="text-align: center;">
                                     <div class="grade-display grade-@gradeClass" style="display: inline-flex; align-items: center; justify-content: center; width: 50px; height: 50px; border-radius: 50%; font-weight: 700; font-size: 1.125rem;">

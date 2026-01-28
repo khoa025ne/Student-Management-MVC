@@ -1,0 +1,246 @@
+@model DataAccess.Entities.Student
+@using DataAccess.Enums
+@using System.ComponentModel.DataAnnotations
+
+@{
+    ViewData["Title"] = "Thông tin sinh viên";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass-card">
+                <div class="card-header bg-gradient-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-circle me-2"></i>Thông tin chi tiết sinh viên
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <partial name="_Notifications" />
+
+                    <div class="row g-4">
+                        <!-- Avatar Section -->
+                        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                        {
+                            <div class="col-12 text-center mb-3">
+                                <img src="@Model.AvatarUrl" alt="Avatar" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #007bff;" />
+                            </div>
+                        }
+
+                        <!-- Thông tin cơ bản -->
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>Thông tin cơ bản
+                            </h5>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-id-card me-1"></i> Mã sinh viên
+                                </label>
+                                <p class="fs-5">@Model.StudentCode</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-user me-1"></i> Họ và tên
+                                </label>
+                                <p class="fs-5">@Model.FullName</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-envelope me-1"></i> Email
+                                </label>
+                                <p class="fs-5">
+                                    <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-phone me-1"></i> Số điện thoại
+                                </label>
+                                <p class="fs-5">
+                                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                    {
+                                        <a href="tel:@Model.PhoneNumber" class="text-decoration-none">@Model.PhoneNumber</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa cập nhật</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-birthday-cake me-1"></i> Ngày sinh
+                                </label>
+                                <p class="fs-5">
+                                    @Model.DateOfBirth.ToString("dd/MM/yyyy")
+                                    <span class="text-muted small">
+                                        (@((DateTime.Now.Year - Model.DateOfBirth.Year)) tuổi)
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin học vụ -->
+                        <div class="col-12 mt-3">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-graduation-cap me-2 text-primary"></i>Thông tin học vụ
+                            </h5>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-door-open me-1"></i> Lớp
+                                </label>
+                                <p class="fs-5">
+                                    @if (!string.IsNullOrEmpty(Model.ClassCode))
+                                    {
+                                        @Model.ClassCode
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa có lớp</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-book me-1"></i> Ngành học
+                                </label>
+                                <p class="fs-5">
+                                    @{
+                                        var displayName = Model.Major.GetType()
+                                            .GetField(Model.Major.ToString())?
+                                            .GetCustomAttributes(typeof(DisplayAttribute), false)
+                                            .Cast<DisplayAttribute>()
+                                            .FirstOrDefault()?.Name ?? Model.Major.ToString();
+                                    }
+                                    @displayName
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-calendar me-1"></i> Kỳ học hiện tại
+                                </label>
+                                <p class="fs-5">Kỳ @Model.CurrentTermNo</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-chart-line me-1"></i> GPA tổng
+                                </label>
+                                <p class="fs-5">
+                                    <span class="badge bg-@(Model.OverallGPA >= 3.6 ? "success" : Model.OverallGPA >= 3.0 ? "info" : Model.OverallGPA >= 2.0 ? "warning" : "danger") fs-6">
+                                        @Model.OverallGPA.ToString("F2")/4.0
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-sign-in-alt me-1"></i> Lần đầu đăng nhập
+                                </label>
+                                <p class="fs-5">
+                                    @if (Model.IsFirstLogin)
+                                    {
+                                        <span class="badge bg-warning">Chưa đăng nhập</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Đã đăng nhập</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin hệ thống -->
+                        <div class="col-12 mt-3">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-cog me-2 text-primary"></i>Thông tin hệ thống
+                            </h5>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="info-group">
+                                <label class="fw-bold text-muted">
+                                    <i class="fas fa-clock me-1"></i> Ngày tạo
+                                </label>
+                                <p class="fs-6">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 d-flex gap-2 justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+                        </a>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@Model.StudentId" class="btn btn-warning btn-lg">
+                                <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-group label {
+        display: block;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-group p {
+        margin-bottom: 0;
+        color: #333;
+    }
+    
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>

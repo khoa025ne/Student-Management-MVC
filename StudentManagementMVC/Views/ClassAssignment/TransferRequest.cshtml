@@ -16,43 +16,59 @@
 
                     @if (enrolledClasses != null && enrolledClasses.Any())
                     {
-                        <form method="post" asp-action="RequestTransfer">
+                        <form method="post" asp-action="RequestTransfer" id="transferForm">
                             @Html.AntiForgeryToken()
 
                             <div class="mb-3">
-                                <label for="fromClassId" class="form-label">Lớp Hiện Tại *</label>
-                                <select id="fromClassId" name="fromClassId" class="form-select" required>
-                                    <option value="">-- Chọn lớp muốn rời --</option>
-                                    @foreach (var enrollment in enrolledClasses)
+                                <label for="selectedCourseId" class="form-label">Chọn Môn Học *</label>
+                                <select id="selectedCourseId" name="selectedCourseId" class="form-select" required>
+                                    <option value="">-- Chọn môn học --</option>
+                                    @{
+                                        var distinctCourses = enrolledClasses
+                                            .GroupBy(e => e.Class?.CourseId)
+                                            .Select(g => g.First().Class)
+                                            .Where(c => c != null)
+                                            .ToList();
+                                    }
+                                    @foreach (var classItem in distinctCourses)
                                     {
-                                        <option value="@enrollment.ClassId">
-                                            @enrollment.Class?.ClassName - @enrollment.Class?.Course?.CourseName
+                                        <option value="@classItem.CourseId">
+                                            @classItem.Course?.CourseName (@classItem.Course?.CourseCode)
                                         </option>
                                     }
                                 </select>
+                                <small class="text-muted">Chọn môn học mà bạn muốn chuyển lớp</small>
                             </div>
 
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                <strong>Lưu ý:</strong> Hãy chọn lớp khác cùng môn học hoặc liên hệ admin để xin chuyển.
+                            <div class="mb-3" id="currentClassSection" style="display: none;">
+                                <label for="fromClassId" class="form-label">Lớp Hiện Tại *</label>
+                                <select id="fromClassId" name="fromClassId" class="form-select" required>
+                                    <option value="">-- Chọn lớp hiện tại --</option>
+                                </select>
+                                <small class="text-muted">Chọn lớp bạn đang học</small>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-3" id="targetClassSection" style="display: none;">
                                 <label for="toClassId" class="form-label">Lớp Muốn Chuyển Sang *</label>
-                                <input type="text" id="toClassId" name="toClassId" class="form-control" 
-                                       placeholder="Nhập ID lớp hoặc liên hệ phòng đào tạo để xem danh sách"
-                                       required />
-                                <small class="text-muted">Liên hệ phòng đào tạo để biết ID lớp khác</small>
+                                <select id="toClassId" name="toClassId" class="form-select" required>
+                                    <option value="">-- Chọn lớp mới --</option>
+                                </select>
+                                <small class="text-muted" id="classInfo"></small>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="alert alert-info" id="noteSection" style="display: none;">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Lưu ý:</strong> Chỉ hiển thị các lớp còn chỗ trống của cùng môn học.
+                            </div>
+
+                            <div class="mb-3" id="reasonSection" style="display: none;">
                                 <label for="reason" class="form-label">Lý Do Chuyển Lớp *</label>
                                 <textarea id="reason" name="reason" class="form-control" rows="4" 
                                           placeholder="Vui lòng nêu rõ lý do chuyển lớp..." required></textarea>
                                 <small class="text-muted">Ví dụ: xung đột với lịch khác, muốn học với bạn cùng lớp, v.v.</small>
                             </div>
 
-                            <div class="form-check">
+                            <div class="form-check" id="confirmSection" style="display: none;">
                                 <input class="form-check-input" type="checkbox" id="confirm" required>
                                 <label class="form-check-label" for="confirm">
                                     Tôi xác nhận rằng thông tin trên là chính xác
@@ -63,7 +79,7 @@
                                 <a href="@Url.Action("MyEnrollments", "Enrollments")" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left"></i> Quay lại
                                 </a>
-                                <button type="submit" class="btn btn-warning">
+                                <button type="submit" class="btn btn-warning" id="submitBtn" disabled>
                                     <i class="fas fa-paper-plane"></i> Gửi Yêu Cầu
                                 </button>
                             </div>
@@ -84,3 +100,127 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        const enrolledClassesData = @Html.Raw(Json.Serialize((enrolledClasses ?? Enumerable.Empty<DataAccess.Entities.Enrollment>()).Select(e => new {
+            classId = e.ClassId,
+            className = e.Class?.ClassName,
+            courseId = e.Class?.CourseId,
+            courseName = e.Class?.Course?.CourseName,
+            courseCode = e.Class?.Course?.CourseCode,
+            room = e.Class?.Room,
+            dayOfWeek = e.Class?.DayOfWeekPair.ToString(),
+            timeSlot = e.Class?.TimeSlot.ToString(),
+            currentEnrollment = e.Class?.CurrentEnrollment,
+            maxCapacity = e.Class?.MaxCapacity
+        }).ToList()));
+
+        let allClassesForCourse = [];
+
+        // Khi chọn môn học
+        document.getElementById('selectedCourseId').addEventListener('change', async function() {
+            const courseId = parseInt(this.value);
+            const fromClassSelect = document.getElementById('fromClassId');
+            const toClassSelect = document.getElementById('toClassId');
+            
+            fromClassSelect.innerHTML = '<option value="">-- Chọn lớp hiện tại --</option>';
+            toClassSelect.innerHTML = '<option value="">-- Chọn lớp mới --</option>';
+            
+            if (courseId) {
+                // Hiển thị các lớp hiện tại của môn này
+                const currentClasses = enrolledClassesData.filter(e => e.courseId === courseId);
+                currentClasses.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.classId;
+                    option.textContent = `${c.className} - ${c.room} - ${c.dayOfWeek} - ${c.timeSlot}`;
+                    fromClassSelect.appendChild(option);
+                });
+                
+                document.getElementById('currentClassSection').style.display = 'block';
+                
+                // Load tất cả các lớp của môn học này
+                await loadClassesForCourse(courseId);
+            } else {
+                document.getElementById('currentClassSection').style.display = 'none';
+                document.getElementById('targetClassSection').style.display = 'none';
+                document.getElementById('noteSection').style.display = 'none';
+                document.getElementById('reasonSection').style.display = 'none';
+                document.getElementById('confirmSection').style.display = 'none';
+                document.getElementById('submitBtn').disabled = true;
+            }
+        });
+
+        // Khi chọn lớp hiện tại
+        document.getElementById('fromClassId').addEventListener('change', function() {
+            const fromClassId = parseInt(this.value);
+            const toClassSelect = document.getElementById('toClassSelect');
+            
+            if (fromClassId) {
+                // Hiển thị các lớp khác (trừ lớp hiện tại và lớp đã full)
+                const toClassSelect = document.getElementById('toClassId');
+                toClassSelect.innerHTML = '<option value="">-- Chọn lớp mới --</option>';
+                
+                const availableClasses = allClassesForCourse.filter(c => 
+                    c.classId !== fromClassId && c.currentEnrollment < c.maxCapacity
+                );
+                
+                if (availableClasses.length === 0) {
+                    toClassSelect.innerHTML = '<option value="">Không có lớp khả dụng</option>';
+                    document.getElementById('classInfo').textContent = 'Tất cả các lớp khác đã đầy.';
+                } else {
+                    availableClasses.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.classId;
+                        option.textContent = `${c.className} - ${c.room} - ${c.dayOfWeek} - ${c.timeSlot} (${c.currentEnrollment}/${c.maxCapacity})`;
+                        toClassSelect.appendChild(option);
+                    });
+                    document.getElementById('classInfo').textContent = `Có ${availableClasses.length} lớp khả dụng`;
+                }
+                
+                document.getElementById('targetClassSection').style.display = 'block';
+                document.getElementById('noteSection').style.display = 'block';
+                document.getElementById('reasonSection').style.display = 'block';
+                document.getElementById('confirmSection').style.display = 'block';
+            } else {
+                document.getElementById('targetClassSection').style.display = 'none';
+                document.getElementById('noteSection').style.display = 'none';
+                document.getElementById('reasonSection').style.display = 'none';
+                document.getElementById('confirmSection').style.display = 'none';
+            }
+            checkFormValidity();
+        });
+
+        // Khi chọn lớp mới
+        document.getElementById('toClassId').addEventListener('change', checkFormValidity);
+        document.getElementById('confirm').addEventListener('change', checkFormValidity);
+
+        async function loadClassesForCourse(courseId) {
+            try {
+                const response = await fetch(`/api/classes/by-course/${courseId}`);
+                if (!response.ok) {
+                    // Fallback: sử dụng dữ liệu đã có
+                    console.warn('API not available, using enrolled classes only');
+                    allClassesForCourse = enrolledClassesData.filter(e => e.courseId === courseId);
+                    return;
+                }
+                const classes = await response.json();
+                allClassesForCourse = classes;
+            } catch (error) {
+                console.error('Error loading classes:', error);
+                // Fallback: sử dụng dữ liệu đã có
+                allClassesForCourse = enrolledClassesData.filter(e => e.courseId === courseId);
+            }
+        }
+
+        function checkFormValidity() {
+            const fromClassId = document.getElementById('fromClassId').value;
+            const toClassId = document.getElementById('toClassId').value;
+            const reason = document.getElementById('reason').value;
+            const confirm = document.getElementById('confirm').checked;
+            
+            const isValid = fromClassId && toClassId && reason.trim() && confirm;
+            document.getElementById('submitBtn').disabled = !isValid;
+        }
+    </script>
+}

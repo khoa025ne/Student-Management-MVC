@@ -2,7 +2,386 @@
 
 @{
     ViewData["Title"] = $"Chi tiết lớp học - {Model?.ClassName}";
+    var enrollments = ViewBag.Enrollments as IEnumerable<DataAccess.Entities.Enrollment>;
+    var totalStudents = ViewBag.TotalStudents ?? 0;
+    var passedStudents = ViewBag.PassedStudents ?? 0;
+    var averageScore = ViewBag.AverageScore ?? 0.0;
 }
+
+<div class="container-fluid mt-4">
+    <div class="row g-4">
+        <!-- Class Info Card -->
+        <div class="col-lg-4">
+            <div class="glass-card animate-fadeIn">
+                <div class="card-header bg-gradient-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Thông tin lớp học</h5>
+                </div>
+                <div class="card-body">
+                    <partial name="_Notifications" />
+
+                    @if (Model != null)
+                    {
+                        <div class="info-list">
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-code"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Mã lớp</span>
+                                    <span class="info-value fw-bold">@Model.ClassCode</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-chalkboard"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Tên lớp</span>
+                                    <span class="info-value">@Model.ClassName</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Môn học</span>
+                                    <span class="info-value">
+                                        @Model.Course?.CourseName
+                                        <small class="text-muted d-block">@Model.Course?.CourseCode</small>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Học kỳ</span>
+                                    <span class="info-value">@Model.Semester?.SemesterName</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-door-open"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Phòng học</span>
+                                    <span class="info-value">@(string.IsNullOrEmpty(Model.Room) ? "N/A" : Model.Room)</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Lịch học</span>
+                                    <span class="info-value">@Model.DayOfWeekPair - @Model.TimeSlot</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Sĩ số</span>
+                                    <span class="info-value">
+                                        <span class="badge-modern badge-primary">@Model.CurrentEnrollment/@Model.MaxCapacity</span>
+                                        @{
+                                            var capacity = Model.MaxCapacity > 0 ? (Model.CurrentEnrollment * 100 / Model.MaxCapacity) : 0;
+                                            var statusColor = capacity >= 100 ? "danger" : capacity >= 80 ? "warning" : "success";
+                                        }
+                                        <span class="badge-modern badge-@statusColor">@capacity%</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Tín chỉ</span>
+                                    <span class="info-value">@Model.Course?.Credits TC</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-6">
+                                <div class="stat-card-mini">
+                                    <i class="fas fa-user-check text-success"></i>
+                                    <div>
+                                        <div class="stat-label">Đạt</div>
+                                        <div class="stat-value">@passedStudents</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card-mini">
+                                    <i class="fas fa-chart-line text-primary"></i>
+                                    <div>
+                                        <div class="stat-label">ĐTB</div>
+                                        <div class="stat-value">@averageScore.ToString("F1")</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex flex-column gap-2">
+                            <a href="@Url.Action("Index", "Classes")" class="btn btn-secondary w-100">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                            </a>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            {
+                                <a href="@Url.Action("Edit", "Classes", new { id = Model.ClassId })" class="btn btn-warning w-100">
+                                    <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                </a>
+                                <a href="@Url.Action("AddStudents", "Classes", new { classId = Model.ClassId })" class="btn btn-primary w-100">
+                                    <i class="fas fa-user-plus me-2"></i>Thêm sinh viên
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            Không tìm thấy thông tin lớp học!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Student List Card -->
+        <div class="col-lg-8">
+            <div class="glass-card animate-fadeIn" style="animation-delay: 0.1s;">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Danh sách sinh viên (@totalStudents)</h5>
+                </div>
+                <div class="card-body">
+                    @if (enrollments != null && enrollments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-modern">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 5%;">STT</th>
+                                        <th>MSSV</th>
+                                        <th>Họ tên</th>
+                                        <th style="text-align: center;">Điểm GK</th>
+                                        <th style="text-align: center;">Điểm CK</th>
+                                        <th style="text-align: center;">Tổng điểm</th>
+                                        <th style="text-align: center;">Xếp loại</th>
+                                        <th style="text-align: center;">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{int index = 1;}
+                                    @foreach (var enrollment in enrollments)
+                                    {
+                                        var gradeClass = "";
+                                        var gradeLetter = "";
+                                        if (enrollment.TotalScore.HasValue)
+                                        {
+                                            var score = enrollment.TotalScore.Value;
+                                            gradeClass = score >= 8.5 ? "success" : score >= 7.0 ? "primary" : score >= 5.5 ? "info" : score >= 5.0 ? "warning" : "danger";
+                                            gradeLetter = score >= 8.5 ? "A" : score >= 7.0 ? "B" : score >= 5.5 ? "C" : score >= 5.0 ? "D" : "F";
+                                        }
+
+                                        <tr>
+                                            <td class="text-center">@index</td>
+                                            <td>
+                                                <span class="badge-modern badge-primary">@enrollment.Student?.StudentCode</span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="student-avatar">
+                                                        @enrollment.Student?.FullName?.Substring(0, 2).ToUpper()
+                                                    </div>
+                                                    <strong>@enrollment.Student?.FullName</strong>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                @if (enrollment.MidtermScore.HasValue)
+                                                {
+                                                    <span class="fw-bold">@enrollment.MidtermScore.Value.ToString("F1")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">--</span>
+                                                }
+                                            </td>
+                                            <td style="text-align: center;">
+                                                @if (enrollment.FinalScore.HasValue)
+                                                {
+                                                    <span class="fw-bold">@enrollment.FinalScore.Value.ToString("F1")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">--</span>
+                                                }
+                                            </td>
+                                            <td style="text-align: center;">
+                                                @if (enrollment.TotalScore.HasValue)
+                                                {
+                                                    <span class="score-badge score-@gradeClass">
+                                                        @enrollment.TotalScore.Value.ToString("F1")
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">--</span>
+                                                }
+                                            </td>
+                                            <td style="text-align: center;">
+                                                @if (!string.IsNullOrEmpty(gradeLetter))
+                                                {
+                                                    <span class="badge-modern badge-@gradeClass">@gradeLetter</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">--</span>
+                                                }
+                                            </td>
+                                            <td style="text-align: center; white-space: nowrap;">
+                                                @if (enrollment.IsPassed == true)
+                                                {
+                                                    <span class="badge-modern badge-success">
+                                                        <i class="fas fa-check"></i> Đạt
+                                                    </span>
+                                                }
+                                                else if (enrollment.IsPassed == false)
+                                                {
+                                                    <span class="badge-modern badge-danger">
+                                                        <i class="fas fa-times"></i> Trượt
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge-modern badge-secondary">
+                                                        <i class="fas fa-clock"></i> Đang học
+                                                    </span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        index++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fas fa-user-slash"></i>
+                            <h4>Chưa có sinh viên</h4>
+                            <p>Lớp học này chưa có sinh viên đăng ký</p>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                            {
+                                <a href="@Url.Action("AddStudents", "Classes", new { classId = Model.ClassId })" class="btn btn-primary mt-3">
+                                    <i class="fas fa-user-plus me-2"></i>Thêm sinh viên
+                                </a>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    }
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-card-mini {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .stat-card-mini i {
+        font-size: 1.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .student-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+    
+    .score-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    
+    .score-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .score-primary { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .score-info { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .score-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .score-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--text-muted);
+        opacity: 0.3;
+    }
+    
+    .empty-state h4 {
+        margin-top: 1rem;
+        color: var(--text-primary);
+    }
+    
+    .empty-state p {
+        color: var(--text-muted);
+    }
+</style>
 
 <div class="container mt-4">
     <div class="row">

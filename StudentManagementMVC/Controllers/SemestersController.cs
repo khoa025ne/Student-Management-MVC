@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace StudentManagementMVC.Controllers
 {
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin,Manager,Staff")]
     public class SemestersController : Controller
     {
         private readonly ISemesterService _semesterService;
@@ -84,13 +84,25 @@ namespace StudentManagementMVC.Controllers
         // GET: Semesters/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var semester = await _semesterService.GetByIdAsync(id);
-            if (semester == null)
+            try
             {
-                TempData["ErrorMessage"] = $"Không tìm thấy học kỳ với ID: {id}!";
+                Console.WriteLine($"[GET Edit] Đang tải học kỳ ID: {id}");
+                var semester = await _semesterService.GetByIdAsync(id);
+                if (semester == null)
+                {
+                    Console.WriteLine($"[GET Edit] Không tìm thấy học kỳ ID: {id}");
+                    TempData["ErrorMessage"] = $"Không tìm thấy học kỳ với ID: {id}!";
+                    return RedirectToAction(nameof(Index));
+                }
+                Console.WriteLine($"[GET Edit] Đã tải học kỳ: {semester.SemesterName}");
+                return View(semester);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GET Edit] Lỗi: {ex.Message}");
+                TempData["ErrorMessage"] = $"Lỗi khi tải học kỳ: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
-            return View(semester);
         }
 
         // POST: Semesters/Edit/5
@@ -98,52 +110,60 @@ namespace StudentManagementMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Semester semester)
         {
-            if (id != semester.SemesterId)
+            Console.WriteLine($"[POST Edit] Bắt đầu cập nhật học kỳ ID: {id}");
+            Console.WriteLine($"[POST Edit] Semester data - ID: {semester.SemesterId}, Name: {semester.SemesterName}, Code: {semester.SemesterCode}");
+            
+            try
             {
-                TempData["ErrorMessage"] = $"Không khớp ID: URL ID ({id}) khác với Semester ID ({semester.SemesterId})!";
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (ModelState.IsValid)
-            {
-                // Kiểm tra học kỳ tồn tại
-                var existingSemester = await _semesterService.GetByIdAsync(id);
-                if (existingSemester == null)
+                if (id != semester.SemesterId)
                 {
-                    TempData["ErrorMessage"] = $"Không tìm thấy học kỳ với ID: {id}!";
+                    Console.WriteLine($"[POST Edit] Lỗi: ID không khớp - URL: {id}, Model: {semester.SemesterId}");
+                    TempData["ErrorMessage"] = $"Không khớp ID: URL ID ({id}) khác với Semester ID ({semester.SemesterId})!";
                     return RedirectToAction(nameof(Index));
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    Console.WriteLine($"[POST Edit] ModelState không hợp lệ");
+                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        Console.WriteLine($"[POST Edit] Validation Error: {error.ErrorMessage}");
+                    }
+                    TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
+                    return View(semester);
                 }
 
                 // Kiểm tra duplicate SemesterName (trừ chính nó)
                 var allSemesters = await _semesterService.GetAllAsync();
                 if (allSemesters.Any(s => s.SemesterName == semester.SemesterName && s.SemesterId != semester.SemesterId))
                 {
-                    TempData["ErrorMessage"] = $"Tên học kỳ '{semester.SemesterName}' đã được sử dụng bởi học kỳ khác!";
+                    Console.WriteLine($"[POST Edit] Tên học kỳ '{semester.SemesterName}' đã tồn tại");
+                    TempData["ErrorMessage"] = $"❌ Tên học kỳ '{semester.SemesterName}' đã được sử dụng bởi học kỳ khác!";
                     return View(semester);
                 }
 
                 if (semester.StartDate >= semester.EndDate)
                 {
-                    TempData["ErrorMessage"] = $"Ngày bắt đầu ({semester.StartDate:dd/MM/yyyy}) phải trước ngày kết thúc ({semester.EndDate:dd/MM/yyyy})!";
+                    Console.WriteLine($"[POST Edit] Ngày không hợp lệ - Start: {semester.StartDate}, End: {semester.EndDate}");
+                    TempData["ErrorMessage"] = $"❌ Ngày bắt đầu ({semester.StartDate:dd/MM/yyyy}) phải trước ngày kết thúc ({semester.EndDate:dd/MM/yyyy})!";
                     return View(semester);
                 }
 
-                try
-                {
-                    await _semesterService.UpdateAsync(semester);
-                    TempData["SuccessMessage"] = $"Cập nhật học kỳ '{semester.SemesterName}' thành công!";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (System.Exception ex)
-                {
-                    TempData["ErrorMessage"] = $"Lỗi khi cập nhật học kỳ: {ex.Message}";
-                }
+                Console.WriteLine($"[POST Edit] Đang gọi UpdateAsync...");
+                var result = await _semesterService.UpdateAsync(semester);
+                Console.WriteLine($"[POST Edit] UpdateAsync hoàn thành");
+                
+                TempData["SuccessMessage"] = $"✅ Cập nhật học kỳ '{semester.SemesterName}' thành công!";
+                Console.WriteLine($"[POST Edit] Thành công - Redirect về Index");
+                return RedirectToAction(nameof(Index));
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
+                Console.WriteLine($"[POST Edit] Exception: {ex.Message}");
+                Console.WriteLine($"[POST Edit] StackTrace: {ex.StackTrace}");
+                TempData["ErrorMessage"] = $"❌ Lỗi khi cập nhật học kỳ: {ex.Message}";
+                return View(semester);
             }
-            return View(semester);
         }
 
         // GET: Semesters/Delete/5

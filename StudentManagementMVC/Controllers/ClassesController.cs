@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using DataAccess.Entities;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
 
 namespace StudentManagementMVC.Controllers
 {
@@ -266,7 +262,8 @@ namespace StudentManagementMVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin,Manager")]
+        // Admin, Manager, Teacher: View class details with student list and scores
+        [Authorize(Roles = "Admin,Manager,Teacher")]
         public async Task<IActionResult> Details(int id)
         {
             var classEntity = await _classService.GetByIdAsync(id);
@@ -275,6 +272,23 @@ namespace StudentManagementMVC.Controllers
                 TempData["ErrorMessage"] = $"Không tìm thấy lớp học với ID: {id}!";
                 return RedirectToAction(nameof(Index));
             }
+
+            // Get all enrollments for this class with student information
+            var allEnrollments = await _enrollmentService.GetAllAsync();
+            var classEnrollments = allEnrollments
+                .Where(e => e.ClassId == id)
+                .OrderBy(e => e.Student?.StudentCode)
+                .ToList();
+
+            ViewBag.Enrollments = classEnrollments;
+            ViewBag.TotalStudents = classEnrollments.Count();
+            ViewBag.PassedStudents = classEnrollments.Count(e => e.IsPassed == true);
+            ViewBag.AverageScore = classEnrollments
+                .Where(e => e.TotalScore.HasValue)
+                .Select(e => e.TotalScore!.Value)
+                .DefaultIfEmpty(0)
+                .Average();
+
             return View(classEntity);
         }
 
@@ -549,6 +563,40 @@ namespace StudentManagementMVC.Controllers
             {
                 TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
                 return RedirectToAction(nameof(Details), new { id = classId });
+            }
+        }
+
+        // API endpoint để lấy danh sách lớp theo môn học
+        [HttpGet]
+        [Route("api/classes/by-course/{courseId}")]
+        public async Task<IActionResult> GetClassesByCourse(int courseId)
+        {
+            try
+            {
+                var allClasses = await _classService.GetAllAsync();
+                var classes = allClasses
+                    .Where(c => c.CourseId == courseId)
+                    .Select(c => new
+                    {
+                        classId = c.ClassId,
+                        className = c.ClassName,
+                        classCode = c.ClassCode,
+                        courseId = c.CourseId,
+                        courseName = c.Course?.CourseName,
+                        courseCode = c.Course?.CourseCode,
+                        room = c.Room,
+                        dayOfWeek = c.DayOfWeekPair.ToString(),
+                        timeSlot = c.TimeSlot.ToString(),
+                        currentEnrollment = c.CurrentEnrollment,
+                        maxCapacity = c.MaxCapacity
+                    })
+                    .ToList();
+
+                return Json(classes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
             }
         }
     }

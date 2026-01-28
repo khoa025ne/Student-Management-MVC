@@ -233,6 +233,9 @@ namespace StudentManagementMVC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // Remove Role validation error (Role is navigation property, not submitted from form)
+            ModelState.Remove("Role");
+
             if (ModelState.IsValid)
             {
                 try
@@ -266,7 +269,11 @@ namespace StudentManagementMVC.Controllers
             }
             else
             {
-                TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
+                // Log validation errors for debugging
+                var errors = string.Join(", ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                TempData["ErrorMessage"] = $"Dữ liệu không hợp lệ! {errors}";
             }
 
             ViewBag.Roles = await _roleService.GetAllAsync();

@@ -1,0 +1,163 @@
+@model DataAccess.Entities.Student
+@using DataAccess.Enums
+@using System.ComponentModel.DataAnnotations
+
+@{
+    ViewData["Title"] = "Chỉnh sửa sinh viên";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass-card">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Chỉnh sửa thông tin sinh viên
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <partial name="_Notifications" />
+
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="StudentId" />
+                        <input type="hidden" asp-for="UserId" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <input type="hidden" asp-for="IsFirstLogin" />
+
+                        <div class="row g-3">
+                            <!-- Mã sinh viên (readonly) -->
+                            <div class="col-md-4">
+                                <label asp-for="StudentCode" class="form-label fw-bold">
+                                    <i class="fas fa-id-card me-1"></i> Mã sinh viên
+                                </label>
+                                <input asp-for="StudentCode" class="form-control" readonly />
+                                <span asp-validation-for="StudentCode" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Họ và tên -->
+                            <div class="col-md-8">
+                                <label asp-for="FullName" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i> Họ và tên *
+                                </label>
+                                <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" required />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-1"></i> Email *
+                                </label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="email@example.com" required />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Số điện thoại -->
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-bold">
+                                    <i class="fas fa-phone me-1"></i> Số điện thoại
+                                </label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="0123456789" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Ngày sinh -->
+                            <div class="col-md-4">
+                                <label asp-for="DateOfBirth" class="form-label fw-bold">
+                                    <i class="fas fa-birthday-cake me-1"></i> Ngày sinh
+                                </label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Lớp -->
+                            <div class="col-md-4">
+                                <label asp-for="ClassCode" class="form-label fw-bold">
+                                    <i class="fas fa-door-open me-1"></i> Lớp
+                                </label>
+                                <input asp-for="ClassCode" class="form-control" placeholder="SE1801" />
+                                <span asp-validation-for="ClassCode" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Kỳ học hiện tại -->
+                            <div class="col-md-4">
+                                <label asp-for="CurrentTermNo" class="form-label fw-bold">
+                                    <i class="fas fa-calendar me-1"></i> Kỳ học hiện tại
+                                </label>
+                                <input asp-for="CurrentTermNo" type="number" class="form-control" min="1" max="12" />
+                                <span asp-validation-for="CurrentTermNo" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Ngành học -->
+                            <div class="col-md-6">
+                                <label asp-for="Major" class="form-label fw-bold">
+                                    <i class="fas fa-graduation-cap me-1"></i> Ngành học *
+                                </label>
+                                <select asp-for="Major" class="form-select" required>
+                                    @foreach (MajorType major in Enum.GetValues(typeof(MajorType)))
+                                    {
+                                        var displayName = major.GetType()
+                                            .GetField(major.ToString())?
+                                            .GetCustomAttributes(typeof(DisplayAttribute), false)
+                                            .Cast<DisplayAttribute>()
+                                            .FirstOrDefault()?.Name ?? major.ToString();
+                                        
+                                        <option value="@major">@displayName</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Major" class="text-danger small"></span>
+                            </div>
+
+                            <!-- GPA -->
+                            <div class="col-md-6">
+                                <label asp-for="OverallGPA" class="form-label fw-bold">
+                                    <i class="fas fa-chart-line me-1"></i> GPA tổng
+                                </label>
+                                <input asp-for="OverallGPA" type="number" step="0.01" min="0" max="4.0" class="form-control" />
+                                <span asp-validation-for="OverallGPA" class="text-danger small"></span>
+                                <small class="text-muted">Thang điểm 4.0</small>
+                            </div>
+
+                            <!-- Avatar URL -->
+                            <div class="col-12">
+                                <label asp-for="AvatarUrl" class="form-label fw-bold">
+                                    <i class="fas fa-image me-1"></i> URL Avatar
+                                </label>
+                                <input asp-for="AvatarUrl" class="form-control" placeholder="https://example.com/avatar.jpg" />
+                                <span asp-validation-for="AvatarUrl" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2 justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .form-label {
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+</style>

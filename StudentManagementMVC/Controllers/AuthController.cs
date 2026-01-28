@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Models;
 using StudentManagementMVC.ViewModels;
-using DataAccess.Entities; // Chỉ dùng để tạo object User cho register, không gọi trực tiếp DB
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace StudentManagementMVC.Controllers
 {

@@ -3,8 +3,7 @@ using DataAccess.Enums;
 using Microsoft.Extensions.Configuration;
 using Repositories.Interfaces;
 using Services.Interfaces;
-using System;
-using System.Threading.Tasks;
+using Services.Models;
 
 namespace Services.Implementations
 {
@@ -27,7 +26,7 @@ namespace Services.Implementations
         /// <summary>
         /// Đăng nhập bằng email và password
         /// </summary>
-        public async Task<User?> LoginAsync(string email, string password)
+        public async Task<UserDto?> LoginAsync(string email, string password)
         {
             try
             {
@@ -51,22 +50,21 @@ namespace Services.Implementations
                     return null;
                 }
 
-                // Cập nhật LastLogin
-                user.LastLogin = DateTime.Now;
-                await _userRepository.UpdateAsync(user);
+                // Cập nhật thời gian đăng nhập cuối
+                await UpdateLastLoginAsync(user.UserId);
 
-                return user;
+                return MapToUserDto(user);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Lỗi khi đăng nhập: {ex.Message}", ex);
+                return null;
             }
         }
 
         /// <summary>
         /// Đăng nhập Admin từ appsettings.json
         /// </summary>
-        public async Task<User?> LoginAdminFromConfigAsync(string email, string password)
+        public async Task<UserDto?> LoginAdminFromConfigAsync(string email, string password)
         {
             try
             {
@@ -75,31 +73,33 @@ namespace Services.Implementations
 
                 if (email == adminEmail && password == adminPassword)
                 {
-                    // Trả về User giả lập cho Admin
-                    return new User
+                    // Trả về UserDto cho Admin
+                    return new UserDto
                     {
-                        UserId = 0,
-                        Email = adminEmail,
+                        UserId = "admin-0",
+                        Email = adminEmail ?? "admin@example.com",
                         FullName = "Administrator",
-                        RoleId = 1, // Admin role
-                        Role = new Role { RoleId = 1, RoleName = "Admin" },
                         IsActive = true,
-                        LastLogin = DateTime.Now
+                        LastLogin = DateTime.Now,
+                        Roles = new List<RoleDto>
+                        {
+                            new RoleDto { RoleId = 1, RoleName = "Admin" }
+                        }
                     };
                 }
 
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Lỗi khi kiểm tra Admin: {ex.Message}", ex);
+                return null;
             }
         }
 
         /// <summary>
         /// Đổi mật khẩu
         /// </summary>
-        public async Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
+        public async Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword)
         {
             try
             {
@@ -132,21 +132,36 @@ namespace Services.Implementations
         /// <summary>
         /// Đăng ký tài khoản mới
         /// </summary>
-        public async Task<User> RegisterAsync(User user, string password)
+        public async Task<UserDto> RegisterAsync(UserCreateDto userCreateDto, string password)
         {
             try
             {
                 // Kiểm tra email đã tồn tại
-                if (await _userRepository.ExistsByEmailAsync(user.Email))
+                if (await _userRepository.ExistsByEmailAsync(userCreateDto.Email))
                 {
                     throw new Exception("Email đã được sử dụng");
                 }
 
-                // Hash password
-                user.PasswordHash = HashPassword(password);
-                user.CreatedAt = DateTime.Now;
-                user.IsActive = true;
-                user.MustChangePassword = true; // Yêu cầu đổi password lần đầu
+                // Tạo User entity từ DTO
+                var user = new User
+                {
+                    Email = userCreateDto.Email,
+                    FullName = userCreateDto.FullName,
+                    DateOfBirth = userCreateDto.DateOfBirth,
+                    PhoneNumber = userCreateDto.PhoneNumber,
+                    Address = userCreateDto.Address,
+                    Avatar = userCreateDto.Avatar,
+                    PasswordHash = HashPassword(password),
+                    CreatedAt = DateTime.Now,
+                    IsActive = true,
+                    MustChangePassword = true // Yêu cầu đổi password lần đầu
+                };
+
+                // Gán role đầu tiên nếu có
+                if (userCreateDto.RoleIds.Any())
+                {
+                    user.RoleId = userCreateDto.RoleIds.First();
+                }
 
                 // Tạo User
                 var createdUser = await _userRepository.AddAsync(user);
@@ -154,28 +169,20 @@ namespace Services.Implementations
                 // Nếu là Student (RoleId = 3), tự động tạo Student record
                 if (createdUser.RoleId == 3)
                 {
-                    var studentCode = await _studentService.GenerateStudentCodeAsync();
-                    var defaultPassword = _studentService.GenerateDefaultPassword(DateTime.Now);
-                    
-                    var student = new Student
+                    var studentCreateDto = new StudentCreateDto
                     {
-                        StudentCode = studentCode,
-                        FullName = createdUser.FullName,
                         Email = createdUser.Email,
-                        PhoneNumber = "0000000000", // Default phone number
-                        DateOfBirth = DateTime.Now.AddYears(-20), // Default: 20 tuổi
-                        ClassCode = "TEMP",
-                        Major = MajorType.Undefined, // Default major
-                        CurrentTermNo = 1,
-                        IsFirstLogin = true,
-                        UserId = createdUser.UserId,
-                        CreatedAt = DateTime.Now
+                        FullName = createdUser.FullName,
+                        DateOfBirth = createdUser.DateOfBirth,
+                        PhoneNumber = createdUser.PhoneNumber,
+                        Address = createdUser.Address,
+                        Avatar = createdUser.Avatar
                     };
 
-                    await _studentService.CreateAsync(student);
+                    await _studentService.CreateStudentWithUserAsync(studentCreateDto);
                 }
 
-                return createdUser;
+                return MapToUserDto(createdUser);
             }
             catch (Exception ex)
             {
@@ -184,7 +191,7 @@ namespace Services.Implementations
         }
 
         /// <summary>
-        /// Hash password bằng BCrypt
+        /// Hash password using BCrypt
         /// </summary>
         public string HashPassword(string password)
         {
@@ -192,18 +199,82 @@ namespace Services.Implementations
         }
 
         /// <summary>
-        /// Verify password với BCrypt
+        /// Verify password using BCrypt
         /// </summary>
         public bool VerifyPassword(string password, string passwordHash)
         {
+            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+        }
+
+        /// <summary>
+        /// Lấy thông tin user theo email
+        /// </summary>
+        public async Task<UserDto?> GetUserByEmailAsync(string email)
+        {
             try
             {
-                return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+                var user = await _userRepository.GetByEmailAsync(email);
+                return user != null ? MapToUserDto(user) : null;
             }
-            catch
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật thời gian đăng nhập cuối
+        /// </summary>
+        public async Task<bool> UpdateLastLoginAsync(string userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user != null)
+                {
+                    user.LastLogin = DateTime.Now;
+                    await _userRepository.UpdateAsync(user);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception)
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Mapping từ User Entity sang UserDto
+        /// </summary>
+        private UserDto MapToUserDto(User user)
+        {
+            return new UserDto
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FullName = user.FullName,
+                DateOfBirth = user.DateOfBirth,
+                PhoneNumber = user.PhoneNumber,
+                Address = user.Address,
+                Avatar = user.Avatar,
+                CreatedAt = user.CreatedAt,
+                LastLogin = user.LastLogin,
+                IsEmailConfirmed = user.IsEmailConfirmed,
+                IsPhoneConfirmed = user.IsPhoneConfirmed,
+                IsActive = user.IsActive,
+                Roles = user.Role != null ? new List<RoleDto>
+                {
+                    new RoleDto
+                    {
+                        RoleId = user.Role.RoleId,
+                        RoleName = user.Role.RoleName,
+                        Description = user.Role.Description,
+                        Color = user.Role.Color,
+                        IsActive = user.Role.IsActive
+                    }
+                } : new List<RoleDto>()
+            };
         }
     }
 }

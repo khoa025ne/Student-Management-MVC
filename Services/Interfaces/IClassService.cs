@@ -1,6 +1,4 @@
-using DataAccess.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Services.Models;
 
 namespace Services.Interfaces
 {
@@ -9,12 +7,15 @@ namespace Services.Interfaces
     /// </summary>
     public interface IClassService
     {
-        Task<IEnumerable<Class>> GetAllAsync();
-        Task<Class?> GetByIdAsync(int id);
-        Task<IEnumerable<Class>> GetBySemesterAsync(int semesterId);
-        Task<IEnumerable<Class>> GetByCourseAsync(int courseId);
-        Task<Class> CreateAsync(Class classEntity);
-        Task<Class> UpdateAsync(Class classEntity);
-        Task DeleteAsync(int id);
+        Task<IEnumerable<ClassDto>> GetAllAsync();
+        Task<ClassDto?> GetByIdAsync(int classId);
+        Task<IEnumerable<ClassDto>> GetBySemesterAsync(int semesterId);
+        Task<IEnumerable<ClassDto>> GetByCourseAsync(int courseId);
+        Task<ClassDto> CreateAsync(ClassCreateDto createDto);
+        Task<ClassDto> UpdateAsync(ClassUpdateDto updateDto);
+        Task<bool> DeleteAsync(int classId);
+        Task<IEnumerable<ClassDto>> GetActiveClassesAsync();
+        Task<ClassDto?> UpdateClassStatusAsync(int classId, bool isActive);
+        Task<IEnumerable<ClassDto>> SearchClassesAsync(string searchTerm);
     }
 }

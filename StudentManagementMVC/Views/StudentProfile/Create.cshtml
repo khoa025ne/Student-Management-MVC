@@ -1,0 +1,108 @@
+@model DataAccess.Entities.Student
+
+@{
+    ViewData["Title"] = "Tạo hồ sơ sinh viên";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus"></i> Tạo hồ sơ sinh viên
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Hướng dẫn:</strong> Vui lòng điền đầy đủ thông tin cá nhân của bạn. 
+                        Ngành học sẽ được admin thiết lập sau khi xem xét hồ sơ.
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row g-3">
+                            <!-- Họ và tên -->
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i> Họ và tên *
+                                </label>
+                                <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" required />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-1"></i> Email *
+                                </label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="email@example.com" required />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Số điện thoại -->
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-bold">
+                                    <i class="fas fa-phone me-1"></i> Số điện thoại
+                                </label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="0123456789" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Ngày sinh -->
+                            <div class="col-md-6">
+                                <label asp-for="DateOfBirth" class="form-label fw-bold">
+                                    <i class="fas fa-birthday-cake me-1"></i> Ngày sinh
+                                </label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Thông tin bổ sung -->
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <strong>Lưu ý:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Mã sinh viên sẽ được tự động tạo sau khi gửi</li>
+                                        <li>Ngành học sẽ được admin thiết lập</li>
+                                        <li>Lớp sẽ được phân bổ sau khi admin phê duyệt</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2 justify-content-between">
+                            <a asp-action="Index" asp-controller="Home" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Tạo hồ sơ
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .card {
+        border-radius: 15px;
+    }
+    .form-label {
+        color: #495057;
+    }
+    .form-control:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+</style>

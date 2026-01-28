@@ -1,6 +1,4 @@
-using DataAccess.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Services.Models;
 
 namespace Services.Interfaces
 {
@@ -9,11 +7,13 @@ namespace Services.Interfaces
     /// </summary>
     public interface IAuthService
     {
-        Task<User?> LoginAsync(string email, string password);
-        Task<User?> LoginAdminFromConfigAsync(string email, string password);
-        Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword);
-        Task<User> RegisterAsync(User user, string password);
+        Task<UserDto?> LoginAsync(string email, string password);
+        Task<UserDto?> LoginAdminFromConfigAsync(string email, string password);
+        Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword);
+        Task<UserDto> RegisterAsync(UserCreateDto userCreateDto, string password);
         string HashPassword(string password);
         bool VerifyPassword(string password, string passwordHash);
+        Task<UserDto?> GetUserByEmailAsync(string email);
+        Task<bool> UpdateLastLoginAsync(string userId);
     }
 }

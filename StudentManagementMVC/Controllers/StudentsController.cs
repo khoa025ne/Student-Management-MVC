@@ -1,15 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using DataAccess.Entities;
 using StudentManagementMVC.ViewModels;
-using System.Threading.Tasks;
-using System.Linq;
-using System;
 
 namespace StudentManagementMVC.Controllers
 {
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin,Manager,Staff")]
     public class StudentsController : Controller
     {
         private readonly IStudentService _studentService;
@@ -138,6 +134,37 @@ namespace StudentManagementMVC.Controllers
         }
         */
 
+        // GET: Students/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            if (id == 0)
+            {
+                TempData["ErrorMessage"] = "ID sinh viên không hợp lệ!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var student = await _studentService.GetByIdAsync(id);
+            if (student == null)
+            {
+                TempData["ErrorMessage"] = $"Không tìm thấy sinh viên với ID: {id}!";
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(student);
+        }
+
+        // GET: Students/Edit/5
+        public async Task<IActionResult> Edit(int id)
+        {
+            var student = await _studentService.GetByIdAsync(id);
+            if (student == null)
+            {
+                TempData["ErrorMessage"] = $"Không tìm thấy sinh viên với ID: {id}!";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(student);
+        }
+
         // POST: Students/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -145,23 +172,32 @@ namespace StudentManagementMVC.Controllers
         {
             if (id != student.StudentId)
             {
-                return Json(new { success = false, message = "❌ Lỗi: ID không khớp! Vui lòng thử lại." });
+                TempData["ErrorMessage"] = "ID không khớp!";
+                return RedirectToAction(nameof(Index));
             }
+
+            // Remove validation for navigation properties
+            ModelState.Remove("User");
+            ModelState.Remove("Enrollments");
+            ModelState.Remove("Scores");
+            ModelState.Remove("Analyses");
 
             if (ModelState.IsValid)
             {
                 try
                 {
                     await _studentService.UpdateAsync(student);
-                    return Json(new { success = true, message = $"✅ Cập nhật thông tin sinh viên {student.FullName} thành công!" });
+                    TempData["SuccessMessage"] = $"Cập nhật thông tin sinh viên {student.FullName} thành công!";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (System.Exception ex)
                 {
-                    return Json(new { success = false, message = $"❌ Không thể cập nhật sinh viên: {ex.Message}. Vui lòng kiểm tra lại thông tin!" });
+                    TempData["ErrorMessage"] = $"Không thể cập nhật sinh viên: {ex.Message}";
+                    return View(student);
                 }
             }
-            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-            return Json(new { success = false, message = "❌ Dữ liệu không hợp lệ! Vui lòng kiểm tra lại tất cả các trường.", errors = errors });
+            TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại.";
+            return View(student);
         }
 
         // POST: Students/Delete/5

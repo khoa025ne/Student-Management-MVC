@@ -5,6 +5,8 @@
     var studentUsers = ViewBag.StudentUsers as IEnumerable<DataAccess.Entities.User>;
 }
 
+@Html.AntiForgeryToken()
+
 <div class="space-y-6">
     <!-- Page Header -->
     <div class="page-header animate-fadeIn">
@@ -103,7 +105,7 @@
                     <th>Lớp</th>
                     <th>GPA</th>
                     <th>Trạng thái</th>
-                    <th style="width: 100px;">Thao tác</th>
+                    <th style="width: 150px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -162,22 +164,31 @@
                             <td>
                                 @if (user.IsActive)
                                 {
-                                    <span class="badge-modern badge-success">Hoạt động</span>
+                                    <div class="status-badge status-active">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Hoạt động</span>
+                                    </div>
                                 }
                                 else
                                 {
-                                    <span class="badge-modern badge-danger">Đã khóa</span>
+                                    <div class="status-badge status-inactive">
+                                        <i class="fas fa-ban"></i>
+                                        <span>Đã khóa</span>
+                                    </div>
                                 }
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
                                     @if (student != null)
                                     {
-                                        <button class="btn btn-ghost btn-sm" onclick="viewStudent(@student.StudentId)" title="Xem chi tiết">
+                                        <a asp-action="Details" asp-route-id="@student.StudentId" class="btn btn-info btn-sm" title="Xem chi tiết">
                                             <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-ghost btn-sm" onclick="editStudent(@student.StudentId)" title="Chỉnh sửa">
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@student.StudentId" class="btn btn-warning btn-sm" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteStudent(@student.StudentId, '@user.FullName')" title="Xóa">
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     }
                                     else
@@ -350,21 +361,57 @@
             });
         }
 
-        // Delete function đã bị disable
-        /*
-        function deleteStudent(id) {
-            if (confirm('Bạn có chắc chắn muốn xóa sinh viên này?')) {
-                $.post('/Students/Delete/' + id, function (response) {
-                    if (response.success) {
-                        $('#row_' + id).remove();
-                        showAlert('success', response.message);
-                    } else {
-                        showAlert('danger', response.message);
-                    }
-                });
-            }
+        function deleteStudent(id, fullName) {
+            Swal.fire({
+                title: 'Xác nhận xóa',
+                html: `Bạn có chắc chắn muốn xóa sinh viên <strong>${fullName}</strong>?<br/><small class="text-danger">Hành động này không thể hoàn tác!</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Xóa',
+                cancelButtonText: '<i class="fas fa-times"></i> Hủy',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Students/Delete/' + id,
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Đã xóa!',
+                                    text: response.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                // Reload table sau 1.5s
+                                setTimeout(function() { 
+                                    location.reload(); 
+                                }, 1500);
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi!',
+                                    text: response.message
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi!',
+                                text: 'Không thể xóa sinh viên!'
+                            });
+                        }
+                    });
+                }
+            });
         }
-        */
 
         function showAlert(type, message) {
             var alertBox = $('#alertMessage');
@@ -388,6 +435,78 @@
                 pageLength: 25,
                 columnDefs: [
                     { orderable: false, targets: 9 } // Disable sort on Action column
+                ]
+            });
+        });
+    </script>
+}
+
+<style>
+    /* Status Badge Styles */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .status-active i {
+        animation: pulse 2s infinite;
+    }
+
+    .status-inactive {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .status-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    /* Badge colors for majors */
+    .badge-se {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .badge-ia {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: white;
+    }
+
+    .badge-ai {
+        background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+        color: white;
+    }
+
+    /* GPA colors */
+    .gpa-excellent { color: #10b981; font-weight: 700; }
+    .gpa-good { color: #3b82f6; font-weight: 700; }
+    .gpa-average { color: #f59e0b; font-weight: 700; }
+    .gpa-poor { color: #ef4444; font-weight: 700; }
+</style>
                 ]
             });
         });

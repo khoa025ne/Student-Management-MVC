@@ -1,8 +1,4 @@
-using DataAccess.Entities;
-using DataAccess.Enums;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Services.Models;
 
 namespace Services.Interfaces
 {
@@ -11,21 +7,22 @@ namespace Services.Interfaces
     /// </summary>
     public interface IStudentService
     {
-        Task<IEnumerable<Student>> GetAllAsync();
-        Task<Student?> GetByIdAsync(int id);
-        Task<Student?> GetByCodeAsync(string studentCode);
-        Task<IEnumerable<Student>> GetByMajorAsync(MajorType major);
-        Task<IEnumerable<Student>> GetByTermAsync(int termNo);
-        Task<IEnumerable<Student>> GetByClassCodeAsync(string classCode);
-        Task<Student?> GetByUserIdAsync(int userId);
-        Task<Student> CreateAsync(Student student);
-        Task<Student> UpdateAsync(Student student);
-        Task DeleteAsync(int id);
+        Task<IEnumerable<StudentDto>> GetAllAsync();
+        Task<StudentDto?> GetByIdAsync(string studentId);
+        Task<StudentDto?> GetByCodeAsync(string studentCode);
+        Task<IEnumerable<StudentDto>> GetByMajorAsync(int majorId);
+        Task<IEnumerable<StudentDto>> GetByClassIdAsync(int classId);
+        Task<StudentDto?> GetByEmailAsync(string email);
+        Task<StudentDto> CreateAsync(StudentCreateDto createDto);
+        Task<StudentDto> UpdateAsync(StudentUpdateDto updateDto);
+        Task<bool> DeleteAsync(string studentId);
         
         // New methods
         Task<string> GenerateStudentCodeAsync();
         string GenerateDefaultPassword(DateTime dateOfBirth);
-        Task<double> CalculateOverallGPAAsync(int studentId);
-        Task<Student> CreateStudentWithUserAsync(Student student, string fullName, string email, string? phoneNumber);
+        Task<double> CalculateOverallGPAAsync(string studentId);
+        Task<StudentDto> CreateStudentWithUserAsync(StudentCreateDto createDto);
+        Task<IEnumerable<StudentDto>> SearchStudentsAsync(string searchTerm);
+        Task<StudentDto?> UpdateStudentStatusAsync(string studentId, string status);
     }
 }
