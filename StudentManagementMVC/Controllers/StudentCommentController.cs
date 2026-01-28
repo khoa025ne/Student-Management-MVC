@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
-using DataAccess.Entities;
 
 namespace StudentManagementMVC.Controllers
 {
@@ -91,9 +91,9 @@ namespace StudentManagementMVC.Controllers
                     ClassName = enrollment.Class?.ClassName ?? "Unknown",
                     CourseName = enrollment.Class?.Course?.CourseName ?? "Unknown",
                     CurrentComment = enrollment.Comment ?? "",
-                    StudentEmail = enrollment.Student?.Email ?? "",
+                    StudentEmail = enrollment.Student?.Email ?? string.Empty,
                     Score = enrollment.TotalScore,
-                    Grade = enrollment.Grade
+                    Grade = enrollment.Grade ?? string.Empty
                 };
 
                 return View(commentModel);

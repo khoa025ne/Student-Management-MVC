@@ -4,19 +4,28 @@ namespace Services.Models
 {
     public class UserDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserIdInt { get; set; } // int version
+        public string UserId { get; set; } = string.Empty; // string version for backward compat
         public string Email { get; set; } = string.Empty;
         public string? FullName { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
         public string? Avatar { get; set; }
+        public string? AvatarUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
         public bool IsEmailConfirmed { get; set; }
         public bool IsPhoneConfirmed { get; set; }
         public bool IsActive { get; set; }
+        public bool MustChangePassword { get; set; }
+        public string? GoogleId { get; set; }
+        public DateTime? PasswordChangedAt { get; set; }
+        public int RoleId { get; set; }
         public IList<RoleDto> Roles { get; set; } = new List<RoleDto>();
+        
+        // Navigation property - now using DTO instead of Entity
+        public RoleDto? Role { get; set; }
     }
 
     public class UserCreateDto

@@ -75,10 +75,12 @@ builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IScoreService, EnhancedScoreService>(); // ✅ Enhanced với AI
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ILearningPathService, LearningPathService>();
+builder.Services.AddScoped<IAcademicAnalysisService, AcademicAnalysisService>(); // ✅ Academic Analysis Service
+builder.Services.AddScoped<IDashboardService, DashboardService>(); // ✅ Dashboard Service
 
 // 7. Email & AI Services
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IGeminiAIService, GeminiAIService>();
+// Note: IGeminiAIService already registered via AddHttpClient above
 
 // 8. Background Services
 builder.Services.AddHostedService<StudentManagementMVC.Services.AcademicWarningBackgroundService>();

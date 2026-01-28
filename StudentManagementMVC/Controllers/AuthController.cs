@@ -3,6 +3,7 @@ using Services.Interfaces;
 using Services.Models;
 using StudentManagementMVC.ViewModels;
 using System.Security.Claims;
+using System.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -56,21 +57,26 @@ namespace StudentManagementMVC.Controllers
                 }
 
                 // Kiểm tra nếu phải đổi mật khẩu
-                // Staff (RoleId=4) và Lecturer (RoleId=2) không cần đổi mk lần đầu
-                if (user.MustChangePassword && user.RoleId != 2 && user.RoleId != 4) // 2=Lecturer, 4=Staff
+                // Staff (RoleId=4) và Teacher/Lecturer (RoleId=2) không cần đổi mk lần đầu
+                if (user.MustChangePassword && user.RoleId != 2 && user.RoleId != 4) // 2=Teacher, 4=Staff
                 {
                     TempData["MustChangePasswordEmail"] = user.Email;
                     TempData["WarningMessage"] = "Đây là lần đăng nhập đầu tiên hoặc tài khoản yêu cầu đổi mật khẩu. Vui lòng đổi mật khẩu để tiếp tục!";
                     return RedirectToAction("ChangePassword");
                 }
 
+                // Lấy tên role - ưu tiên từ Role object, fallback từ Roles list
+                var roleName = user.Role?.RoleName 
+                    ?? user.Roles?.FirstOrDefault()?.RoleName 
+                    ?? "User";
+
                 // Tạo Claims
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Name, user.FullName),
+                    new Claim(ClaimTypes.NameIdentifier, user.UserIdInt > 0 ? user.UserIdInt.ToString() : user.UserId),
+                    new Claim(ClaimTypes.Name, user.FullName ?? "Unknown"),
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role.RoleName)
+                    new Claim(ClaimTypes.Role, roleName)
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -113,14 +119,15 @@ namespace StudentManagementMVC.Controllers
 
             try
             {
-                var user = new User
+                var userCreateDto = new UserCreateDto
                 {
                     Email = model.Email,
                     FullName = model.FullName,
-                    RoleId = 3 // Student role (Admin=1, Teacher=2, Student=3)
+                    Password = model.Password,
+                    RoleIds = new List<int> { 3 } // Student role (Admin=1, Teacher=2, Student=3)
                 };
 
-                await _authService.RegisterAsync(user, model.Password);
+                await _authService.RegisterAsync(userCreateDto, model.Password);
 
                 TempData["SuccessMessage"] = $"Đăng ký tài khoản thành công! Xin chào {model.FullName}, vui lòng đăng nhập để tiếp tục.";
                 return RedirectToAction("Login");

@@ -1,5 +1,3 @@
-using DataAccess.Entities;
-using DataAccess.DAO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,7 +17,7 @@ namespace StudentManagementMVC.Controllers
         private readonly IGeminiAIService _geminiAIService;
         private readonly IEmailService _emailService;
         private readonly INotificationService _notificationService;
-        private readonly IAcademicAnalysisRepository _academicAnalysisRepository;
+        private readonly IAcademicAnalysisService _academicAnalysisService;
 
         public EnrollmentGradesController(
             IEnrollmentService enrollmentService,
@@ -28,7 +26,7 @@ namespace StudentManagementMVC.Controllers
             IGeminiAIService geminiAIService,
             IEmailService emailService,
             INotificationService notificationService,
-            IAcademicAnalysisRepository academicAnalysisRepository)
+            IAcademicAnalysisService academicAnalysisService)
         {
             _enrollmentService = enrollmentService;
             _classService = classService;
@@ -36,7 +34,7 @@ namespace StudentManagementMVC.Controllers
             _geminiAIService = geminiAIService;
             _emailService = emailService;
             _notificationService = notificationService;
-            _academicAnalysisRepository = academicAnalysisRepository;
+            _academicAnalysisService = academicAnalysisService;
         }
 
         // GET: EnrollmentGrades
@@ -173,30 +171,19 @@ namespace StudentManagementMVC.Controllers
                         
                         if (aiResult.Success)
                         {
-                            // Lưu AcademicAnalysis vào database
-                            var academicAnalysis = new AcademicAnalysis
-                            {
-                                StudentId = enrollment.StudentId,
-                                AnalysisDate = DateTime.Now,
-                                OverallGPA = enrollment.Student?.OverallGPA ?? 0,
-                                StrongSubjectsJson = JsonConvert.SerializeObject(aiResult.StrongSubjects),
-                                WeakSubjectsJson = JsonConvert.SerializeObject(aiResult.WeakSubjects),
-                                Recommendations = aiResult.Recommendations,
-                                AiModelUsed = "Gemini-1.5-Pro"
-                            };
-
-                            await _academicAnalysisRepository.AddAsync(academicAnalysis);
+                            // Lưu AcademicAnalysis thông qua Service
+                            var analysisDto = await _academicAnalysisService.GenerateGpaAnalysisAsync(enrollment.StudentId.ToString());
 
                             // Gửi email AI analysis với insights chi tiết
-                            if (enrollment.Student?.User != null)
+                            if (enrollment.Student?.User != null && analysisDto != null)
                             {
                                 await _emailService.SendAIAnalysisNotificationAsync(
                                     enrollment.Student.User.Email,
                                     enrollment.Student.User.FullName,
-                                    academicAnalysis.StrongSubjectsJson,
-                                    academicAnalysis.WeakSubjectsJson,
-                                    academicAnalysis.Recommendations,
-                                    academicAnalysis.OverallGPA
+                                    JsonConvert.SerializeObject(aiResult.StrongSubjects),
+                                    JsonConvert.SerializeObject(aiResult.WeakSubjects),
+                                    aiResult.Recommendations,
+                                    enrollment.Student.OverallGPA
                                 );
                             }
 

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DataAccess.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace Services.Implementations
@@ -119,7 +118,7 @@ namespace Services.Implementations
                 .ToList();
 
             // Thống kê học kỳ hiện tại
-            var currentSemester = classes.FirstOrDefault(c => c.Semester?.IsCurrentSemester == true)?.Semester;
+            var currentSemester = classes.FirstOrDefault(c => c.Semester?.IsActive == true)?.Semester;
             if (currentSemester != null)
             {
                 stats.CurrentSemesterClasses = classes.Count(c => c.SemesterId == currentSemester.SemesterId);

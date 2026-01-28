@@ -24,6 +24,33 @@ namespace Services.Implementations
             _courseRepository = courseRepository;
         }
 
+        // ===== ENTITY-BASED METHODS =====
+        public async Task<IEnumerable<Class>> GetAllClassesAsync()
+        {
+            return await _classRepository.GetAllAsync();
+        }
+
+        public async Task<Class?> GetClassByIdAsync(int classId)
+        {
+            return await _classRepository.GetByIdAsync(classId);
+        }
+
+        public async Task<IEnumerable<Class>> GetClassesBySemesterAsync(int semesterId)
+        {
+            return await _classRepository.GetBySemesterAsync(semesterId);
+        }
+
+        public async Task<Class> CreateClassAsync(Class classEntity)
+        {
+            return await _classRepository.AddAsync(classEntity);
+        }
+
+        public async Task<Class> UpdateClassAsync(Class classEntity)
+        {
+            return await _classRepository.UpdateAsync(classEntity);
+        }
+
+        // ===== DTO-BASED METHODS =====
         public async Task<IEnumerable<ClassDto>> GetAllAsync()
         {
             var classes = await _classRepository.GetAllAsync();
@@ -53,17 +80,15 @@ namespace Services.Implementations
             var classEntity = new Class
             {
                 ClassName = createDto.ClassName,
+                ClassCode = createDto.ClassName, // Default same as name
                 SemesterId = createDto.SemesterId,
                 CourseId = createDto.CourseId,
-                StartDate = createDto.StartDate,
-                EndDate = createDto.EndDate,
+                MaxCapacity = createDto.MaxStudents,
                 MaxStudents = createDto.MaxStudents,
-                TeacherName = createDto.TeacherName,
-                Description = createDto.Description,
-                Schedule = createDto.Schedule,
-                Location = createDto.Location,
                 CurrentEnrollment = 0,
-                IsActive = true
+                Schedule = createDto.Schedule,
+                Room = createDto.Location,
+                CreatedAt = DateTime.Now
             };
 
             var createdClass = await _classRepository.AddAsync(classEntity);
@@ -79,14 +104,10 @@ namespace Services.Implementations
             classEntity.ClassName = updateDto.ClassName;
             classEntity.SemesterId = updateDto.SemesterId;
             classEntity.CourseId = updateDto.CourseId;
-            classEntity.StartDate = updateDto.StartDate;
-            classEntity.EndDate = updateDto.EndDate;
+            classEntity.MaxCapacity = updateDto.MaxStudents;
             classEntity.MaxStudents = updateDto.MaxStudents;
-            classEntity.TeacherName = updateDto.TeacherName;
-            classEntity.Description = updateDto.Description;
             classEntity.Schedule = updateDto.Schedule;
-            classEntity.Location = updateDto.Location;
-            classEntity.IsActive = updateDto.IsActive;
+            classEntity.Room = updateDto.Location;
 
             var updatedClass = await _classRepository.UpdateAsync(classEntity);
             return MapToDto(updatedClass);
@@ -104,20 +125,19 @@ namespace Services.Implementations
 
         public async Task<IEnumerable<ClassDto>> GetActiveClassesAsync()
         {
+            // All classes are considered active for now
             var classes = await _classRepository.GetAllAsync();
-            var activeClasses = classes.Where(c => c.IsActive);
-            return activeClasses.Select(MapToDto);
+            return classes.Select(MapToDto);
         }
 
         public async Task<ClassDto?> UpdateClassStatusAsync(int classId, bool isActive)
         {
+            // Class entity doesn't have IsActive, return current state
             var classEntity = await _classRepository.GetByIdAsync(classId);
             if (classEntity == null)
                 return null;
 
-            classEntity.IsActive = isActive;
-            var updatedClass = await _classRepository.UpdateAsync(classEntity);
-            return MapToDto(updatedClass);
+            return MapToDto(classEntity);
         }
 
         public async Task<IEnumerable<ClassDto>> SearchClassesAsync(string searchTerm)
@@ -125,8 +145,8 @@ namespace Services.Implementations
             var classes = await _classRepository.GetAllAsync();
             var filtered = classes.Where(c => 
                 c.ClassName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
-                c.TeacherName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
-                c.Location?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true);
+                c.ClassCode?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true ||
+                c.Room?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true);
             
             return filtered.Select(MapToDto);
         }
@@ -141,15 +161,11 @@ namespace Services.Implementations
                 SemesterName = classEntity.Semester?.SemesterName,
                 CourseId = classEntity.CourseId,
                 CourseName = classEntity.Course?.CourseName,
-                StartDate = classEntity.StartDate,
-                EndDate = classEntity.EndDate,
-                MaxStudents = classEntity.MaxStudents,
+                MaxStudents = classEntity.MaxCapacity,
                 CurrentEnrollment = classEntity.CurrentEnrollment,
-                TeacherName = classEntity.TeacherName,
-                Description = classEntity.Description,
-                IsActive = classEntity.IsActive,
+                IsActive = true, // Default true since entity doesn't have this field
                 Schedule = classEntity.Schedule,
-                Location = classEntity.Location
+                Location = classEntity.Room
             };
         }
     }

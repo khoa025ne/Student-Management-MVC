@@ -1,3 +1,4 @@
+using DataAccess.Entities;
 using Services.Models;
 
 namespace Services.Interfaces
@@ -7,6 +8,14 @@ namespace Services.Interfaces
     /// </summary>
     public interface IClassService
     {
+        // Entity-based methods (for complex operations)
+        Task<IEnumerable<Class>> GetAllClassesAsync();
+        Task<Class?> GetClassByIdAsync(int classId);
+        Task<IEnumerable<Class>> GetClassesBySemesterAsync(int semesterId);
+        Task<Class> CreateClassAsync(Class classEntity);
+        Task<Class> UpdateClassAsync(Class classEntity);
+        
+        // DTO-based methods
         Task<IEnumerable<ClassDto>> GetAllAsync();
         Task<ClassDto?> GetByIdAsync(int classId);
         Task<IEnumerable<ClassDto>> GetBySemesterAsync(int semesterId);

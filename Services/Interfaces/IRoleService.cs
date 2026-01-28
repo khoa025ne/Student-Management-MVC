@@ -12,5 +12,6 @@ namespace Services.Interfaces
         Task<IEnumerable<Role>> GetAllAsync();
         Task<Role?> GetByIdAsync(int id);
         Task<Role?> GetByNameAsync(string roleName);
+        Task<Role> CreateAsync(Role role);
     }
 }

@@ -15,5 +15,6 @@ namespace DataAccess.Entities
 
         // Navigation properties
         public virtual Student Student { get; set; } = null!;
+        public virtual Course Course { get; set; } = null!;
     }
 }

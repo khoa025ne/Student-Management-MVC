@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Models;
 using StudentManagementMVC.ViewModels;
 
 namespace StudentManagementMVC.Controllers
@@ -60,14 +61,18 @@ namespace StudentManagementMVC.Controllers
                         OverallGPA = 0
                     };
 
-                    await _studentService.CreateStudentWithUserAsync(
-                        student,
-                        model.FullName,
-                        model.Email,
-                        model.PhoneNumber
-                    );
+                    // Create StudentCreateDto for the service
+                    var createDto = new StudentCreateDto
+                    {
+                        Email = model.Email,
+                        FullName = model.FullName,
+                        PhoneNumber = model.PhoneNumber,
+                        DateOfBirth = model.DateOfBirth
+                    };
 
-                    TempData["SuccessMessage"] = $"Tạo sinh viên thành công! Mã sinh viên: {student.StudentCode}. Email chào mừng đã được gửi tới {model.Email}.";
+                    await _studentService.CreateStudentWithUserAsync(createDto);
+
+                    TempData["SuccessMessage"] = $"Tạo sinh viên thành công! Email chào mừng đã được gửi tới {model.Email}.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)

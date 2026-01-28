@@ -155,7 +155,7 @@ Trả về JSON format (KHÔNG thêm markdown ```json):
 
                 return UseFallbackAnalysis(completedCourses);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Fallback nếu AI fail - dùng dữ liệu đầy đủ
                 var enrollments = await _enrollmentService.GetByStudentAsync(studentId);
@@ -263,7 +263,7 @@ Chỉ trả về JSON, không thêm text khác.";
 
                 return UseFallbackLearningPath(availableCourses);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 var allCourses = await _courseService.GetAllAsync();
                 return UseFallbackLearningPath(allCourses.Take(4).ToList());

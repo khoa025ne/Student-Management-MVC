@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using DataAccess.Entities;
-using DataAccess.Enums;
+using Services.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
@@ -235,9 +234,9 @@ namespace StudentManagementMVC.Controllers
                     var allStudents = await _studentService.GetAllAsync();
                     var maxStudentNumber = allStudents
                         .Select(s => s.StudentCode)
-                        .Where(code => code != null && code.StartsWith("SV"))
+                        .Where(code => !string.IsNullOrEmpty(code) && code.StartsWith("SV"))
                         .Select(code => {
-                            if (int.TryParse(code.Substring(2), out int num))
+                            if (int.TryParse(code!.Substring(2), out int num))
                                 return num;
                             return 0;
                         })

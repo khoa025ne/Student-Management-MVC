@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Models;
 
 namespace StudentManagementMVC.Controllers
 {
@@ -104,7 +105,7 @@ namespace StudentManagementMVC.Controllers
                         classEntity.Schedule = "";
                     }
 
-                    await _classService.CreateAsync(classEntity);
+                    await _classService.CreateClassAsync(classEntity);
                     TempData["SuccessMessage"] = $"Tạo lớp học '{classEntity.ClassCode}' thành công! Sĩ số tối đa: {classEntity.MaxStudents} sinh viên.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -206,7 +207,7 @@ namespace StudentManagementMVC.Controllers
                         classEntity.TimeSlot = existingClass.TimeSlot;
                     }
 
-                    await _classService.UpdateAsync(classEntity);
+                    await _classService.UpdateClassAsync(classEntity);
                     TempData["SuccessMessage"] = $"Cập nhật lớp học '{classEntity.ClassCode}' thành công!";
                     return RedirectToAction(nameof(Index));
                 }
@@ -358,7 +359,7 @@ namespace StudentManagementMVC.Controllers
                 count = Math.Min(count, availableSlots);
 
                 // Lấy danh sách tất cả sinh viên
-                var allStudents = await _studentService.GetAllAsync();
+                var allStudents = await _studentService.GetAllStudentsAsync();
                 
                 // Lọc sinh viên chưa đăng ký lớp này
                 var enrolledStudentIds = currentEnrollments.Select(e => e.StudentId).ToHashSet();
@@ -444,8 +445,8 @@ namespace StudentManagementMVC.Controllers
                 var currentEnrollments = await _enrollmentService.GetByClassAsync(classId);
                 var enrolledStudentIds = currentEnrollments.Select(e => e.StudentId).ToHashSet();
 
-                // Get available students
-                var allStudents = await _studentService.GetAllAsync();
+                // Get available students (using Entity-based method)
+                var allStudents = await _studentService.GetAllStudentsAsync();
                 var availableStudents = allStudents
                     .Where(s => !enrolledStudentIds.Contains(s.StudentId))
                     .OrderBy(s => s.StudentCode)

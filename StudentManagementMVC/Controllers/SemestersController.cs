@@ -1,7 +1,7 @@
-using DataAccess.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
+using Services.Models;
 using System.Threading.Tasks;
 
 namespace StudentManagementMVC.Controllers

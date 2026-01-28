@@ -1,8 +1,8 @@
-using DataAccess.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Services.Interfaces;
+using Services.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -194,7 +194,7 @@ namespace StudentManagementMVC.Controllers
 
                 return Json(recentNotifications);
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
                 return Json(new List<object>());
             }
@@ -218,7 +218,7 @@ namespace StudentManagementMVC.Controllers
                 
                 return Json(unreadCount);
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
                 return Json(0);
             }
@@ -233,7 +233,7 @@ namespace StudentManagementMVC.Controllers
                 return null;
             }
 
-            var students = await _studentService.GetAllAsync();
+            var students = await _studentService.GetAllStudentsAsync();
             var student = students.FirstOrDefault(s => s.User != null && s.User.Email == userName);
             
             return student?.StudentId;

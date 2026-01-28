@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Services.Interfaces;
+using Services.Models;
+using DataAccess.Entities;
 using Microsoft.AspNetCore.SignalR;
 using StudentManagementMVC.Hubs;
 using System;
@@ -64,7 +66,7 @@ namespace StudentManagementMVC.Services
             {
                 _logger.LogInformation("⏰ Checking academic warnings...");
 
-                var allStudents = await studentService.GetAllAsync();
+                var allStudents = await studentService.GetAllStudentsAsync();
                 int warningCount = 0;
 
                 foreach (var student in allStudents)

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using DataAccess.Entities;
+using Services.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Linq;
@@ -103,7 +103,7 @@ namespace StudentManagementMVC.Controllers
                     try
                     {
                         // Kiểm tra lớp tồn tại và còn chỗ
-                        var classInfo = await _classService.GetByIdAsync(classId);
+                        var classInfo = await _classService.GetClassByIdAsync(classId);
                         if (classInfo == null)
                         {
                             errorClasses.Add($"Lớp #{classId} không tồn tại");
@@ -129,7 +129,7 @@ namespace StudentManagementMVC.Controllers
 
                         // Update capacity
                         classInfo.CurrentEnrollment += 1;
-                        await _classService.UpdateAsync(classInfo);
+                        await _classService.UpdateClassAsync(classInfo);
 
                         // Gửi email xác nhận
                         try

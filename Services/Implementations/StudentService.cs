@@ -1,5 +1,4 @@
 using DataAccess.Entities;
-using DataAccess.Enums;
 using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Models;
@@ -25,13 +24,50 @@ namespace Services.Implementations
             _emailService = emailService;
         }
 
+        // ===== ENTITY-BASED METHODS (for complex operations needing navigation properties) =====
+        public async Task<IEnumerable<Student>> GetAllStudentsAsync()
+        {
+            return await _studentRepository.GetAllAsync();
+        }
+
+        public async Task<Student?> GetByIdAsync(int studentId)
+        {
+            return await _studentRepository.GetByIdAsync(studentId);
+        }
+
+        public async Task<Student?> GetByUserIdAsync(int userId)
+        {
+            return await _studentRepository.GetByUserIdAsync(userId);
+        }
+
+        public async Task<Student?> GetStudentByCodeAsync(string studentCode)
+        {
+            return await _studentRepository.GetByCodeAsync(studentCode);
+        }
+
+        public async Task<Student> CreateAsync(Student student)
+        {
+            return await _studentRepository.AddAsync(student);
+        }
+
+        public async Task<Student> UpdateAsync(Student student)
+        {
+            return await _studentRepository.UpdateAsync(student);
+        }
+
+        public async Task DeleteAsync(int studentId)
+        {
+            await _studentRepository.DeleteAsync(studentId);
+        }
+
+        // ===== DTO-BASED METHODS =====
         public async Task<IEnumerable<StudentDto>> GetAllAsync()
         {
             var students = await _studentRepository.GetAllAsync();
             return students.Select(MapToDto);
         }
 
-        public async Task<StudentDto?> GetByIdAsync(string studentId)
+        public async Task<StudentDto?> GetStudentDtoByIdAsync(int studentId)
         {
             var student = await _studentRepository.GetByIdAsync(studentId);
             return student != null ? MapToDto(student) : null;
@@ -43,18 +79,16 @@ namespace Services.Implementations
             return student != null ? MapToDto(student) : null;
         }
 
-        public async Task<IEnumerable<StudentDto>> GetByMajorAsync(int majorId)
+        public async Task<IEnumerable<StudentDto>> GetByMajorAsync(MajorType major)
         {
-            var students = await _studentRepository.GetAllAsync();
-            var filtered = students.Where(s => s.MajorId == majorId);
-            return filtered.Select(MapToDto);
+            var students = await _studentRepository.GetByMajorAsync(major);
+            return students.Select(MapToDto);
         }
 
-        public async Task<IEnumerable<StudentDto>> GetByClassIdAsync(int classId)
+        public async Task<IEnumerable<StudentDto>> GetByClassCodeAsync(string classCode)
         {
-            var students = await _studentRepository.GetAllAsync();
-            var filtered = students.Where(s => s.ClassId == classId);
-            return filtered.Select(MapToDto);
+            var students = await _studentRepository.GetByClassCodeAsync(classCode);
+            return students.Select(MapToDto);
         }
 
         public async Task<StudentDto?> GetByEmailAsync(string email)
@@ -68,23 +102,14 @@ namespace Services.Implementations
         {
             var student = new Student
             {
-                StudentId = Guid.NewGuid().ToString(),
                 Email = createDto.Email,
                 FullName = createDto.FullName,
-                DateOfBirth = createDto.DateOfBirth,
+                DateOfBirth = createDto.DateOfBirth ?? DateTime.Now,
                 PhoneNumber = createDto.PhoneNumber,
-                Address = createDto.Address,
-                MajorId = createDto.MajorId,
-                ClassId = createDto.ClassId,
-                Avatar = createDto.Avatar,
                 StudentCode = createDto.StudentCode ?? await GenerateStudentCodeAsync(),
-                ParentName = createDto.ParentName,
-                ParentPhone = createDto.ParentPhone,
-                ParentEmail = createDto.ParentEmail,
-                EnrollmentDate = DateTime.Now,
-                Status = "Active",
-                GPA = 0.0,
-                TotalCredits = 0
+                CreatedAt = DateTime.Now,
+                Major = MajorType.Undefined,
+                IsFirstLogin = true
             };
 
             var createdStudent = await _studentRepository.AddAsync(student);
@@ -93,27 +118,19 @@ namespace Services.Implementations
 
         public async Task<StudentDto> UpdateAsync(StudentUpdateDto updateDto)
         {
-            var student = await _studentRepository.GetByIdAsync(updateDto.StudentId);
+            var student = await _studentRepository.GetByIdAsync(int.Parse(updateDto.StudentId));
             if (student == null)
                 throw new Exception("Student not found");
 
             student.FullName = updateDto.FullName;
-            student.DateOfBirth = updateDto.DateOfBirth;
+            student.DateOfBirth = updateDto.DateOfBirth ?? student.DateOfBirth;
             student.PhoneNumber = updateDto.PhoneNumber;
-            student.Address = updateDto.Address;
-            student.MajorId = updateDto.MajorId;
-            student.ClassId = updateDto.ClassId;
-            student.Avatar = updateDto.Avatar;
-            student.ParentName = updateDto.ParentName;
-            student.ParentPhone = updateDto.ParentPhone;
-            student.ParentEmail = updateDto.ParentEmail;
-            student.Status = updateDto.Status;
 
             var updatedStudent = await _studentRepository.UpdateAsync(student);
             return MapToDto(updatedStudent);
         }
 
-        public async Task<bool> DeleteAsync(string studentId)
+        public async Task<bool> DeleteStudentAsync(int studentId)
         {
             var student = await _studentRepository.GetByIdAsync(studentId);
             if (student == null)
@@ -123,6 +140,7 @@ namespace Services.Implementations
             return true;
         }
 
+        // ===== BUSINESS LOGIC METHODS =====
         public async Task<string> GenerateStudentCodeAsync()
         {
             var year = DateTime.Now.Year;
@@ -151,24 +169,22 @@ namespace Services.Implementations
 
         public string GenerateDefaultPassword(DateTime dateOfBirth)
         {
-            return dateOfBirth.ToString("ddMMyyyy");
+            return dateOfBirth.ToString("ddMMyyyy") + "@fpt";
         }
 
-        public async Task<double> CalculateOverallGPAAsync(string studentId)
+        public async Task<double> CalculateOverallGPAAsync(int studentId)
         {
-            var enrollments = await _enrollmentRepository.GetByStudentIdAsync(studentId);
-            var completedEnrollments = enrollments.Where(e => e.FinalGrade.HasValue).ToList();
+            var enrollments = await _enrollmentRepository.GetByStudentAsync(studentId);
+            var completedEnrollments = enrollments.Where(e => e.TotalScore.HasValue).ToList();
 
             if (!completedEnrollments.Any())
                 return 0.0;
 
-            return completedEnrollments.Average(e => e.FinalGrade!.Value);
+            return completedEnrollments.Average(e => e.TotalScore!.Value);
         }
 
         public async Task<StudentDto> CreateStudentWithUserAsync(StudentCreateDto createDto)
         {
-            // This method would typically coordinate with UserService to create both User and Student
-            // For now, just create the student
             return await CreateAsync(createDto);
         }
 
@@ -183,13 +199,12 @@ namespace Services.Implementations
             return filtered.Select(MapToDto);
         }
 
-        public async Task<StudentDto?> UpdateStudentStatusAsync(string studentId, string status)
+        public async Task<StudentDto?> UpdateStudentStatusAsync(int studentId, string status)
         {
             var student = await _studentRepository.GetByIdAsync(studentId);
             if (student == null)
                 return null;
 
-            student.Status = status;
             var updatedStudent = await _studentRepository.UpdateAsync(student);
             return MapToDto(updatedStudent);
         }
@@ -198,25 +213,14 @@ namespace Services.Implementations
         {
             return new StudentDto
             {
-                StudentId = student.StudentId,
+                StudentId = student.StudentId.ToString(),
                 Email = student.Email,
                 FullName = student.FullName,
                 DateOfBirth = student.DateOfBirth,
                 PhoneNumber = student.PhoneNumber,
-                Address = student.Address,
-                MajorId = student.MajorId,
-                MajorName = student.Major?.MajorName, // Assuming Major navigation property
-                ClassId = student.ClassId,
-                ClassName = student.Class?.ClassName, // Assuming Class navigation property
-                Avatar = student.Avatar,
-                EnrollmentDate = student.EnrollmentDate,
-                Status = student.Status ?? "Active",
+                MajorName = student.Major.ToString(),
                 StudentCode = student.StudentCode,
-                ParentName = student.ParentName,
-                ParentPhone = student.ParentPhone,
-                ParentEmail = student.ParentEmail,
-                GPA = student.GPA,
-                TotalCredits = student.TotalCredits
+                GPA = student.OverallGPA
             };
         }
     }

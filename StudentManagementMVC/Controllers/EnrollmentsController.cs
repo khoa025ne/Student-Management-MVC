@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using DataAccess.Entities;
+using Services.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Linq;
@@ -86,7 +86,7 @@ namespace StudentManagementMVC.Controllers
                 }
 
                 // Kiểm tra số lượng chỗ còn trống
-                var classInfo = await _classService.GetByIdAsync(classId);
+                var classInfo = await _classService.GetClassByIdAsync(classId);
                 if (classInfo == null)
                 {
                     TempData["ErrorMessage"] = "Không tìm thấy thông tin lớp học! Vui lòng thử lại sau.";
@@ -111,7 +111,7 @@ namespace StudentManagementMVC.Controllers
                 
                 // UPDATE: Cập nhật sĩ số của lớp học
                 classInfo.CurrentEnrollment += 1;
-                await _classService.UpdateAsync(classInfo);
+                await _classService.UpdateClassAsync(classInfo);
 
                 // Gửi email xác nhận đăng ký
                 try
@@ -188,11 +188,11 @@ namespace StudentManagementMVC.Controllers
                 await _enrollmentService.DeleteAsync(enrollmentId);
                 
                 // UPDATE: Cập nhật sĩ số của lớp học
-                var classInfo = await _classService.GetByIdAsync(enrollment.ClassId);
+                var classInfo = await _classService.GetClassByIdAsync(enrollment.ClassId);
                 if (classInfo != null && classInfo.CurrentEnrollment > 0)
                 {
                     classInfo.CurrentEnrollment -= 1;
-                    await _classService.UpdateAsync(classInfo);
+                    await _classService.UpdateClassAsync(classInfo);
                 }
                 
                 // Gửi email hủy đăng ký

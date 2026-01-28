@@ -76,7 +76,7 @@ namespace Services.Implementations
                     // Trả về UserDto cho Admin
                     return new UserDto
                     {
-                        UserId = "admin-0",
+                        UserId = "0",
                         Email = adminEmail ?? "admin@example.com",
                         FullName = "Administrator",
                         IsActive = true,
@@ -99,7 +99,7 @@ namespace Services.Implementations
         /// <summary>
         /// Đổi mật khẩu
         /// </summary>
-        public async Task<bool> ChangePasswordAsync(string userId, string oldPassword, string newPassword)
+        public async Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
         {
             try
             {
@@ -147,14 +147,11 @@ namespace Services.Implementations
                 {
                     Email = userCreateDto.Email,
                     FullName = userCreateDto.FullName,
-                    DateOfBirth = userCreateDto.DateOfBirth,
                     PhoneNumber = userCreateDto.PhoneNumber,
-                    Address = userCreateDto.Address,
-                    Avatar = userCreateDto.Avatar,
                     PasswordHash = HashPassword(password),
                     CreatedAt = DateTime.Now,
                     IsActive = true,
-                    MustChangePassword = true // Yêu cầu đổi password lần đầu
+                    MustChangePassword = true
                 };
 
                 // Gán role đầu tiên nếu có
@@ -166,17 +163,14 @@ namespace Services.Implementations
                 // Tạo User
                 var createdUser = await _userRepository.AddAsync(user);
 
-                // Nếu là Student (RoleId = 3), tự động tạo Student record
-                if (createdUser.RoleId == 3)
+                // Nếu là Student (RoleId = 4), tự động tạo Student record
+                if (createdUser.RoleId == 4)
                 {
                     var studentCreateDto = new StudentCreateDto
                     {
                         Email = createdUser.Email,
                         FullName = createdUser.FullName,
-                        DateOfBirth = createdUser.DateOfBirth,
-                        PhoneNumber = createdUser.PhoneNumber,
-                        Address = createdUser.Address,
-                        Avatar = createdUser.Avatar
+                        PhoneNumber = createdUser.PhoneNumber
                     };
 
                     await _studentService.CreateStudentWithUserAsync(studentCreateDto);
@@ -225,7 +219,7 @@ namespace Services.Implementations
         /// <summary>
         /// Cập nhật thời gian đăng nhập cuối
         /// </summary>
-        public async Task<bool> UpdateLastLoginAsync(string userId)
+        public async Task<bool> UpdateLastLoginAsync(int userId)
         {
             try
             {
@@ -251,27 +245,32 @@ namespace Services.Implementations
         {
             return new UserDto
             {
-                UserId = user.UserId,
+                UserIdInt = user.UserId,
+                UserId = user.UserId.ToString(),
                 Email = user.Email,
                 FullName = user.FullName,
-                DateOfBirth = user.DateOfBirth,
                 PhoneNumber = user.PhoneNumber,
-                Address = user.Address,
-                Avatar = user.Avatar,
                 CreatedAt = user.CreatedAt,
                 LastLogin = user.LastLogin,
-                IsEmailConfirmed = user.IsEmailConfirmed,
-                IsPhoneConfirmed = user.IsPhoneConfirmed,
                 IsActive = user.IsActive,
+                MustChangePassword = user.MustChangePassword,
+                RoleId = user.RoleId,
+                PasswordChangedAt = user.PasswordChangedAt,
+                GoogleId = user.GoogleId,
+                AvatarUrl = user.AvatarUrl,
+                Role = user.Role != null ? new RoleDto
+                {
+                    RoleId = user.Role.RoleId,
+                    RoleName = user.Role.RoleName,
+                    Description = user.Role.Description
+                } : null,
                 Roles = user.Role != null ? new List<RoleDto>
                 {
                     new RoleDto
                     {
                         RoleId = user.Role.RoleId,
                         RoleName = user.Role.RoleName,
-                        Description = user.Role.Description,
-                        Color = user.Role.Color,
-                        IsActive = user.Role.IsActive
+                        Description = user.Role.Description
                     }
                 } : new List<RoleDto>()
             };

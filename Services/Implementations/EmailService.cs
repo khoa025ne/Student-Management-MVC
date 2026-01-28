@@ -129,15 +129,19 @@ namespace Services.Implementations
             var subject = "🎓 Phân tích kết quả học tập của bạn";
             
             // Parse JSON arrays
-            var strongList = string.IsNullOrEmpty(strongSubjects) || strongSubjects == "[]" 
+            var strongArray = string.IsNullOrEmpty(strongSubjects) || strongSubjects == "[]"
+                ? Array.Empty<string>()
+                : Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(strongSubjects) ?? Array.Empty<string>();
+            var strongList = strongArray.Length == 0
                 ? "<li style='color: #999;'>Chưa có dữ liệu</li>" 
-                : string.Join("", Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(strongSubjects)
-                    .Select(s => $"<li style='margin: 8px 0;'><span style='color: #28a745; font-size: 18px;'>✓</span> <strong>{s}</strong></li>"));
+                : string.Join("", strongArray.Select(s => $"<li style='margin: 8px 0;'><span style='color: #28a745; font-size: 18px;'>✓</span> <strong>{s}</strong></li>"));
             
-            var weakList = string.IsNullOrEmpty(weakSubjects) || weakSubjects == "[]"
+            var weakArray = string.IsNullOrEmpty(weakSubjects) || weakSubjects == "[]"
+                ? Array.Empty<string>()
+                : Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(weakSubjects) ?? Array.Empty<string>();
+            var weakList = weakArray.Length == 0
                 ? "<li style='color: #999;'>Chưa có dữ liệu</li>"
-                : string.Join("", Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(weakSubjects)
-                    .Select(s => $"<li style='margin: 8px 0;'><span style='color: #dc3545; font-size: 18px;'>!</span> <strong>{s}</strong></li>"));
+                : string.Join("", weakArray.Select(s => $"<li style='margin: 8px 0;'><span style='color: #dc3545; font-size: 18px;'>!</span> <strong>{s}</strong></li>"));
 
             var body = $@"
                 <html>

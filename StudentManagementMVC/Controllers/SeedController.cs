@@ -1,34 +1,36 @@
-using DataAccess.Entities;
-using DataAccess.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
-using Repositories.Interfaces;
+using Services.Models;
 
 namespace StudentManagementMVC.Controllers
 {
+    /// <summary>
+    /// Controller tạo dữ liệu mẫu - chỉ dùng cho môi trường Development
+    /// Tuân thủ nguyên tắc: Controller chỉ gọi Services, không gọi trực tiếp Repositories
+    /// </summary>
     public class SeedController : Controller
     {
         private readonly IUserService _userService;
         private readonly IStudentService _studentService;
-        private readonly IRoleRepository _roleRepo;
-        private readonly IClassRepository _classRepo;
-        private readonly ICourseRepository _courseRepo;
-        private readonly ISemesterRepository _semesterRepo;
+        private readonly IRoleService _roleService;
+        private readonly IClassService _classService;
+        private readonly ICourseService _courseService;
+        private readonly ISemesterService _semesterService;
 
         public SeedController(
             IUserService userService,
             IStudentService studentService,
-            IRoleRepository roleRepo,
-            IClassRepository classRepo,
-            ICourseRepository courseRepo,
-            ISemesterRepository semesterRepo)
+            IRoleService roleService,
+            IClassService classService,
+            ICourseService courseService,
+            ISemesterService semesterService)
         {
             _userService = userService;
             _studentService = studentService;
-            _roleRepo = roleRepo;
-            _classRepo = classRepo;
-            _courseRepo = courseRepo;
-            _semesterRepo = semesterRepo;
+            _roleService = roleService;
+            _classService = classService;
+            _courseService = courseService;
+            _semesterService = semesterService;
         }
 
         public async Task<IActionResult> Index()
@@ -44,10 +46,10 @@ namespace StudentManagementMVC.Controllers
 
             foreach (var role in roles)
             {
-                var allRoles = await _roleRepo.GetAllAsync();
+                var allRoles = await _roleService.GetAllAsync();
                 if (!allRoles.Any(r => r.RoleName == role.RoleName))
                 {
-                    await _roleRepo.AddAsync(role);
+                    await _roleService.CreateAsync(role);
                 }
             }
 
@@ -57,8 +59,7 @@ namespace StudentManagementMVC.Controllers
                 var existingUser = await _userService.GetByEmailAsync(email);
                 if (existingUser == null)
                 {
-                    var allRoles = await _roleRepo.GetAllAsync();
-                    var role = allRoles.FirstOrDefault(r => r.RoleName == roleName);
+                    var role = await _roleService.GetByNameAsync(roleName);
                     if (role != null)
                     {
                         var newUser = new User
@@ -80,10 +81,8 @@ namespace StudentManagementMVC.Controllers
             await CreateUserIfNotExists("admin@student.com", "System Administrator", "123123", "Admin", "0999999999");
             await CreateUserIfNotExists("manager@student.com", "Training Manager", "123123", "Manager", "0988888888");
             await CreateUserIfNotExists("teacher@student.com", "Nguyen Van Teacher", "123123", "Teacher", "0977777777");
-            
-            // Student needs special handling for Student entity, check below
 
-            // 3. Seed Semesters (Moved up)
+            // 3. Seed Semesters
             var semesterData = new[] 
             { 
                 new { Name = "Học kỳ 1 - 2024", Code = "FA24" }, 
@@ -92,10 +91,10 @@ namespace StudentManagementMVC.Controllers
 
             foreach (var item in semesterData)
             {
-                var all = await _semesterRepo.GetAllAsync();
-                if (!all.Any(s => s.SemesterName == item.Name))
+                var allSemesters = await _semesterService.GetAllAsync();
+                if (!allSemesters.Any(s => s.SemesterName == item.Name))
                 {
-                    await _semesterRepo.AddAsync(new Semester 
+                    await _semesterService.CreateAsync(new Semester 
                     { 
                         SemesterName = item.Name,
                         SemesterCode = item.Code,
@@ -106,7 +105,7 @@ namespace StudentManagementMVC.Controllers
                 }
             }
 
-            // 4. Seed Courses (Moved up)
+            // 4. Seed Courses
             var courses = new[] 
             { 
                 new Course { CourseName = "Lập trình .NET", CourseCode = "PRN211", Credits = 3, Major = "CNTT" },
@@ -115,38 +114,37 @@ namespace StudentManagementMVC.Controllers
             };
             foreach (var c in courses)
             {
-                var all = await _courseRepo.GetAllAsync();
-                if (!all.Any(x => x.CourseName == c.CourseName))
+                var allCourses = await _courseService.GetAllAsync();
+                if (!allCourses.Any(x => x.CourseName == c.CourseName))
                 {
-                    await _courseRepo.AddAsync(c);
+                    await _courseService.CreateAsync(c);
                 }
             }
 
-            // 5. Seed Classes (Now has dependencies)
-            // Get dependencies first
-            var firstSemester = (await _semesterRepo.GetAllAsync()).FirstOrDefault();
-            var firstCourse = (await _courseRepo.GetAllAsync()).FirstOrDefault();
+            // 5. Seed Classes
+            var firstSemester = (await _semesterService.GetAllAsync()).FirstOrDefault();
+            var firstCourse = (await _courseService.GetAllAsync()).FirstOrDefault();
 
             if (firstSemester != null && firstCourse != null)
             {
-                var classNames = new[] { "SE1801", "SE1802", "SE1803" }; // Changed from K65 to match ClassCode format
+                var classNames = new[] { "SE1801", "SE1802", "SE1803" };
                 foreach (var name in classNames)
                 {
-                    var all = await _classRepo.GetAllAsync();
-                    if (!all.Any(c => c.ClassName == name))
+                    var allClasses = await _classService.GetAllClassesAsync();
+                    if (!allClasses.Any(c => c.ClassName == name))
                     {
-                        await _classRepo.AddAsync(new Class 
+                        var newClass = new Class 
                         { 
                             ClassName = name, 
                             ClassCode = name,
                             CourseId = firstCourse.CourseId,
                             SemesterId = firstSemester.SemesterId,
-                            // Set defaults for complex types
-                            DayOfWeekPair = DataAccess.Enums.DayOfWeekPair.MonThu,
-                            TimeSlot = DataAccess.Enums.TimeSlot.Slot1,
+                            DayOfWeekPair = DayOfWeekPair.MonThu,
+                            TimeSlot = TimeSlot.Slot1,
                             Room = "Alpha-301",
                             MaxCapacity = 30
-                        });
+                        };
+                        await _classService.CreateClassAsync(newClass);
                     }
                 }
             }
@@ -157,7 +155,7 @@ namespace StudentManagementMVC.Controllers
             
             if (existingStudentUser == null)
             {
-                var roleStudent = (await _roleRepo.GetAllAsync()).FirstOrDefault(r => r.RoleName == "Student");
+                var roleStudent = await _roleService.GetByNameAsync("Student");
                 if (roleStudent != null) 
                 {
                     var studentUser = new User
@@ -166,11 +164,12 @@ namespace StudentManagementMVC.Controllers
                         Email = studentEmail,
                         PasswordHash = BCrypt.Net.BCrypt.HashPassword("123123"),
                         RoleId = roleStudent.RoleId,
-                        IsActive = true
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
                     };
                     var createdUser = await _userService.CreateAsync(studentUser);
                     
-                    var studentClass = (await _classRepo.GetAllAsync()).FirstOrDefault();
+                    var studentClass = (await _classService.GetAllClassesAsync()).FirstOrDefault();
                     if (studentClass != null)
                     {
                         var newStudent = new Student
@@ -180,7 +179,7 @@ namespace StudentManagementMVC.Controllers
                             DateOfBirth = new DateTime(2000, 1, 1),
                             ClassCode = studentClass.ClassCode,
                             Major = MajorType.SoftwareEngineering,
-                            FullName = studentUser.FullName, // Ensure FullName is synced
+                            FullName = studentUser.FullName,
                             Email = studentUser.Email
                         };
                         await _studentService.CreateAsync(newStudent);

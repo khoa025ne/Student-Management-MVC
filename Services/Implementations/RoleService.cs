@@ -29,5 +29,10 @@ namespace Services.Implementations
         {
             return await _roleRepository.GetByNameAsync(roleName);
         }
+
+        public async Task<Role> CreateAsync(Role role)
+        {
+            return await _roleRepository.AddAsync(role);
+        }
     }
 }

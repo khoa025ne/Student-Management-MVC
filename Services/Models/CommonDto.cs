@@ -5,14 +5,21 @@ namespace Services.Models
         public int AnalysisId { get; set; }
         public string StudentId { get; set; } = string.Empty;
         public string? StudentName { get; set; }
-        public string AnalysisType { get; set; } = string.Empty;
+        public double OverallGPA { get; set; }
+        public List<string> StrongSubjects { get; set; } = new();
+        public List<string> WeakSubjects { get; set; } = new();
+        public string? Recommendations { get; set; }
+        public DateTime AnalysisDate { get; set; }
+        public string AiModelUsed { get; set; } = string.Empty;
+        
+        // Legacy properties for compatibility
+        public string AnalysisType { get; set; } = "GPA";
         public string Content { get; set; } = string.Empty;
-        public string Recommendations { get; set; } = string.Empty;
-        public DateTime GeneratedDate { get; set; }
-        public bool IsActive { get; set; }
-        public double? CurrentGPA { get; set; }
-        public string? RiskLevel { get; set; }
-        public string? Status { get; set; }
+        public DateTime GeneratedDate => AnalysisDate;
+        public bool IsActive { get; set; } = true;
+        public double? CurrentGPA => OverallGPA;
+        public string? RiskLevel => OverallGPA < 5.0 ? "High" : OverallGPA < 7.0 ? "Medium" : "Low";
+        public string? Status { get; set; } = "Active";
     }
 
     public class NotificationDto

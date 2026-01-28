@@ -1,6 +1,7 @@
 using Xunit;
 using Moq;
 using Services.Implementations;
+using Services.Interfaces;
 using Repositories.Interfaces;
 using DataAccess.Entities;
 using System.Threading.Tasks;
@@ -11,13 +12,15 @@ namespace StudentManagement.Tests.Services
     {
         private readonly Mock<IStudentRepository> _mockRepo;
         private readonly Mock<IEnrollmentRepository> _mockEnrollmentRepo;
+        private readonly Mock<IEmailService> _mockEmailService;
         private readonly StudentService _service;
 
         public StudentServiceTests()
         {
             _mockRepo = new Mock<IStudentRepository>();
             _mockEnrollmentRepo = new Mock<IEnrollmentRepository>();
-            _service = new StudentService(_mockRepo.Object, _mockEnrollmentRepo.Object);
+            _mockEmailService = new Mock<IEmailService>();
+            _service = new StudentService(_mockRepo.Object, _mockEnrollmentRepo.Object, _mockEmailService.Object);
         }
 
         [Fact]

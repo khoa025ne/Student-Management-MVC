@@ -56,14 +56,14 @@ namespace StudentManagementMVC.Controllers
             var analyses = await _analysisService.GetAnalysesByStudentIdAsync(student.StudentId);
             return View(analyses);
         }
-                return RedirectToAction("Index", "Home");
+
         /// <summary>
         /// Xem phân tích của một sinh viên cụ thể (Admin/Manager)
         /// </summary>
         [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> StudentAnalysis(string studentId)
         {
-            var student = await _studentService.GetByIdAsync(studentId);
+            var student = await _studentService.GetStudentDtoByIdAsync(int.TryParse(studentId, out int id) ? id : 0);
             if (student == null)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy sinh viên!";
@@ -86,7 +86,14 @@ namespace StudentManagementMVC.Controllers
         {
             try
             {
-                var student = await _studentService.GetByIdAsync(studentId);
+                int studentIdInt;
+                if (!int.TryParse(studentId, out studentIdInt))
+                {
+                    TempData["ErrorMessage"] = "ID sinh viên không hợp lệ!";
+                    return RedirectToAction(nameof(MyAnalysis));
+                }
+                
+                var student = await _studentService.GetByIdAsync(studentIdInt);
                 if (student == null)
                 {
                     TempData["ErrorMessage"] = "Không tìm thấy sinh viên!";
