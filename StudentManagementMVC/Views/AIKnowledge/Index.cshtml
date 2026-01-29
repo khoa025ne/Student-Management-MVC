@@ -1,0 +1,226 @@
+@model List<Services.Models.AIKnowledgeBaseModel>
+
+@{
+    ViewData["Title"] = "AI Knowledge Base";
+    ViewData["Subtitle"] = "Quản lý dữ liệu training cho AI - Giáo trình FPT University";
+    Layout = "~/Views/Shared/_LayoutTailAdmin.cshtml";
+    var categories = ViewBag.Categories as Dictionary<string, string>;
+    var stats = ViewBag.Stats as Dictionary<string, int>;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <style>
+        .kb-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .kb-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        .kb-category-badge {
+            display: inline-flex;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .kb-content-preview {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .kb-stats-card {
+            text-align: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+        }
+        .kb-stats-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--brand-600);
+        }
+        .kb-stats-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+    </style>
+}
+
+<div class="mb-6">
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
+        <div class="kb-stats-card">
+            <div class="kb-stats-value">@Model.Count</div>
+            <div class="kb-stats-label">Tổng số items</div>
+        </div>
+        <div class="kb-stats-card">
+            <div class="kb-stats-value">@Model.Count(m => m.IsActive)</div>
+            <div class="kb-stats-label">Đang hoạt động</div>
+        </div>
+        @if (stats != null)
+        {
+            @foreach (var stat in stats.Take(4))
+            {
+                <div class="kb-stats-card">
+                    <div class="kb-stats-value">@stat.Value</div>
+                    <div class="kb-stats-label">@(categories?.GetValueOrDefault(stat.Key, stat.Key) ?? stat.Key)</div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Toolbar -->
+    <div class="card mb-6">
+        <div class="card-body">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <form method="get" class="flex items-center gap-2">
+                        <div class="header-search" style="width: 300px;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="search" value="@ViewBag.SearchTerm" placeholder="Tìm kiếm knowledge..." />
+                        </div>
+                        <select name="category" class="form-control" style="width: auto;" onchange="this.form.submit()">
+                            <option value="">Tất cả danh mục</option>
+                            @if (categories != null)
+                            {
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.Key" selected="@(ViewBag.SelectedCategory == cat.Key)">@cat.Value</option>
+                                }
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                    </form>
+                </div>
+                <div class="flex items-center gap-2">
+                    <form asp-action="SeedData" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline" onclick="return confirm('Seed dữ liệu mẫu cho Knowledge Base?')">
+                            <i class="fas fa-database"></i> Seed Data
+                        </button>
+                    </form>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Thêm mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Knowledge Base List -->
+    @if (Model.Any())
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach (var item in Model)
+            {
+                <div class="kb-card">
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="kb-category-badge @GetCategoryColor(item.Category)">
+                            @(categories?.GetValueOrDefault(item.Category, item.Category) ?? item.Category)
+                        </span>
+                        <div class="flex items-center gap-2">
+                            @if (item.IsActive)
+                            {
+                                <span class="badge badge-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-gray">Inactive</span>
+                            }
+                            <span class="text-xs text-muted">P: @item.Priority</span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-lg font-semibold mb-2 text-primary">@item.Title</h3>
+                    
+                    <div class="kb-content-preview mb-3">
+                        @item.Content
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(item.Tags))
+                    {
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            @foreach (var tag in item.Tags.Split(',').Take(5))
+                            {
+                                <span class="badge badge-gray text-xs">@tag.Trim()</span>
+                            }
+                        </div>
+                    }
+                    
+                    <div class="flex items-center justify-between pt-3 border-t border-light">
+                        <div class="text-xs text-muted">
+                            <i class="fas fa-chart-bar"></i> @item.UsageCount lần sử dụng
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a asp-action="Details" asp-route-id="@item.KnowledgeId" class="btn btn-sm btn-ghost" title="Chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.KnowledgeId" class="btn btn-sm btn-ghost" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@item.KnowledgeId" method="post" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-ghost text-error" title="Xóa" onclick="return confirm('Xác nhận xóa item này?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center p-6">
+                <i class="fas fa-database text-5xl text-muted mb-4"></i>
+                <h3 class="text-xl font-semibold mb-2">Chưa có dữ liệu</h3>
+                <p class="text-secondary mb-4">Knowledge Base chưa có item nào. Hãy thêm mới hoặc seed dữ liệu mẫu.</p>
+                <div class="flex justify-center gap-3">
+                    <form asp-action="SeedData" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline">
+                            <i class="fas fa-database"></i> Seed Data mẫu
+                        </button>
+                    </form>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Thêm mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetCategoryColor(string category)
+    {
+        return category switch
+        {
+            "FLOW1_REGISTRATION" => "bg-blue-light-100 text-blue-light-500",
+            "FLOW2_GRADING" => "bg-success-100 text-success-600",
+            "FLOW3_NOTIFICATION" => "bg-warning-100 text-warning-600",
+            "GPA_CALCULATION" => "bg-brand-100 text-brand-600",
+            "ACADEMIC_WARNING" => "bg-error-100 text-error-600",
+            "LEARNING_PATH" => "bg-orange-100 text-orange-500",
+            "FPT_CURRICULUM" => "bg-gray-100 text-gray-600",
+            _ => "bg-gray-100 text-gray-600"
+        };
+    }
+}

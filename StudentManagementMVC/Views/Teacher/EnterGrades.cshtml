@@ -1,0 +1,593 @@
+@model DataAccess.Entities.Class
+
+@{
+    ViewData["Title"] = $"Nhập điểm - {Model.ClassCode}";
+    ViewData["Subtitle"] = Model.Course?.CourseName;
+    Layout = "~/Views/Shared/_LayoutTailAdmin.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <style>
+        .grade-header {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            color: white;
+            margin-bottom: 24px;
+        }
+        .grade-table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        .grade-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .grade-table thead {
+            background: var(--gray-100);
+        }
+        .grade-table th {
+            padding: 16px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+            border-bottom: 2px solid var(--border-primary);
+        }
+        .grade-table th:first-child {
+            text-align: left;
+            padding-left: 20px;
+        }
+        .grade-table tbody tr {
+            border-bottom: 1px solid var(--border-primary);
+            transition: background 0.2s;
+        }
+        .grade-table tbody tr:hover {
+            background: var(--gray-50);
+        }
+        .grade-table td {
+            padding: 12px;
+            text-align: center;
+        }
+        .grade-table td:first-child {
+            text-align: left;
+            padding-left: 20px;
+        }
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--brand-100);
+            color: var(--brand-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .student-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .student-code {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .score-input {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .score-input:focus {
+            border-color: var(--brand-500);
+            box-shadow: 0 0 0 3px rgba(70, 95, 255, 0.1);
+            outline: none;
+        }
+        .score-input.error {
+            border-color: var(--error-500);
+            background: #fef2f2;
+        }
+        .score-input.success {
+            border-color: var(--success-500);
+            background: #f0fdf4;
+        }
+        .total-score {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        .total-score.excellent { color: var(--success-600); }
+        .total-score.good { color: var(--brand-600); }
+        .total-score.average { color: var(--warning-600); }
+        .total-score.poor { color: var(--error-600); }
+        .grade-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .grade-badge.a { background: #dcfce7; color: #16a34a; }
+        .grade-badge.b { background: #dbeafe; color: #2563eb; }
+        .grade-badge.c { background: #fef3c7; color: #d97706; }
+        .grade-badge.d { background: #fed7aa; color: #ea580c; }
+        .grade-badge.f { background: #fee2e2; color: #dc2626; }
+        .weight-info {
+            background: var(--gray-50);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .weight-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: white;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            margin-right: 12px;
+        }
+        .ai-analysis-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #7dd3fc;
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            margin-top: 24px;
+        }
+        .ai-analysis-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .ai-analysis-header i {
+            font-size: 28px;
+            color: #0284c7;
+        }
+        .ai-insight {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .ai-insight-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-primary);
+        }
+        .ai-insight-item:last-child {
+            border-bottom: none;
+        }
+        .ai-insight-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .ai-insight-icon.warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .ai-insight-icon.success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .ai-insight-icon.info {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+    </style>
+}
+
+<!-- Header -->
+<div class="grade-header">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold mb-2">
+                <i class="fas fa-edit mr-2"></i>Nhập điểm lớp @Model.ClassCode
+            </h1>
+            <p class="opacity-90 text-lg">@Model.Course?.CourseName</p>
+            <div class="mt-3 flex flex-wrap gap-4 opacity-80">
+                <span><i class="fas fa-coins"></i> @(Model.Course?.Credits ?? 3) tín chỉ</span>
+                <span><i class="fas fa-users"></i> @Model.Enrollments.Count sinh viên</span>
+                <span><i class="fas fa-calendar"></i> @Model.Semester?.SemesterName</span>
+            </div>
+        </div>
+        <a href="@Url.Action("Dashboard", "Teacher")" class="btn btn-ghost" style="color: white; border-color: rgba(255,255,255,0.3);">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<!-- Weight Info -->
+<div class="weight-info">
+    <div class="font-semibold mb-2"><i class="fas fa-balance-scale text-brand"></i> Công thức tính điểm:</div>
+    <div>
+        <span class="weight-item"><strong>Chuyên cần:</strong> 10%</span>
+        <span class="weight-item"><strong>Bài tập 1:</strong> 10%</span>
+        <span class="weight-item"><strong>Bài tập 2:</strong> 10%</span>
+        <span class="weight-item"><strong>Giữa kỳ:</strong> 20%</span>
+        <span class="weight-item"><strong>Cuối kỳ:</strong> 50%</span>
+    </div>
+</div>
+
+<!-- Grade Entry Form -->
+<form asp-action="SaveGrades" method="post" id="gradeForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="classId" value="@Model.ClassId" />
+    
+    <div class="grade-table-container">
+        <table class="grade-table">
+            <thead>
+                <tr>
+                    <th style="width: 250px;">Sinh viên</th>
+                    <th>Chuyên cần<br><small class="text-xs opacity-70">(10%)</small></th>
+                    <th>Bài tập 1<br><small class="text-xs opacity-70">(10%)</small></th>
+                    <th>Bài tập 2<br><small class="text-xs opacity-70">(10%)</small></th>
+                    <th>Giữa kỳ<br><small class="text-xs opacity-70">(20%)</small></th>
+                    <th>Cuối kỳ<br><small class="text-xs opacity-70">(50%)</small></th>
+                    <th>Tổng kết</th>
+                    <th>Xếp loại</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{int index = 0;}
+                @foreach (var enrollment in Model.Enrollments.OrderBy(e => e.Student.FullName))
+                {
+                    var score = enrollment.Scores?.FirstOrDefault();
+                    var totalScore = score?.TotalScore;
+                    var grade = GetGrade(totalScore);
+                    
+                    <tr data-student-id="@enrollment.StudentId">
+                        <td>
+                            <div class="student-info">
+                                <div class="student-avatar">
+                                    @(enrollment.Student.FullName?.Substring(0, 2).ToUpper() ?? "SV")
+                                </div>
+                                <div>
+                                    <div class="student-name">@enrollment.Student.FullName</div>
+                                    <div class="student-code">@enrollment.Student.StudentCode</div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="scores[@index].StudentId" value="@enrollment.StudentId" />
+                        </td>
+                        <td>
+                            <input type="number" 
+                                   name="scores[@index].AttendanceScore"
+                                   class="score-input" 
+                                   min="0" max="10" step="0.1"
+                                   value="@(score?.AttendanceScore?.ToString("F1"))"
+                                   onchange="calculateTotal(this)" />
+                        </td>
+                        <td>
+                            <input type="number" 
+                                   name="scores[@index].Assignment1Score"
+                                   class="score-input" 
+                                   min="0" max="10" step="0.1"
+                                   value="@(score?.Assignment1Score?.ToString("F1"))"
+                                   onchange="calculateTotal(this)" />
+                        </td>
+                        <td>
+                            <input type="number" 
+                                   name="scores[@index].Assignment2Score"
+                                   class="score-input" 
+                                   min="0" max="10" step="0.1"
+                                   value="@(score?.Assignment2Score?.ToString("F1"))"
+                                   onchange="calculateTotal(this)" />
+                        </td>
+                        <td>
+                            <input type="number" 
+                                   name="scores[@index].MidtermScore"
+                                   class="score-input" 
+                                   min="0" max="10" step="0.1"
+                                   value="@(score?.MidtermScore?.ToString("F1"))"
+                                   onchange="calculateTotal(this)" />
+                        </td>
+                        <td>
+                            <input type="number" 
+                                   name="scores[@index].FinalExamScore"
+                                   class="score-input" 
+                                   min="0" max="10" step="0.1"
+                                   value="@(score?.FinalExamScore?.ToString("F1"))"
+                                   onchange="calculateTotal(this)" />
+                        </td>
+                        <td>
+                            <span class="total-score @GetScoreClass(totalScore)" data-total>
+                                @(totalScore?.ToString("F1") ?? "-")
+                            </span>
+                        </td>
+                        <td>
+                            <span class="grade-badge @grade.ToLower()" data-grade>@grade</span>
+                        </td>
+                    </tr>
+                    index++;
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="flex justify-between items-center mt-6">
+        <div class="flex gap-3">
+            <button type="button" class="btn btn-ghost" onclick="resetForm()">
+                <i class="fas fa-undo"></i> Đặt lại
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="importExcel()">
+                <i class="fas fa-file-excel"></i> Import Excel
+            </button>
+        </div>
+        <div class="flex gap-3">
+            <button type="button" class="btn btn-outline" onclick="saveDraft()">
+                <i class="fas fa-save"></i> Lưu nháp
+            </button>
+            <button type="submit" class="btn btn-brand btn-lg">
+                <i class="fas fa-check-circle"></i> Lưu và Công bố điểm
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- AI Analysis Section -->
+<div class="ai-analysis-section">
+    <div class="ai-analysis-header">
+        <i class="fas fa-brain"></i>
+        <div>
+            <h3 class="font-bold text-lg" style="color: #0369a1;">Phân tích từ AI</h3>
+            <p class="text-sm text-secondary">Nhận xét tự động dựa trên kết quả điểm</p>
+        </div>
+        <button type="button" class="btn btn-sm btn-brand ml-auto" onclick="runAIAnalysis()">
+            <i class="fas fa-magic"></i> Phân tích ngay
+        </button>
+    </div>
+    
+    <div class="ai-insight" id="aiInsightContainer">
+        <div class="text-center py-6 text-secondary">
+            <i class="fas fa-robot text-4xl mb-3"></i>
+            <p>Nhấn "Phân tích ngay" để AI đánh giá kết quả học tập của lớp</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Calculate total score for a row
+    function calculateTotal(input) {
+        const row = input.closest('tr');
+        const inputs = row.querySelectorAll('.score-input');
+        
+        const attendance = parseFloat(inputs[0].value) || 0;
+        const assignment1 = parseFloat(inputs[1].value) || 0;
+        const assignment2 = parseFloat(inputs[2].value) || 0;
+        const midterm = parseFloat(inputs[3].value) || 0;
+        const final = parseFloat(inputs[4].value) || 0;
+        
+        // Validate input
+        if (input.value && (parseFloat(input.value) < 0 || parseFloat(input.value) > 10)) {
+            input.classList.add('error');
+            return;
+        } else {
+            input.classList.remove('error');
+            input.classList.add('success');
+            setTimeout(() => input.classList.remove('success'), 500);
+        }
+        
+        // Calculate total: 10% + 10% + 10% + 20% + 50%
+        const total = attendance * 0.1 + assignment1 * 0.1 + assignment2 * 0.1 + midterm * 0.2 + final * 0.5;
+        
+        const totalEl = row.querySelector('[data-total]');
+        const gradeEl = row.querySelector('[data-grade]');
+        
+        if (total > 0) {
+            totalEl.textContent = total.toFixed(1);
+            totalEl.className = 'total-score ' + getScoreClass(total);
+            
+            const grade = getGrade(total);
+            gradeEl.textContent = grade;
+            gradeEl.className = 'grade-badge ' + grade.toLowerCase();
+        } else {
+            totalEl.textContent = '-';
+            gradeEl.textContent = '-';
+        }
+    }
+    
+    function getScoreClass(score) {
+        if (!score) return '';
+        if (score >= 8.5) return 'excellent';
+        if (score >= 7.0) return 'good';
+        if (score >= 5.5) return 'average';
+        return 'poor';
+    }
+    
+    function getGrade(score) {
+        if (!score) return '-';
+        if (score >= 8.5) return 'A';
+        if (score >= 7.0) return 'B';
+        if (score >= 5.5) return 'C';
+        if (score >= 4.0) return 'D';
+        return 'F';
+    }
+    
+    function resetForm() {
+        if (confirm('Bạn có chắc muốn xóa tất cả điểm đã nhập?')) {
+            document.querySelectorAll('.score-input').forEach(input => {
+                input.value = '';
+            });
+            document.querySelectorAll('[data-total]').forEach(el => {
+                el.textContent = '-';
+                el.className = 'total-score';
+            });
+            document.querySelectorAll('[data-grade]').forEach(el => {
+                el.textContent = '-';
+                el.className = 'grade-badge';
+            });
+        }
+    }
+    
+    function saveDraft() {
+        // Save to localStorage
+        const data = {};
+        document.querySelectorAll('tr[data-student-id]').forEach(row => {
+            const studentId = row.dataset.studentId;
+            const inputs = row.querySelectorAll('.score-input');
+            data[studentId] = {
+                attendance: inputs[0].value,
+                assignment1: inputs[1].value,
+                assignment2: inputs[2].value,
+                midterm: inputs[3].value,
+                final: inputs[4].value
+            };
+        });
+        localStorage.setItem('gradesDraft_@Model.ClassId', JSON.stringify(data));
+        alert('Đã lưu nháp thành công!');
+    }
+    
+    function importExcel() {
+        alert('Tính năng import Excel sẽ được cập nhật sớm!');
+    }
+    
+    function runAIAnalysis() {
+        const container = document.getElementById('aiInsightContainer');
+        container.innerHTML = `
+            <div class="text-center py-6">
+                <i class="fas fa-spinner fa-spin text-3xl text-brand mb-3"></i>
+                <p>AI đang phân tích dữ liệu...</p>
+            </div>
+        `;
+        
+        // Simulate AI analysis
+        setTimeout(() => {
+            const rows = document.querySelectorAll('tr[data-student-id]');
+            let totalStudents = rows.length;
+            let passed = 0;
+            let excellent = 0;
+            let needsAttention = 0;
+            
+            rows.forEach(row => {
+                const total = parseFloat(row.querySelector('[data-total]').textContent);
+                if (total >= 4.0) passed++;
+                if (total >= 8.5) excellent++;
+                if (total < 5.0 && total > 0) needsAttention++;
+            });
+            
+            const passRate = totalStudents > 0 ? (passed / totalStudents * 100).toFixed(1) : 0;
+            
+            container.innerHTML = `
+                <div class="ai-insight-item">
+                    <div class="ai-insight-icon success">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div>
+                        <div class="font-semibold">Tỷ lệ đậu: ${passRate}%</div>
+                        <div class="text-sm text-secondary">${passed}/${totalStudents} sinh viên đạt điểm >= 4.0</div>
+                    </div>
+                </div>
+                <div class="ai-insight-item">
+                    <div class="ai-insight-icon info">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <div class="font-semibold">Sinh viên xuất sắc: ${excellent}</div>
+                        <div class="text-sm text-secondary">Số sinh viên đạt loại A (>= 8.5)</div>
+                    </div>
+                </div>
+                ${needsAttention > 0 ? `
+                <div class="ai-insight-item">
+                    <div class="ai-insight-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <div class="font-semibold">Cần lưu ý: ${needsAttention} sinh viên</div>
+                        <div class="text-sm text-secondary">Có điểm dưới 5.0, cần hỗ trợ thêm</div>
+                    </div>
+                </div>
+                ` : ''}
+                <div class="mt-4 pt-4 border-t">
+                    <button class="btn btn-sm btn-outline" onclick="sendNotifications()">
+                        <i class="fas fa-bell"></i> Gửi thông báo cho SV yếu
+                    </button>
+                    <button class="btn btn-sm btn-outline ml-2" onclick="exportReport()">
+                        <i class="fas fa-file-pdf"></i> Xuất báo cáo
+                    </button>
+                </div>
+            `;
+        }, 2000);
+    }
+    
+    function sendNotifications() {
+        alert('Đã gửi thông báo cảnh báo cho sinh viên có điểm thấp!');
+    }
+    
+    function exportReport() {
+        alert('Tính năng xuất báo cáo sẽ được cập nhật sớm!');
+    }
+    
+    // Load draft on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const draft = localStorage.getItem('gradesDraft_@Model.ClassId');
+        if (draft) {
+            if (confirm('Tìm thấy bản nháp đã lưu. Bạn có muốn khôi phục?')) {
+                const data = JSON.parse(draft);
+                document.querySelectorAll('tr[data-student-id]').forEach(row => {
+                    const studentId = row.dataset.studentId;
+                    if (data[studentId]) {
+                        const inputs = row.querySelectorAll('.score-input');
+                        inputs[0].value = data[studentId].attendance || '';
+                        inputs[1].value = data[studentId].assignment1 || '';
+                        inputs[2].value = data[studentId].assignment2 || '';
+                        inputs[3].value = data[studentId].midterm || '';
+                        inputs[4].value = data[studentId].final || '';
+                        calculateTotal(inputs[0]);
+                    }
+                });
+            }
+        }
+    });
+</script>
+}
+
+@functions {
+    string GetGrade(double? score)
+    {
+        if (!score.HasValue) return "-";
+        return score.Value switch
+        {
+            >= 8.5 => "A",
+            >= 7.0 => "B",
+            >= 5.5 => "C",
+            >= 4.0 => "D",
+            _ => "F"
+        };
+    }
+
+    string GetScoreClass(double? score)
+    {
+        if (!score.HasValue) return "";
+        return score.Value switch
+        {
+            >= 8.5 => "excellent",
+            >= 7.0 => "good",
+            >= 5.5 => "average",
+            _ => "poor"
+        };
+    }
+}

@@ -1,0 +1,104 @@
+@model Services.Models.AIKnowledgeBaseModel
+
+@{
+    ViewData["Title"] = "Thêm Knowledge Base";
+    ViewData["Subtitle"] = "Tạo mới nội dung cho AI Knowledge Base";
+    Layout = "~/Views/Shared/_LayoutTailAdmin.cshtml";
+    var categories = ViewBag.Categories as Dictionary<string, string>;
+}
+
+<div class="max-w-4xl mx-auto">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-plus-circle text-brand"></i>
+                Thêm Knowledge Base Item
+            </h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Title -->
+                    <div class="form-group col-span-2">
+                        <label class="form-label">Tiêu đề <span class="required">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề ngắn gọn, mô tả rõ nội dung" />
+                        <span asp-validation-for="Title" class="invalid-feedback"></span>
+                    </div>
+                    
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label class="form-label">Danh mục <span class="required">*</span></label>
+                        <select asp-for="Category" class="form-control">
+                            <option value="">-- Chọn danh mục --</option>
+                            @if (categories != null)
+                            {
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.Key">@cat.Value</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="Category" class="invalid-feedback"></span>
+                    </div>
+                    
+                    <!-- SubCategory -->
+                    <div class="form-group">
+                        <label class="form-label">Danh mục phụ</label>
+                        <input asp-for="SubCategory" class="form-control" placeholder="VD: SE, AI, Flow1..." />
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="form-group col-span-2">
+                        <label class="form-label">Nội dung <span class="required">*</span></label>
+                        <textarea asp-for="Content" class="form-control" rows="10" 
+                                  placeholder="Nhập nội dung chi tiết mà AI sẽ tham khảo khi xử lý yêu cầu..."></textarea>
+                        <span asp-validation-for="Content" class="invalid-feedback"></span>
+                        <p class="text-xs text-muted mt-1">Nội dung nên chi tiết, rõ ràng theo đúng giáo trình FPT University</p>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="form-group col-span-2">
+                        <label class="form-label">Tags</label>
+                        <input asp-for="Tags" class="form-control" placeholder="gpa, điểm, tính toán, grade (phân cách bởi dấu phẩy)" />
+                        <p class="text-xs text-muted mt-1">Các từ khóa giúp tìm kiếm nhanh, phân cách bởi dấu phẩy</p>
+                    </div>
+                    
+                    <!-- Priority -->
+                    <div class="form-group">
+                        <label class="form-label">Độ ưu tiên (1-10)</label>
+                        <input asp-for="Priority" type="number" min="1" max="10" class="form-control" />
+                        <p class="text-xs text-muted mt-1">10 = Cao nhất, 1 = Thấp nhất</p>
+                    </div>
+                    
+                    <!-- Language -->
+                    <div class="form-group">
+                        <label class="form-label">Ngôn ngữ</label>
+                        <select asp-for="Language" class="form-control">
+                            <option value="vi">Tiếng Việt</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    
+                    <!-- IsActive -->
+                    <div class="form-group col-span-2">
+                        <label class="form-check">
+                            <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                            <span class="form-check-label">Kích hoạt (AI sẽ sử dụng item này)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-light">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

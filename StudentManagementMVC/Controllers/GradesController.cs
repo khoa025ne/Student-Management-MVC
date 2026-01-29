@@ -53,9 +53,12 @@ namespace StudentManagementMVC.Controllers
                 {
                     // Get student and course info for email
                     var student = await _studentService.GetByIdAsync(score.StudentId);
-                    var course = await _courseService.GetByIdAsync(score.CourseId);
+                    var course = score.CourseId.HasValue ? await _courseService.GetByIdAsync(score.CourseId.Value) : null;
                     
-                    await _scoreService.AddOrUpdateScoreAsync(score.StudentId, score.CourseId, score.ScoreValue);
+                    if (score.CourseId.HasValue)
+                    {
+                        await _scoreService.AddOrUpdateScoreAsync(score.StudentId, score.CourseId.Value, score.ScoreValue);
+                    }
                     
                     // Gửi email thông báo điểm
                     try
@@ -190,7 +193,10 @@ namespace StudentManagementMVC.Controllers
             {
                 try
                 {
-                    await _scoreService.AddOrUpdateScoreAsync(score.StudentId, score.CourseId, score.ScoreValue);
+                    if (score.CourseId.HasValue)
+                    {
+                        await _scoreService.AddOrUpdateScoreAsync(score.StudentId, score.CourseId.Value, score.ScoreValue);
+                    }
                     TempData["SuccessMessage"] = "Cập nhật điểm thành công!";
                     return RedirectToAction(nameof(Index));
                 }

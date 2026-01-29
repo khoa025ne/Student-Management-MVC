@@ -209,6 +209,124 @@ namespace Services.Implementations
             return MapToDto(updatedStudent);
         }
 
+        // ===== DASHBOARD METHODS =====
+        public async Task<StudentDashboardDto?> GetDashboardAsync(int userId)
+        {
+            var student = await _studentRepository.GetByUserIdWithEnrollmentsAsync(userId);
+            if (student == null) return null;
+
+            // Get current semester
+            var currentSemester = await _enrollmentRepository.GetCurrentSemesterAsync();
+
+            // Get active enrollments
+            var activeEnrollments = student.Enrollments
+                .Where(e => e.Status == "Active" &&
+                       (currentSemester == null || e.Class?.SemesterId == currentSemester.SemesterId))
+                .ToList();
+
+            // Calculate statistics
+            var completedEnrollments = student.Enrollments
+                .Where(e => e.TotalScore.HasValue)
+                .ToList();
+
+            var totalCredits = completedEnrollments.Sum(e => e.Class?.Course?.Credits ?? 0);
+            var totalCreditsThisSemester = activeEnrollments.Sum(e => e.Class?.Course?.Credits ?? 0);
+
+            // GPA breakdown
+            var gradeACount = completedEnrollments.Count(e => e.Grade == "A");
+            var gradeBCount = completedEnrollments.Count(e => e.Grade == "B");
+            var gradeCCount = completedEnrollments.Count(e => e.Grade == "C");
+            var gradeDCount = completedEnrollments.Count(e => e.Grade == "D");
+            var gradeFCount = completedEnrollments.Count(e => e.Grade == "F");
+
+            // Recent scores
+            var recentScores = student.Enrollments
+                .Where(e => e.TotalScore.HasValue)
+                .OrderByDescending(e => e.EnrollmentDate)
+                .Take(5)
+                .Select(e => new RecentScoreDto
+                {
+                    CourseName = e.Class?.Course?.CourseName ?? "",
+                    CourseCode = e.Class?.Course?.CourseCode ?? "",
+                    Grade = e.Grade,
+                    TotalScore = e.TotalScore,
+                    Credits = e.Class?.Course?.Credits ?? 0
+                })
+                .ToList();
+
+            // Upcoming classes (today's schedule)
+            var today = DateTime.Now.DayOfWeek;
+            var upcomingClasses = activeEnrollments
+                .Where(e => e.Class != null && IsClassToday(e.Class.DayOfWeekPair, today))
+                .Select(e => new UpcomingClassDto
+                {
+                    ClassName = e.Class!.ClassName ?? "",
+                    CourseName = e.Class.Course?.CourseName ?? "",
+                    Room = e.Class.Room ?? "",
+                    TimeSlot = e.Class.TimeSlot.ToString()
+                })
+                .ToList();
+
+            // Notifications count
+            var unreadNotifications = await GetUnreadNotificationCountAsync(student.StudentId);
+
+            return new StudentDashboardDto
+            {
+                Student = new StudentInfoDto
+                {
+                    StudentId = student.StudentId,
+                    StudentCode = student.StudentCode ?? "",
+                    FullName = student.FullName ?? "",
+                    Email = student.Email ?? "",
+                    Phone = student.PhoneNumber,
+                    Major = student.Major.ToString(),
+                    ClassCode = student.ClassCode ?? "",
+                    Status = "Active",
+                    OverallGPA = student.OverallGPA
+                },
+                CurrentSemester = currentSemester != null ? new SemesterDto
+                {
+                    SemesterId = currentSemester.SemesterId,
+                    SemesterName = currentSemester.SemesterName ?? "",
+                    StartDate = currentSemester.StartDate,
+                    EndDate = currentSemester.EndDate
+                } : null,
+                OverallGPA = student.OverallGPA,
+                TotalCredits = totalCredits,
+                TotalCreditsThisSemester = totalCreditsThisSemester,
+                EnrolledCoursesCount = activeEnrollments.Count,
+                CompletedCoursesCount = completedEnrollments.Count,
+                GradeACount = gradeACount,
+                GradeBCount = gradeBCount,
+                GradeCCount = gradeCCount,
+                GradeDCount = gradeDCount,
+                GradeFCount = gradeFCount,
+                RecentScores = recentScores,
+                UpcomingClasses = upcomingClasses,
+                UnreadNotifications = unreadNotifications,
+                NeedsAcademicWarning = student.OverallGPA < 2.0,
+                PassRate = completedEnrollments.Count > 0
+                    ? (completedEnrollments.Count(e => e.Grade != "F") * 100.0 / completedEnrollments.Count)
+                    : 100
+            };
+        }
+
+        public async Task<int> GetUnreadNotificationCountAsync(int studentId)
+        {
+            return await _studentRepository.GetUnreadNotificationCountAsync(studentId);
+        }
+
+        private static bool IsClassToday(DataAccess.Enums.DayOfWeekPair dayPair, DayOfWeek today)
+        {
+            return dayPair switch
+            {
+                DataAccess.Enums.DayOfWeekPair.MonThu => today == DayOfWeek.Monday || today == DayOfWeek.Thursday,
+                DataAccess.Enums.DayOfWeekPair.TueFri => today == DayOfWeek.Tuesday || today == DayOfWeek.Friday,
+                DataAccess.Enums.DayOfWeekPair.WedSat => today == DayOfWeek.Wednesday || today == DayOfWeek.Saturday,
+                _ => false
+            };
+        }
+
         private StudentDto MapToDto(Student student)
         {
             return new StudentDto

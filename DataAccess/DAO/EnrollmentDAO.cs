@@ -27,6 +27,8 @@ namespace DataAccess.DAO
                     .Include(e => e.Student)
                     .Include(e => e.Class)
                         .ThenInclude(c => c.Course)
+                    .Include(e => e.Class)
+                        .ThenInclude(c => c.Semester)
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -43,6 +45,8 @@ namespace DataAccess.DAO
                     .Include(e => e.Student)
                     .Include(e => e.Class)
                         .ThenInclude(c => c.Course)
+                    .Include(e => e.Class)
+                        .ThenInclude(c => c.Semester)
                     .FirstOrDefaultAsync(e => e.EnrollmentId == id);
             }
             catch (Exception ex)
@@ -78,6 +82,9 @@ namespace DataAccess.DAO
                     .Include(e => e.Student)
                         .ThenInclude(s => s.User)
                     .Include(e => e.Class)
+                        .ThenInclude(c => c.Course)
+                    .Include(e => e.Class)
+                        .ThenInclude(c => c.Semester)
                     .OrderBy(e => e.Student.StudentCode)
                     .ToListAsync();
             }

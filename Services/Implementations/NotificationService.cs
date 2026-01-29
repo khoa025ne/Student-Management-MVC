@@ -1,6 +1,9 @@
+using DataAccess;
 using DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using Services.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +16,18 @@ namespace Services.Implementations
         private readonly INotificationRepository _notificationRepo;
         private readonly IStudentService _studentService;
         private readonly IEmailService _emailService;
+        private readonly AppDbContext _context;
 
         public NotificationService(
             INotificationRepository notificationRepo, 
             IStudentService studentService,
-            IEmailService emailService)
+            IEmailService emailService,
+            AppDbContext context)
         {
             _notificationRepo = notificationRepo;
             _studentService = studentService;
             _emailService = emailService;
+            _context = context;
         }
 
         public async Task<IEnumerable<Notification>> GetAllAsync()
@@ -59,6 +65,248 @@ namespace Services.Implementations
         public async Task DeleteAsync(int id)
         {
             await _notificationRepo.DeleteAsync(id);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // NOTIFICATION CENTER METHODS (DTO-BASED)
+        // ═══════════════════════════════════════════════════════════════
+
+        public async Task<NotificationCenterDto> GetNotificationCenterAsync(int userId, string userRole, string? type, bool? unreadOnly, int page)
+        {
+            var query = _context.Notifications.AsQueryable();
+
+            // Filter by recipient
+            if (userRole == "Student")
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+                if (student != null)
+                {
+                    query = query.Where(n => n.StudentId == student.StudentId || n.StudentId == null);
+                }
+            }
+            else if (userRole == "Teacher")
+            {
+                var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (teacher != null)
+                {
+                    query = query.Where(n => n.TeacherId == teacher.Id || n.TeacherId == null);
+                }
+            }
+
+            // Filters
+            if (!string.IsNullOrEmpty(type))
+            {
+                query = query.Where(n => n.Type == type);
+            }
+
+            if (unreadOnly == true)
+            {
+                query = query.Where(n => !n.IsRead);
+            }
+
+            // Stats
+            var totalCount = await query.CountAsync();
+            var unreadCount = await query.Where(n => !n.IsRead).CountAsync();
+
+            // Pagination
+            var pageSize = 20;
+            var notifications = await query
+                .OrderByDescending(n => n.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(n => new NotificationItemDto
+                {
+                    NotificationId = n.NotificationId,
+                    Title = n.Title,
+                    Message = n.Message ?? "",
+                    Type = n.Type ?? "",
+                    Priority = n.Priority ?? "low",
+                    IsRead = n.IsRead,
+                    CreatedAt = n.CreatedAt,
+                    ReadAt = n.ReadAt,
+                    Link = n.Link,
+                    StudentId = n.StudentId,
+                    TeacherId = n.TeacherId
+                })
+                .ToListAsync();
+
+            return new NotificationCenterDto
+            {
+                Notifications = notifications,
+                TotalCount = totalCount,
+                UnreadCount = unreadCount,
+                CurrentPage = page,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                CurrentFilter = type,
+                UnreadOnly = unreadOnly ?? false
+            };
+        }
+
+        public async Task<int> MarkAsReadAndReturnIdAsync(int notificationId)
+        {
+            var notification = await _context.Notifications.FindAsync(notificationId);
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                notification.ReadAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+                return notificationId;
+            }
+            return 0;
+        }
+
+        public async Task<int> MarkAllAsReadAsync(int userId, string userRole)
+        {
+            var query = _context.Notifications.Where(n => !n.IsRead);
+
+            if (userRole == "Student")
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+                if (student != null)
+                {
+                    query = query.Where(n => n.StudentId == student.StudentId);
+                }
+            }
+            else if (userRole == "Teacher")
+            {
+                var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (teacher != null)
+                {
+                    query = query.Where(n => n.TeacherId == teacher.Id);
+                }
+            }
+
+            var notifications = await query.ToListAsync();
+            foreach (var n in notifications)
+            {
+                n.IsRead = true;
+                n.ReadAt = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+
+            return notifications.Count;
+        }
+
+        public async Task<IEnumerable<NotificationClassDto>> GetClassesForNotificationAsync()
+        {
+            return await _context.Classes
+                .Include(c => c.Course)
+                .Select(c => new NotificationClassDto
+                {
+                    ClassId = c.ClassId,
+                    ClassCode = c.ClassCode ?? "",
+                    ClassName = c.ClassName ?? "",
+                    CourseName = c.Course != null ? c.Course.CourseName ?? "" : ""
+                })
+                .ToListAsync();
+        }
+
+        public async Task<int> CreateBulkNotificationsAsync(CreateNotificationDto model, int createdBy)
+        {
+            var notifications = new List<Notification>();
+
+            if (model.SendToAll)
+            {
+                var students = await _context.Students.ToListAsync();
+                foreach (var student in students)
+                {
+                    notifications.Add(CreateNotificationEntity(model, student.StudentId, null, createdBy));
+                }
+            }
+            else if (model.ClassIds?.Any() == true)
+            {
+                var enrollments = await _context.Enrollments
+                    .Where(e => model.ClassIds.Contains(e.ClassId))
+                    .Select(e => e.StudentId)
+                    .Distinct()
+                    .ToListAsync();
+
+                foreach (var studentId in enrollments)
+                {
+                    notifications.Add(CreateNotificationEntity(model, studentId, null, createdBy));
+                }
+            }
+            else if (model.StudentIds?.Any() == true)
+            {
+                foreach (var studentId in model.StudentIds)
+                {
+                    notifications.Add(CreateNotificationEntity(model, studentId, null, createdBy));
+                }
+            }
+
+            _context.Notifications.AddRange(notifications);
+            await _context.SaveChangesAsync();
+
+            return notifications.Count;
+        }
+
+        private Notification CreateNotificationEntity(CreateNotificationDto model, int? studentId, int? teacherId, int createdBy)
+        {
+            return new Notification
+            {
+                Title = model.Title,
+                Message = model.Message,
+                Type = model.Type,
+                StudentId = studentId,
+                TeacherId = teacherId,
+                CreatedAt = DateTime.Now,
+                CreatedBy = createdBy.ToString(),
+                IsRead = false,
+                Priority = model.Priority == 0 ? "low" : (model.Priority == 1 ? "medium" : "high"),
+                Link = model.ActionUrl
+            };
+        }
+
+        public async Task SendGradeAlertAsync(int studentId, int classId, double score)
+        {
+            var student = await _context.Students.FindAsync(studentId);
+            var cls = await _context.Classes
+                .Include(c => c.Course)
+                .FirstOrDefaultAsync(c => c.ClassId == classId);
+
+            if (student == null || cls == null) return;
+
+            var message = score < 4.0
+                ? $"⚠️ Cảnh báo: Điểm môn {cls.Course?.CourseName} của bạn là {score:F1}. Vui lòng liên hệ giảng viên để được hỗ trợ."
+                : $"📊 Điểm môn {cls.Course?.CourseName} đã được cập nhật: {score:F1}";
+
+            var notification = new Notification
+            {
+                Title = score < 4.0 ? "⚠️ Cảnh báo học vụ" : "📊 Cập nhật điểm",
+                Message = message,
+                Type = score < 4.0 ? "Warning" : "Info",
+                StudentId = studentId,
+                CreatedAt = DateTime.Now,
+                Priority = score < 4.0 ? "high" : "low",
+                Link = "/Scores/MyGrades"
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> GetUnreadCountAsync(int userId, string userRole)
+        {
+            var query = _context.Notifications.Where(n => !n.IsRead);
+
+            if (userRole == "Student")
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+                if (student != null)
+                {
+                    query = query.Where(n => n.StudentId == student.StudentId);
+                }
+            }
+            else if (userRole == "Teacher")
+            {
+                var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (teacher != null)
+                {
+                    query = query.Where(n => n.TeacherId == teacher.Id);
+                }
+            }
+
+            return await query.CountAsync();
         }
 
         // ═══════════════════════════════════════════════════════════════

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Services.Models
 {
     /// <summary>
-    /// Model chứa tất cả thống kê cho Dashboard
+    /// Model chứa tất cả thống kê cho Dashboard TailAdmin
     /// </summary>
     public class DashboardStatistics
     {
@@ -15,6 +15,37 @@ namespace Services.Models
         public int TotalEnrollments { get; set; }
         public int ActiveUsers { get; set; }
         public int TotalTeachers { get; set; }
+
+        // TailAdmin - Growth Statistics
+        public double StudentGrowthPercent { get; set; }
+        public int NewStudentsThisMonth { get; set; }
+        public double ClassGrowthPercent { get; set; }
+        public int ActiveClassesThisSemester { get; set; }
+        public double GPAChangePercent { get; set; }
+        public int TotalCredits { get; set; }
+
+        // TailAdmin - Academic Performance
+        public double PassRate { get; set; }
+        public double FailRate { get; set; }
+        public int LowGPAStudents { get; set; }
+        public int StudentsWithMultipleFails { get; set; }
+        public int PendingEnrollments { get; set; }
+
+        // TailAdmin - Grade Counts
+        public int GradeACount { get; set; }
+        public int GradeBCount { get; set; }
+        public int GradeCCount { get; set; }
+        public int GradeDCount { get; set; }
+        public int GradeFCount { get; set; }
+        public int TotalEnrollmentsWithGrade { get; set; }
+
+        // TailAdmin - Monthly Trends
+        public List<string> MonthlyLabels { get; set; } = new();
+        public List<int> MonthlyEnrollments { get; set; } = new();
+        public List<int> MonthlyNewStudents { get; set; } = new();
+
+        // TailAdmin - Recent Activities
+        public List<RecentActivity> RecentActivities { get; set; } = new();
 
         // Thống kê theo học kỳ hiện tại
         public int CurrentSemesterEnrollments { get; set; }
@@ -42,6 +73,17 @@ namespace Services.Models
         public double ClassFillRate { get; set; }
     }
 
+    public class RecentActivity
+    {
+        public string Icon { get; set; } = "bi-circle-fill";
+        public string IconColor { get; set; } = "text-info";
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Type { get; set; } = "info"; // info, success, warning, danger
+        public DateTime Timestamp { get; set; }
+        public string TimeAgo { get; set; } = string.Empty;
+    }
+
     public class ScoreDistribution
     {
         public int Excellent { get; set; }      // 9.0 - 10.0
@@ -54,10 +96,13 @@ namespace Services.Models
 
     public class TopStudent
     {
+        public int StudentId { get; set; }
         public string StudentCode { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Major { get; set; } = string.Empty;
+        public string ClassCode { get; set; } = string.Empty;  // Added for TailAdmin
         public double GPA { get; set; }
+        public double OverallGPA { get; set; }  // Added for TailAdmin (alias for GPA)
         public int Rank { get; set; }
     }
 

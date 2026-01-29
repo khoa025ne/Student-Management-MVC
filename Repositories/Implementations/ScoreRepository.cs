@@ -20,11 +20,11 @@ namespace Repositories.Implementations
         public async Task<IEnumerable<Score>> GetAllAsync()
         {
             return await _context.Scores
-                .Include(s => s.Student).ThenInclude(st => st.User)
-                // Assuming Score has Course navigation, if not we rely on CourseId join if strictly needed, 
-                // but usually Entity has it. Creating it assuming it might exist or we fix Entity later.
-                // Looking at previous read_file, Score only had Student. I should check if I can add Course navigation or if I need to rely on ID.
-                // For now, let's assume specific nav prop might be missing and just load Student.
+                .Include(s => s.Student)
+                    .ThenInclude(st => st.User)
+                .Include(s => s.Course)
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Semester)
                 .ToListAsync();
         }
 
@@ -32,7 +32,11 @@ namespace Repositories.Implementations
         {
             return await _context.Scores
                 .Where(s => s.StudentId == studentId)
-                //.Include(s => s.Course) // Commented out until verified
+                .Include(s => s.Course)
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Course)
+                .Include(s => s.Class)
+                    .ThenInclude(c => c.Semester)
                 .ToListAsync();
         }
 

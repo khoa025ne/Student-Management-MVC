@@ -17,5 +17,6 @@ namespace Repositories.Interfaces
         Task<Enrollment> UpdateAsync(Enrollment enrollment);
         Task DeleteAsync(int id);
         Task<bool> IsEnrolledAsync(int studentId, int classId);
+        Task<Semester?> GetCurrentSemesterAsync();
     }
 }

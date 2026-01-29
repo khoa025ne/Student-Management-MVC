@@ -20,7 +20,17 @@ Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// 📡 SignalR for real-time notifications
+// �️ Session Configuration for storing user data
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+// �📡 SignalR for real-time notifications
 builder.Services.AddSignalR();
 
 // 1. Cấu hình DbContext (Kết nối MySQL)
@@ -77,6 +87,8 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ILearningPathService, LearningPathService>();
 builder.Services.AddScoped<IAcademicAnalysisService, AcademicAnalysisService>(); // ✅ Academic Analysis Service
 builder.Services.AddScoped<IDashboardService, DashboardService>(); // ✅ Dashboard Service
+builder.Services.AddScoped<IAIKnowledgeBaseService, AIKnowledgeBaseService>(); // ✅ AI Knowledge Base Service
+builder.Services.AddScoped<ITeacherService, TeacherService>(); // ✅ Teacher Service - 3-Layer Architecture
 
 // 7. Email & AI Services
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -118,6 +130,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseSession(); // 🗃️ Enable session
 
 app.UseAuthentication(); // Bật xác thực
 app.UseAuthorization();  // Bật phân quyền

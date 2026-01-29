@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace DataAccess.Entities
 {
@@ -16,8 +17,11 @@ namespace DataAccess.Entities
         // Navigation
         public virtual Student Student { get; set; } = null!;
         public virtual Class Class { get; set; } = null!;
+        
+        // Score Navigation - Liên kết điểm số chi tiết từ bảng Score
+        public virtual ICollection<Score> Scores { get; set; } = new List<Score>();
 
-        // Điểm số
+        // Điểm số (Legacy - giữ để tương thích)
         public double? MidtermScore { get; set; } // Điểm giữa kỳ
         public double? FinalScore { get; set; }   // Điểm cuối kỳ
         public double? TotalScore { get; set; }   // Tổng kết (VD: 40% Mid + 60% Final)

@@ -1,0 +1,534 @@
+@model Services.Models.CreateNotificationDto
+
+@{
+    ViewData["Title"] = "Gửi thông báo";
+    ViewData["Subtitle"] = "Tạo và gửi thông báo mới";
+    Layout = "~/Views/Shared/_LayoutTailAdmin.cshtml";
+    var classes = ViewBag.Classes as IEnumerable<dynamic>;
+    var notificationTypes = ViewBag.NotificationTypes as string[];
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <style>
+        .create-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            color: white;
+            margin-bottom: 24px;
+        }
+        .form-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+        }
+        .form-section {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+        .form-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-section-title i {
+            color: var(--brand-500);
+        }
+        .recipient-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .recipient-option {
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .recipient-option:hover {
+            border-color: var(--brand-300);
+        }
+        .recipient-option.selected {
+            border-color: var(--brand-500);
+            background: rgba(70, 95, 255, 0.05);
+        }
+        .recipient-option i {
+            font-size: 32px;
+            color: var(--brand-500);
+            margin-bottom: 12px;
+        }
+        .recipient-option h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .recipient-option p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .type-selector {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .type-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .type-option:hover {
+            border-color: var(--brand-300);
+        }
+        .type-option.selected {
+            border-color: var(--brand-500);
+            background: rgba(70, 95, 255, 0.05);
+        }
+        .type-option input {
+            display: none;
+        }
+        .type-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .type-icon.info { background: #dbeafe; color: #2563eb; }
+        .type-icon.warning { background: #fef3c7; color: #d97706; }
+        .type-icon.success { background: #dcfce7; color: #16a34a; }
+        .type-icon.error { background: #fee2e2; color: #dc2626; }
+        .type-icon.academic { background: #e0e7ff; color: #4f46e5; }
+        .type-icon.system { background: #f3f4f6; color: #6b7280; }
+        .class-checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+        }
+        .class-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .class-checkbox:hover {
+            border-color: var(--brand-300);
+        }
+        .class-checkbox.checked {
+            border-color: var(--brand-500);
+            background: rgba(70, 95, 255, 0.05);
+        }
+        .preview-card {
+            background: var(--gray-50);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+        }
+        .preview-notification {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+        }
+        .char-counter {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: right;
+            margin-top: 4px;
+        }
+    </style>
+}
+
+<!-- Header -->
+<div class="create-header">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold mb-2">
+                <i class="fas fa-paper-plane mr-2"></i>Gửi thông báo mới
+            </h1>
+            <p class="opacity-90">Tạo và gửi thông báo đến sinh viên hoặc giảng viên</p>
+        </div>
+        <a href="@Url.Action("Index", "NotificationCenter")" class="btn btn-ghost" style="color: white; border-color: rgba(255,255,255,0.3);">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-12 gap-6">
+    <!-- Form -->
+    <div class="col-span-12 lg:col-span-8">
+        <form asp-action="Create" method="post" id="notificationForm">
+            @Html.AntiForgeryToken()
+            
+            <div class="form-card">
+                <!-- Recipient Section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-users"></i> Chọn người nhận
+                    </div>
+                    
+                    <div class="recipient-selector">
+                        <div class="recipient-option" onclick="selectRecipient('all')" id="recipientAll">
+                            <i class="fas fa-globe"></i>
+                            <h4>Tất cả sinh viên</h4>
+                            <p>Gửi đến toàn bộ sinh viên</p>
+                            <input type="checkbox" name="SendToAll" id="sendToAll" />
+                        </div>
+                        <div class="recipient-option" onclick="selectRecipient('class')" id="recipientClass">
+                            <i class="fas fa-chalkboard"></i>
+                            <h4>Theo lớp học</h4>
+                            <p>Chọn lớp cụ thể</p>
+                        </div>
+                        <div class="recipient-option" onclick="selectRecipient('student')" id="recipientStudent">
+                            <i class="fas fa-user"></i>
+                            <h4>Cá nhân</h4>
+                            <p>Chọn sinh viên cụ thể</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Class Selector -->
+                    <div id="classSelector" style="display: none;">
+                        <label class="text-sm font-semibold mb-2 block">Chọn lớp học:</label>
+                        <div class="class-checkbox-grid">
+                            @if (classes != null)
+                            {
+                                @foreach (var cls in classes)
+                                {
+                                    <label class="class-checkbox" onclick="toggleClassCheckbox(this)">
+                                        <input type="checkbox" name="ClassIds" value="@cls.Id" />
+                                        <div>
+                                            <div class="font-semibold text-sm">@cls.ClassCode</div>
+                                            <div class="text-xs text-secondary">@cls.Course?.CourseName</div>
+                                        </div>
+                                    </label>
+                                }
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Student Selector -->
+                    <div id="studentSelector" style="display: none;">
+                        <label class="text-sm font-semibold mb-2 block">Nhập mã sinh viên (phân cách bằng dấu phẩy):</label>
+                        <input type="text" class="form-control" id="studentIdsInput" placeholder="SV001, SV002, SV003..." />
+                        <input type="hidden" name="StudentIds" id="studentIdsHidden" />
+                    </div>
+                </div>
+                
+                <!-- Content Section -->
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-edit"></i> Nội dung thông báo
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="text-sm font-semibold mb-2 block">Loại thông báo:</label>
+                        <div class="type-selector">
+                            <label class="type-option selected" onclick="selectType(this, 'Info')">
+                                <input type="radio" name="Type" value="Info" checked />
+                                <span class="type-icon info"><i class="fas fa-info"></i></span>
+                                <span>Thông tin</span>
+                            </label>
+                            <label class="type-option" onclick="selectType(this, 'Warning')">
+                                <input type="radio" name="Type" value="Warning" />
+                                <span class="type-icon warning"><i class="fas fa-exclamation"></i></span>
+                                <span>Cảnh báo</span>
+                            </label>
+                            <label class="type-option" onclick="selectType(this, 'Success')">
+                                <input type="radio" name="Type" value="Success" />
+                                <span class="type-icon success"><i class="fas fa-check"></i></span>
+                                <span>Thành công</span>
+                            </label>
+                            <label class="type-option" onclick="selectType(this, 'Academic')">
+                                <input type="radio" name="Type" value="Academic" />
+                                <span class="type-icon academic"><i class="fas fa-graduation-cap"></i></span>
+                                <span>Học vụ</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="text-sm font-semibold mb-2 block">Tiêu đề: <span class="text-error">*</span></label>
+                        <input type="text" name="Title" id="titleInput" class="form-control" 
+                               placeholder="Nhập tiêu đề thông báo..." maxlength="200" required
+                               oninput="updatePreview()" />
+                        <div class="char-counter"><span id="titleCount">0</span>/200</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="text-sm font-semibold mb-2 block">Nội dung: <span class="text-error">*</span></label>
+                        <textarea name="Message" id="messageInput" class="form-control" rows="6"
+                                  placeholder="Nhập nội dung chi tiết của thông báo..." maxlength="2000" required
+                                  oninput="updatePreview()"></textarea>
+                        <div class="char-counter"><span id="messageCount">0</span>/2000</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-sm font-semibold mb-2 block">Mức độ ưu tiên:</label>
+                            <select name="Priority" class="form-control">
+                                <option value="0">Bình thường</option>
+                                <option value="1">Quan trọng</option>
+                                <option value="2">Khẩn cấp</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-semibold mb-2 block">Link hành động (tùy chọn):</label>
+                            <input type="text" name="ActionUrl" class="form-control" placeholder="/Scores/MyGrades" />
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex justify-between items-center">
+                    <button type="button" class="btn btn-ghost" onclick="resetForm()">
+                        <i class="fas fa-undo"></i> Đặt lại
+                    </button>
+                    <div class="flex gap-3">
+                        <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                            <i class="fas fa-save"></i> Lưu nháp
+                        </button>
+                        <button type="submit" class="btn btn-brand btn-lg">
+                            <i class="fas fa-paper-plane"></i> Gửi thông báo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Preview -->
+    <div class="col-span-12 lg:col-span-4">
+        <div class="form-card sticky" style="top: 100px;">
+            <div class="form-section-title">
+                <i class="fas fa-eye"></i> Xem trước
+            </div>
+            
+            <div class="preview-card">
+                <div class="preview-notification" id="previewNotification">
+                    <div class="notification-icon info" id="previewIcon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold" id="previewTitle">Tiêu đề thông báo</div>
+                        <div class="text-sm text-secondary mt-1" id="previewMessage">Nội dung thông báo sẽ hiển thị ở đây...</div>
+                        <div class="text-xs text-tertiary mt-2">
+                            <i class="far fa-clock"></i> Vừa xong
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Templates -->
+            <div class="mt-6">
+                <div class="text-sm font-semibold mb-3">Mẫu có sẵn:</div>
+                <div class="space-y-2">
+                    <button type="button" class="btn btn-ghost btn-sm w-full text-left" onclick="useTemplate('grade')">
+                        <i class="fas fa-file-alt text-brand"></i> Thông báo điểm
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm w-full text-left" onclick="useTemplate('schedule')">
+                        <i class="fas fa-calendar-alt text-brand"></i> Thay đổi lịch học
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm w-full text-left" onclick="useTemplate('exam')">
+                        <i class="fas fa-clipboard-list text-brand"></i> Lịch thi
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm w-full text-left" onclick="useTemplate('deadline')">
+                        <i class="fas fa-clock text-brand"></i> Nhắc deadline
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let selectedRecipient = null;
+    let selectedType = 'Info';
+    
+    function selectRecipient(type) {
+        // Clear all selections
+        document.querySelectorAll('.recipient-option').forEach(el => el.classList.remove('selected'));
+        document.getElementById('classSelector').style.display = 'none';
+        document.getElementById('studentSelector').style.display = 'none';
+        document.getElementById('sendToAll').checked = false;
+        
+        selectedRecipient = type;
+        
+        if (type === 'all') {
+            document.getElementById('recipientAll').classList.add('selected');
+            document.getElementById('sendToAll').checked = true;
+        } else if (type === 'class') {
+            document.getElementById('recipientClass').classList.add('selected');
+            document.getElementById('classSelector').style.display = 'block';
+        } else if (type === 'student') {
+            document.getElementById('recipientStudent').classList.add('selected');
+            document.getElementById('studentSelector').style.display = 'block';
+        }
+    }
+    
+    function toggleClassCheckbox(el) {
+        el.classList.toggle('checked');
+    }
+    
+    function selectType(el, type) {
+        document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        el.querySelector('input').checked = true;
+        selectedType = type;
+        updatePreview();
+    }
+    
+    function updatePreview() {
+        const title = document.getElementById('titleInput').value || 'Tiêu đề thông báo';
+        const message = document.getElementById('messageInput').value || 'Nội dung thông báo sẽ hiển thị ở đây...';
+        
+        document.getElementById('previewTitle').textContent = title;
+        document.getElementById('previewMessage').textContent = message;
+        
+        // Update character counters
+        document.getElementById('titleCount').textContent = document.getElementById('titleInput').value.length;
+        document.getElementById('messageCount').textContent = document.getElementById('messageInput').value.length;
+        
+        // Update icon based on type
+        const iconMap = {
+            'Info': { class: 'info', icon: 'fa-info-circle' },
+            'Warning': { class: 'warning', icon: 'fa-exclamation-triangle' },
+            'Success': { class: 'success', icon: 'fa-check-circle' },
+            'Academic': { class: 'academic', icon: 'fa-graduation-cap' }
+        };
+        
+        const iconEl = document.getElementById('previewIcon');
+        iconEl.className = 'notification-icon ' + (iconMap[selectedType]?.class || 'info');
+        iconEl.innerHTML = `<i class="fas ${iconMap[selectedType]?.icon || 'fa-info-circle'}"></i>`;
+    }
+    
+    function useTemplate(template) {
+        const templates = {
+            'grade': {
+                title: '📊 Thông báo điểm học kỳ',
+                message: 'Điểm học kỳ của bạn đã được cập nhật. Vui lòng kiểm tra bảng điểm để xem chi tiết.',
+                type: 'Info'
+            },
+            'schedule': {
+                title: '📅 Thay đổi lịch học',
+                message: 'Lịch học môn [Tên môn] đã được thay đổi. Vui lòng kiểm tra lịch học mới.',
+                type: 'Warning'
+            },
+            'exam': {
+                title: '📝 Lịch thi cuối kỳ',
+                message: 'Lịch thi cuối kỳ đã được công bố. Vui lòng kiểm tra thời gian và phòng thi của bạn.',
+                type: 'Academic'
+            },
+            'deadline': {
+                title: '⏰ Nhắc nhở: Sắp hết hạn nộp bài',
+                message: 'Bài tập môn [Tên môn] sắp hết hạn nộp vào ngày [Ngày]. Hãy hoàn thành sớm!',
+                type: 'Warning'
+            }
+        };
+        
+        const tpl = templates[template];
+        if (tpl) {
+            document.getElementById('titleInput').value = tpl.title;
+            document.getElementById('messageInput').value = tpl.message;
+            
+            // Select type
+            document.querySelectorAll('.type-option').forEach(opt => {
+                if (opt.querySelector('input').value === tpl.type) {
+                    selectType(opt, tpl.type);
+                }
+            });
+            
+            updatePreview();
+        }
+    }
+    
+    function resetForm() {
+        if (confirm('Xóa tất cả nội dung đã nhập?')) {
+            document.getElementById('notificationForm').reset();
+            document.querySelectorAll('.recipient-option').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.class-checkbox').forEach(el => el.classList.remove('checked'));
+            document.getElementById('classSelector').style.display = 'none';
+            document.getElementById('studentSelector').style.display = 'none';
+            selectType(document.querySelector('.type-option'), 'Info');
+            updatePreview();
+        }
+    }
+    
+    function saveDraft() {
+        const data = {
+            title: document.getElementById('titleInput').value,
+            message: document.getElementById('messageInput').value,
+            type: selectedType,
+            recipient: selectedRecipient
+        };
+        localStorage.setItem('notificationDraft', JSON.stringify(data));
+        alert('Đã lưu nháp thành công!');
+    }
+    
+    // Form validation before submit
+    document.getElementById('notificationForm').addEventListener('submit', function(e) {
+        if (!selectedRecipient) {
+            e.preventDefault();
+            alert('Vui lòng chọn người nhận thông báo!');
+            return;
+        }
+        
+        if (selectedRecipient === 'class') {
+            const checkedClasses = document.querySelectorAll('input[name="ClassIds"]:checked');
+            if (checkedClasses.length === 0) {
+                e.preventDefault();
+                alert('Vui lòng chọn ít nhất một lớp học!');
+                return;
+            }
+        }
+    });
+    
+    // Load draft on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const draft = localStorage.getItem('notificationDraft');
+        if (draft) {
+            const data = JSON.parse(draft);
+            if (data.title || data.message) {
+                if (confirm('Tìm thấy bản nháp. Bạn có muốn khôi phục?')) {
+                    document.getElementById('titleInput').value = data.title || '';
+                    document.getElementById('messageInput').value = data.message || '';
+                    if (data.recipient) selectRecipient(data.recipient);
+                    updatePreview();
+                }
+            }
+        }
+    });
+</script>
+}

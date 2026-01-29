@@ -17,6 +17,8 @@ namespace Repositories.Interfaces
         Task<IEnumerable<Student>> GetByTermAsync(int termNo);
         Task<IEnumerable<Student>> GetByClassCodeAsync(string classCode);
         Task<Student?> GetByUserIdAsync(int userId);
+        Task<Student?> GetByUserIdWithEnrollmentsAsync(int userId);
+        Task<int> GetUnreadNotificationCountAsync(int studentId);
         Task<Student> AddAsync(Student student);
         Task<Student> UpdateAsync(Student student);
         Task DeleteAsync(int id);

@@ -36,5 +36,9 @@ namespace Services.Interfaces
         Task<StudentDto> CreateStudentWithUserAsync(StudentCreateDto createDto);
         Task<IEnumerable<StudentDto>> SearchStudentsAsync(string searchTerm);
         Task<StudentDto?> UpdateStudentStatusAsync(int studentId, string status);
+        
+        // ===== DASHBOARD =====
+        Task<StudentDashboardDto?> GetDashboardAsync(int userId);
+        Task<int> GetUnreadNotificationCountAsync(int studentId);
     }
 }

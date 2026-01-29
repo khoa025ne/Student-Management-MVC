@@ -1,0 +1,598 @@
+@model Services.Models.DashboardStatistics
+
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Subtitle"] = "Tổng quan hệ thống quản lý sinh viên FPT";
+    Layout = "~/Views/Shared/_LayoutTailAdmin.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+<div class="dashboard-container">
+    <!-- Stats Cards Row -->
+    <div class="stats-row mb-6">
+        <!-- Total Students -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon students">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                @if (Model.StudentGrowthPercent != 0)
+                {
+                    <div class="stat-card-trend @(Model.StudentGrowthPercent > 0 ? "up" : "down")">
+                        <i class="fas fa-arrow-@(Model.StudentGrowthPercent > 0 ? "up" : "down")"></i>
+                        @Math.Abs(Model.StudentGrowthPercent).ToString("F1")%
+                    </div>
+                }
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.TotalStudents.ToString("N0")</div>
+                <div class="stat-card-label">Tổng sinh viên</div>
+            </div>
+            <div class="stat-card-footer">
+                <i class="fas fa-chart-line text-success"></i>
+                <span>+@Model.NewStudentsThisMonth trong tháng này</span>
+            </div>
+        </div>
+
+        <!-- Total Courses -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon courses">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-card-trend neutral">
+                    <i class="fas fa-minus"></i>
+                    Ổn định
+                </div>
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.TotalCourses.ToString("N0")</div>
+                <div class="stat-card-label">Môn học</div>
+            </div>
+            <div class="stat-card-footer">
+                <i class="fas fa-layer-group text-brand"></i>
+                <span>@Model.TotalCredits tín chỉ tổng cộng</span>
+            </div>
+        </div>
+
+        <!-- Total Classes -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon enrollments">
+                    <i class="fas fa-chalkboard"></i>
+                </div>
+                <div class="stat-card-trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    @Model.ClassGrowthPercent.ToString("F1")%
+                </div>
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.TotalClasses.ToString("N0")</div>
+                <div class="stat-card-label">Lớp học phần</div>
+            </div>
+            <div class="stat-card-footer">
+                <i class="fas fa-clock text-warning"></i>
+                <span>@Model.ActiveClassesThisSemester lớp hoạt động</span>
+            </div>
+        </div>
+
+        <!-- Average GPA -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon gpa">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-card-trend @(Model.GPAChangePercent > 0 ? "up" : Model.GPAChangePercent < 0 ? "down" : "neutral")">
+                    @if (Model.GPAChangePercent != 0)
+                    {
+                        <i class="fas fa-arrow-@(Model.GPAChangePercent > 0 ? "up" : "down")"></i>
+                        <span>@(Math.Abs(Model.GPAChangePercent).ToString("F2"))%</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-minus"></i>
+                        <text>Ổn định</text>
+                    }
+                </div>
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.AverageGPA.ToString("F2")</div>
+                <div class="stat-card-label">GPA trung bình</div>
+            </div>
+            <div class="stat-card-footer">
+                <i class="fas fa-graduation-cap text-success"></i>
+                <span>@Model.PassRate.ToString("F1")% tỷ lệ đậu</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Second Row Stats -->
+    <div class="stats-row mb-6">
+        <!-- Total Enrollments -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon ai">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.TotalEnrollments.ToString("N0")</div>
+                <div class="stat-card-label">Lượt đăng ký</div>
+            </div>
+        </div>
+
+        <!-- Pass Rate -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon pass">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.PassRate.ToString("F1")%</div>
+                <div class="stat-card-label">Tỷ lệ đậu</div>
+            </div>
+        </div>
+
+        <!-- Fail Rate -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon fail">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.FailRate.ToString("F1")%</div>
+                <div class="stat-card-label">Tỷ lệ rớt</div>
+            </div>
+        </div>
+
+        <!-- Low GPA Warning -->
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-icon warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+            <div class="stat-card-body">
+                <div class="stat-card-value">@Model.LowGPAStudents</div>
+                <div class="stat-card-label">SV cần cảnh báo (GPA &lt; 2.0)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-12 gap-6 mb-6">
+        <!-- Enrollment Statistics Chart -->
+        <div class="col-span-12 xl:col-span-7">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Thống kê đăng ký theo tháng</div>
+                        <div class="chart-card-subtitle">12 tháng gần nhất</div>
+                    </div>
+                    <div class="chart-card-actions">
+                        <button class="btn btn-sm btn-outline" onclick="exportChartPNG('enrollmentChart')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-card-body">
+                    <div class="chart-container">
+                        <canvas id="enrollmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GPA Distribution -->
+        <div class="col-span-12 xl:col-span-5">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Phân bố điểm GPA</div>
+                        <div class="chart-card-subtitle">Theo thang điểm A-F</div>
+                    </div>
+                </div>
+                <div class="chart-card-body">
+                    <div class="gpa-distribution">
+                        <div class="gpa-bar">
+                            <span class="gpa-grade a">A</span>
+                            <div class="gpa-bar-container">
+                                <div class="gpa-bar-fill a" style="width: @(Model.TotalStudents > 0 ? (Model.GradeACount * 100.0 / Model.TotalEnrollmentsWithGrade) : 0)%">
+                                    @if (Model.GradeACount > 0) { @Model.GradeACount }
+                                </div>
+                            </div>
+                            <span class="gpa-count">@Model.GradeACount</span>
+                        </div>
+                        <div class="gpa-bar">
+                            <span class="gpa-grade b">B</span>
+                            <div class="gpa-bar-container">
+                                <div class="gpa-bar-fill b" style="width: @(Model.TotalStudents > 0 ? (Model.GradeBCount * 100.0 / Model.TotalEnrollmentsWithGrade) : 0)%">
+                                    @if (Model.GradeBCount > 0) { @Model.GradeBCount }
+                                </div>
+                            </div>
+                            <span class="gpa-count">@Model.GradeBCount</span>
+                        </div>
+                        <div class="gpa-bar">
+                            <span class="gpa-grade c">C</span>
+                            <div class="gpa-bar-container">
+                                <div class="gpa-bar-fill c" style="width: @(Model.TotalStudents > 0 ? (Model.GradeCCount * 100.0 / Model.TotalEnrollmentsWithGrade) : 0)%">
+                                    @if (Model.GradeCCount > 0) { @Model.GradeCCount }
+                                </div>
+                            </div>
+                            <span class="gpa-count">@Model.GradeCCount</span>
+                        </div>
+                        <div class="gpa-bar">
+                            <span class="gpa-grade d">D</span>
+                            <div class="gpa-bar-container">
+                                <div class="gpa-bar-fill d" style="width: @(Model.TotalStudents > 0 ? (Model.GradeDCount * 100.0 / Model.TotalEnrollmentsWithGrade) : 0)%">
+                                    @if (Model.GradeDCount > 0) { @Model.GradeDCount }
+                                </div>
+                            </div>
+                            <span class="gpa-count">@Model.GradeDCount</span>
+                        </div>
+                        <div class="gpa-bar">
+                            <span class="gpa-grade f">F</span>
+                            <div class="gpa-bar-container">
+                                <div class="gpa-bar-fill f" style="width: @(Model.TotalStudents > 0 ? (Model.GradeFCount * 100.0 / Model.TotalEnrollmentsWithGrade) : 0)%">
+                                    @if (Model.GradeFCount > 0) { @Model.GradeFCount }
+                                </div>
+                            </div>
+                            <span class="gpa-count">@Model.GradeFCount</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Third Row - Activity & Top Students -->
+    <div class="grid grid-cols-12 gap-6 mb-6">
+        <!-- Recent Activity -->
+        <div class="col-span-12 xl:col-span-5">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Hoạt động gần đây</div>
+                        <div class="chart-card-subtitle">Cập nhật trong 24h qua</div>
+                    </div>
+                    <a href="@Url.Action("Index", "Notifications")" class="btn btn-sm btn-ghost">
+                        Xem tất cả <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="chart-card-body p-0">
+                    <div class="activity-list">
+                        @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+                        {
+                            @foreach (var activity in Model.RecentActivities.Take(6))
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-icon @activity.Type.ToLower()">
+                                        <i class="fas @GetActivityIcon(activity.Type)"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">@activity.Title</div>
+                                        <div class="activity-description">@activity.Description</div>
+                                    </div>
+                                    <div class="activity-time">@activity.TimeAgo</div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-6 text-center text-secondary">
+                                <i class="fas fa-inbox text-3xl mb-2"></i>
+                                <p>Chưa có hoạt động nào</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Students -->
+        <div class="col-span-12 xl:col-span-7">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Sinh viên xuất sắc</div>
+                        <div class="chart-card-subtitle">Top 5 GPA cao nhất</div>
+                    </div>
+                    <a href="@Url.Action("Index", "Students")" class="btn btn-sm btn-ghost">
+                        Xem tất cả <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="chart-card-body p-0">
+                    <div class="table-container">
+                        <table class="top-students-table">
+                            <thead>
+                                <tr>
+                                    <th>Sinh viên</th>
+                                    <th>Lớp</th>
+                                    <th>GPA</th>
+                                    <th>Xếp loại</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.TopStudents != null && Model.TopStudents.Any())
+                                {
+                                    @foreach (var student in Model.TopStudents.Take(5))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="student-info">
+                                                    <div class="student-avatar">
+                                                        @student.FullName.Substring(0, 1).ToUpper()
+                                                    </div>
+                                                    <div class="student-details">
+                                                        <div class="student-name">@student.FullName</div>
+                                                        <div class="student-code">@student.StudentCode</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>@student.ClassCode</td>
+                                            <td>
+                                                <span class="gpa-badge @GetGPAClass(student.OverallGPA)">
+                                                    @student.OverallGPA.ToString("F2")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetRankBadgeClass(student.OverallGPA)">
+                                                    @GetRankText(student.OverallGPA)
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center p-6 text-secondary">
+                                            Chưa có dữ liệu sinh viên
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fourth Row - Alerts & Quick Actions -->
+    <div class="grid grid-cols-12 gap-6">
+        <!-- Academic Warnings -->
+        <div class="col-span-12 xl:col-span-5">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Cảnh báo học vụ</div>
+                        <div class="chart-card-subtitle">Sinh viên cần được hỗ trợ</div>
+                    </div>
+                </div>
+                <div class="chart-card-body">
+                    <div class="alerts-section">
+                        @if (Model.LowGPAStudents > 0)
+                        {
+                            <div class="alert-card danger">
+                                <div class="alert-card-icon">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="alert-card-content">
+                                    <div class="alert-card-title">@Model.LowGPAStudents sinh viên có GPA dưới 2.0</div>
+                                    <div class="alert-card-description">Cần được tư vấn và hỗ trợ học tập ngay</div>
+                                </div>
+                                <a href="@Url.Action("LowGPAStudents", "Students")" class="alert-card-action">
+                                    Xem chi tiết
+                                </a>
+                            </div>
+                        }
+                        
+                        @if (Model.StudentsWithMultipleFails > 0)
+                        {
+                            <div class="alert-card warning">
+                                <div class="alert-card-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="alert-card-content">
+                                    <div class="alert-card-title">@Model.StudentsWithMultipleFails SV rớt nhiều môn</div>
+                                    <div class="alert-card-description">Có 2+ môn điểm F trong kỳ này</div>
+                                </div>
+                                <a href="@Url.Action("AtRiskStudents", "Students")" class="alert-card-action">
+                                    Xem danh sách
+                                </a>
+                            </div>
+                        }
+                        
+                        <div class="alert-card info">
+                            <div class="alert-card-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="alert-card-content">
+                                <div class="alert-card-title">@Model.PendingEnrollments đăng ký chờ duyệt</div>
+                                <div class="alert-card-description">Đang chờ xác nhận từ giáo vụ</div>
+                            </div>
+                            <a href="@Url.Action("Pending", "Enrollments")" class="alert-card-action">
+                                Duyệt ngay
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-span-12 xl:col-span-7">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div>
+                        <div class="chart-card-title">Thao tác nhanh</div>
+                        <div class="chart-card-subtitle">Các chức năng thường dùng</div>
+                    </div>
+                </div>
+                <div class="chart-card-body">
+                    <div class="quick-actions">
+                        <a href="@Url.Action("Create", "Students")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <span class="quick-action-label">Thêm sinh viên mới</span>
+                        </a>
+                        <a href="@Url.Action("Create", "Classes")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chalkboard"></i>
+                            </div>
+                            <span class="quick-action-label">Tạo lớp học mới</span>
+                        </a>
+                        <a href="@Url.Action("Index", "EnrollmentGrades")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <span class="quick-action-label">Nhập điểm</span>
+                        </a>
+                        <a href="@Url.Action("Index", "AcademicAnalysis")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <span class="quick-action-label">Phân tích AI</span>
+                        </a>
+                        <a href="@Url.Action("Index", "AIKnowledge")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <span class="quick-action-label">AI Knowledge Base</span>
+                        </a>
+                        <a href="@Url.Action("Export", "Dashboard")" class="quick-action-card">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                            <span class="quick-action-label">Xuất báo cáo</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetActivityIcon(string type)
+    {
+        return type.ToLower() switch
+        {
+            "score" => "fa-star",
+            "enrollment" => "fa-user-plus",
+            "warning" => "fa-exclamation-triangle",
+            "ai" => "fa-brain",
+            _ => "fa-bell"
+        };
+    }
+
+    string GetGPAClass(double gpa)
+    {
+        return gpa switch
+        {
+            >= 8.5 => "excellent",
+            >= 7.0 => "good",
+            >= 5.5 => "average",
+            _ => "poor"
+        };
+    }
+
+    string GetRankBadgeClass(double gpa)
+    {
+        return gpa switch
+        {
+            >= 8.5 => "badge-success",
+            >= 7.0 => "badge-info",
+            >= 5.5 => "badge-warning",
+            _ => "badge-error"
+        };
+    }
+
+    string GetRankText(double gpa)
+    {
+        return gpa switch
+        {
+            >= 8.5 => "Xuất sắc",
+            >= 7.0 => "Giỏi",
+            >= 5.5 => "Khá",
+            >= 4.0 => "Trung bình",
+            _ => "Yếu"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        // Enrollment Statistics Chart
+        const enrollmentCtx = document.getElementById('enrollmentChart').getContext('2d');
+        new Chart(enrollmentCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.MonthlyLabels ?? new List<string>())),
+                datasets: [{
+                    label: 'Đăng ký mới',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyEnrollments ?? new List<int>())),
+                    borderColor: '#465fff',
+                    backgroundColor: 'rgba(70, 95, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }, {
+                    label: 'Sinh viên mới',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyNewStudents ?? new List<int>())),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Export chart as PNG
+        function exportChartPNG(chartId) {
+            const canvas = document.getElementById(chartId);
+            const link = document.createElement('a');
+            link.download = chartId + '_' + new Date().toISOString().split('T')[0] + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+}
