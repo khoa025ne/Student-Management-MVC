@@ -81,4 +81,20 @@ namespace Services.Models
         [Required(ErrorMessage = "Ngày kết thúc là bắt buộc")]
         public DateTime EndDate { get; set; }
     }
+
+    public class SemesterUpdateDto
+    {
+        public int SemesterId { get; set; }
+
+        [Required(ErrorMessage = "Tên học kì là bắt buộc")]
+        public string SemesterName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Ngày bắt đầu là bắt buộc")]
+        public DateTime StartDate { get; set; }
+
+        [Required(ErrorMessage = "Ngày kết thúc là bắt buộc")]
+        public DateTime EndDate { get; set; }
+        
+        public bool IsActive { get; set; }
+    }
 }

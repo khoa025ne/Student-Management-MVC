@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using DataEnums = DataAccess.Enums;
 
 namespace Services.Implementations
 {
@@ -175,7 +176,7 @@ namespace Services.Implementations
             return distribution;
         }
 
-        private string GetMajorDisplayName(MajorType major)
+        private string GetMajorDisplayName(DataEnums.MajorType major)
         {
             var displayAttr = major.GetType()
                 .GetField(major.ToString())?

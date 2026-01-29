@@ -1,4 +1,5 @@
 using DataAccess.Entities;
+using DataAccess.Enums;
 using Services.Models;
 
 namespace Services.Interfaces
@@ -22,7 +23,7 @@ namespace Services.Interfaces
         Task<IEnumerable<StudentDto>> GetAllAsync();
         Task<StudentDto?> GetStudentDtoByIdAsync(int studentId);
         Task<StudentDto?> GetByCodeAsync(string studentCode);
-        Task<IEnumerable<StudentDto>> GetByMajorAsync(MajorType major);
+        Task<IEnumerable<StudentDto>> GetByMajorAsync(DataAccess.Enums.MajorType major);
         Task<IEnumerable<StudentDto>> GetByClassCodeAsync(string classCode);
         Task<StudentDto?> GetByEmailAsync(string email);
         Task<StudentDto> CreateAsync(StudentCreateDto createDto);

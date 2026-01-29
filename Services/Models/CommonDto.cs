@@ -22,30 +22,7 @@ namespace Services.Models
         public string? Status { get; set; } = "Active";
     }
 
-    public class NotificationDto
-    {
-        public int NotificationId { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Content { get; set; } = string.Empty;
-        public string NotificationType { get; set; } = string.Empty;
-        public string? StudentId { get; set; }
-        public string? StudentName { get; set; }
-        public DateTime SentDate { get; set; }
-        public bool IsRead { get; set; }
-        public bool IsActive { get; set; }
-        public string? Priority { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-    }
-
-    public class NotificationCreateDto
-    {
-        public string Title { get; set; } = string.Empty;
-        public string Content { get; set; } = string.Empty;
-        public string NotificationType { get; set; } = string.Empty;
-        public string? StudentId { get; set; }
-        public string? Priority { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-    }
+    // NotificationDto moved to NotificationModels.cs
 
     public class DashboardStatsDto
     {

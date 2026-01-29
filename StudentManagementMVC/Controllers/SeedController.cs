@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
+using DataAccess.Entities;
+using DataAccess.Enums;
 
 namespace StudentManagementMVC.Controllers
 {

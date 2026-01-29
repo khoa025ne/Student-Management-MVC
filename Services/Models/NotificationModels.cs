@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Services.Models
 {
     /// <summary>
@@ -35,11 +37,33 @@ namespace Services.Models
     }
 
     /// <summary>
+    /// DTO cho Notification (full) - dùng trong Controllers
+    /// </summary>
+    public class NotificationDto
+    {
+        public int NotificationId { get; set; }
+        public string Title { get; set; } = "";
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "Info";
+        public int Priority { get; set; }
+        public bool IsRead { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ReadAt { get; set; }
+        public string? ActionUrl { get; set; }
+        public int? StudentId { get; set; }
+        public int? TeacherId { get; set; }
+        public int? CreatedBy { get; set; }
+    }
+
+    /// <summary>
     /// DTO cho tạo Notification
     /// </summary>
     public class CreateNotificationDto
     {
+        [Required(ErrorMessage = "Tiêu đề là bắt buộc")]
         public string Title { get; set; } = "";
+        
+        [Required(ErrorMessage = "Nội dung là bắt buộc")]
         public string Message { get; set; } = "";
         public string Type { get; set; } = "Info";
         public int Priority { get; set; } = 0;
@@ -47,6 +71,23 @@ namespace Services.Models
         public bool SendToAll { get; set; }
         public List<int>? ClassIds { get; set; }
         public List<int>? StudentIds { get; set; }
+    }
+    
+    /// <summary>
+    /// DTO để update Notification
+    /// </summary>
+    public class NotificationUpdateDto
+    {
+        public int NotificationId { get; set; }
+        
+        [Required(ErrorMessage = "Tiêu đề là bắt buộc")]
+        public string Title { get; set; } = "";
+        
+        [Required(ErrorMessage = "Nội dung là bắt buộc")]
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "Info";
+        public int Priority { get; set; }
+        public string? ActionUrl { get; set; }
     }
 
     /// <summary>

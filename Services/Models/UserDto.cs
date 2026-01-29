@@ -50,7 +50,11 @@ namespace Services.Models
 
     public class UserUpdateDto
     {
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
+
+        [Required(ErrorMessage = "Email là bắt buộc")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Họ tên là bắt buộc")]
         public string FullName { get; set; } = string.Empty;
@@ -60,6 +64,7 @@ namespace Services.Models
         public string? Address { get; set; }
         public string? Avatar { get; set; }
         public bool IsActive { get; set; } = true;
+        public int RoleId { get; set; }
         public List<int> RoleIds { get; set; } = new List<int>();
     }
 

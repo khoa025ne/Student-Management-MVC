@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
+using DataAccess.Enums;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
@@ -125,7 +126,7 @@ namespace StudentManagementMVC.Controllers
         // POST: StudentProfile/Update
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(Student model)
+        public async Task<IActionResult> Update(StudentUpdateDto model)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId))
@@ -142,12 +143,9 @@ namespace StudentManagementMVC.Controllers
 
             try
             {
-                // Chỉ cho phép update các trường nhất định
-                student.PhoneNumber = model.PhoneNumber;
-                student.DateOfBirth = model.DateOfBirth;
-                student.Major = model.Major;
-
-                await _studentService.UpdateAsync(student);
+                // Update through DTO
+                model.StudentId = student.StudentId.ToString();
+                await _studentService.UpdateAsync(model);
 
                 TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
                 return RedirectToAction("Index");
@@ -178,9 +176,8 @@ namespace StudentManagementMVC.Controllers
 
             // Lấy thông tin user để điền sẵn
             var user = await _userService.GetByIdAsync(userId);
-            var newStudent = new Student
+            var newStudent = new StudentCreateDto
             {
-                UserId = userId,
                 Email = user?.Email ?? "",
                 FullName = user?.FullName ?? ""
             };
@@ -191,7 +188,7 @@ namespace StudentManagementMVC.Controllers
         // POST: StudentProfile/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Student model)
+        public async Task<IActionResult> Create(StudentCreateDto model)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId))
@@ -208,7 +205,7 @@ namespace StudentManagementMVC.Controllers
             ModelState.Remove("Analyses");
 
             // Nếu ngày sinh không hợp lệ, dùng giá trị mặc định
-            if (model.DateOfBirth == default(DateTime) || model.DateOfBirth.Year < 1900)
+            if (model.DateOfBirth == default(DateTime) || model.DateOfBirth?.Year < 1900)
             {
                 model.DateOfBirth = new DateTime(2000, 1, 1);
             }
@@ -231,30 +228,10 @@ namespace StudentManagementMVC.Controllers
                 // Tạo student code tự động nếu chưa có
                 if (string.IsNullOrEmpty(model.StudentCode))
                 {
-                    var allStudents = await _studentService.GetAllAsync();
-                    var maxStudentNumber = allStudents
-                        .Select(s => s.StudentCode)
-                        .Where(code => !string.IsNullOrEmpty(code) && code.StartsWith("SV"))
-                        .Select(code => {
-                            if (int.TryParse(code!.Substring(2), out int num))
-                                return num;
-                            return 0;
-                        })
-                        .DefaultIfEmpty(0)
-                        .Max();
-
-                    model.StudentCode = $"SV{(maxStudentNumber + 1):D6}";
+                    model.StudentCode = await _studentService.GenerateStudentCodeAsync();
                 }
 
-                // Set các giá trị mặc định
-                model.UserId = userId;
-                model.Major = MajorType.Undefined; // Admin sẽ set sau
-                model.CurrentTermNo = 1;
-                model.OverallGPA = 0;
-                model.ClassCode = "Chưa phân lớp";
-                model.CreatedAt = DateTime.Now;
-                model.IsFirstLogin = true;
-
+                // Create through DTO-based service
                 await _studentService.CreateAsync(model);
 
                 TempData["SuccessMessage"] = "Tạo hồ sơ sinh viên thành công! Admin sẽ xem xét và cập nhật thông tin ngành học cho bạn.";

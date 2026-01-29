@@ -522,5 +522,44 @@ namespace Services.Implementations
             ";
             await _emailService.SendEmailAsync(student.User.Email, emailSubject, emailBody);
         }
+
+        // ═══════════════════════════════════════════════════════════════
+        // DTO-BASED METHODS (for Controllers)
+        // ═══════════════════════════════════════════════════════════════
+
+        public async Task<NotificationDto> CreateNotificationDtoAsync(NotificationDto dto)
+        {
+            var notification = new Notification
+            {
+                Title = dto.Title,
+                Message = dto.Message,
+                Type = dto.Type,
+                Priority = dto.Priority.ToString(), // Convert int to string
+                IsRead = false,
+                CreatedAt = DateTime.Now,
+                Link = dto.ActionUrl, // Map ActionUrl to Link
+                StudentId = dto.StudentId,
+                TeacherId = dto.TeacherId,
+                CreatedBy = dto.CreatedBy?.ToString() // Convert int? to string?
+            };
+
+            var created = await _notificationRepo.AddAsync(notification);
+
+            return new NotificationDto
+            {
+                NotificationId = created.NotificationId,
+                Title = created.Title,
+                Message = created.Message,
+                Type = created.Type,
+                Priority = int.TryParse(created.Priority, out var p) ? p : 0, // Convert string to int
+                IsRead = created.IsRead,
+                CreatedAt = created.CreatedAt,
+                ReadAt = created.ReadAt,
+                ActionUrl = created.Link,
+                StudentId = created.StudentId,
+                TeacherId = created.TeacherId,
+                CreatedBy = int.TryParse(created.CreatedBy, out var cb) ? cb : (int?)null // Convert string to int?
+            };
+        }
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
+using DataAccess.Entities;
 using StudentManagementMVC.ViewModels;
 
 namespace StudentManagementMVC.Controllers
@@ -173,36 +174,30 @@ namespace StudentManagementMVC.Controllers
         // POST: Students/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Student student)
+        public async Task<IActionResult> Edit(int id, StudentUpdateDto studentDto)
         {
-            if (id != student.StudentId)
+            if (id.ToString() != studentDto.StudentId)
             {
                 TempData["ErrorMessage"] = "ID không khớp!";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Remove validation for navigation properties
-            ModelState.Remove("User");
-            ModelState.Remove("Enrollments");
-            ModelState.Remove("Scores");
-            ModelState.Remove("Analyses");
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _studentService.UpdateAsync(student);
-                    TempData["SuccessMessage"] = $"Cập nhật thông tin sinh viên {student.FullName} thành công!";
+                    await _studentService.UpdateAsync(studentDto);
+                    TempData["SuccessMessage"] = $"Cập nhật thông tin sinh viên {studentDto.FullName} thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (System.Exception ex)
                 {
                     TempData["ErrorMessage"] = $"Không thể cập nhật sinh viên: {ex.Message}";
-                    return View(student);
+                    return View(studentDto);
                 }
             }
             TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại.";
-            return View(student);
+            return View(studentDto);
         }
 
         // POST: Students/Delete/5

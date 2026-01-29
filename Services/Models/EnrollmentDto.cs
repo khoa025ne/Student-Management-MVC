@@ -43,6 +43,8 @@ namespace Services.Models
     {
         public int ScoreId { get; set; }
         public int EnrollmentId { get; set; }
+        public int StudentId { get; set; }
+        public int? CourseId { get; set; }
         public string? StudentName { get; set; }
         public string? CourseName { get; set; }
         public string ScoreType { get; set; } = string.Empty;
@@ -54,23 +56,37 @@ namespace Services.Models
 
     public class ScoreCreateDto
     {
-        [Required(ErrorMessage = "Đăng ký học là bắt buộc")]
-        public int EnrollmentId { get; set; }
+        [Required(ErrorMessage = "Sinh viên là bắt buộc")]
+        public int StudentId { get; set; }
 
-        [Required(ErrorMessage = "Loại điểm là bắt buộc")]
-        public string ScoreType { get; set; } = string.Empty;
+        public int? CourseId { get; set; }
 
         [Required(ErrorMessage = "Điểm số là bắt buộc")]
         [Range(0, 10, ErrorMessage = "Điểm số phải từ 0 đến 10")]
         public double ScoreValue { get; set; }
 
-        [Required(ErrorMessage = "Trọng số là bắt buộc")]
-        [Range(0, 1, ErrorMessage = "Trọng số phải từ 0 đến 1")]
+        public string? ScoreType { get; set; } = "Final";
+        public double Weight { get; set; } = 1.0;
+        public DateTime ExamDate { get; set; } = DateTime.Now;
+        public string? Comment { get; set; }
+    }
+    
+    public class ScoreUpdateDto
+    {
+        public int ScoreId { get; set; }
+        
+        [Required]
+        public int StudentId { get; set; }
+
+        public int? CourseId { get; set; }
+
+        [Required(ErrorMessage = "Điểm số là bắt buộc")]
+        [Range(0, 10, ErrorMessage = "Điểm số phải từ 0 đến 10")]
+        public double ScoreValue { get; set; }
+
+        public string? ScoreType { get; set; }
         public double Weight { get; set; }
-
-        [Required(ErrorMessage = "Ngày thi là bắt buộc")]
         public DateTime ExamDate { get; set; }
-
         public string? Comment { get; set; }
     }
 }

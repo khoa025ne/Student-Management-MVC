@@ -32,29 +32,29 @@ namespace StudentManagementMVC.Controllers
         // POST: Semesters/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Semester semester)
+        public async Task<IActionResult> Create(SemesterCreateDto semesterDto)
         {
             if (ModelState.IsValid)
             {
                 // Kiểm tra duplicate SemesterName
                 var allSemesters = await _semesterService.GetAllAsync();
-                if (allSemesters.Any(s => s.SemesterName == semester.SemesterName))
+                if (allSemesters.Any(s => s.SemesterName == semesterDto.SemesterName))
                 {
-                    TempData["ErrorMessage"] = $"❌ Lỗi: Tên học kỳ '{semester.SemesterName}' đã tồn tại trong hệ thống! Vui lòng sử dụng tên khác hoặc kiểm tra lại dữ liệu.";
-                    return View(semester);
+                    TempData["ErrorMessage"] = $"❌ Lỗi: Tên học kỳ '{semesterDto.SemesterName}' đã tồn tại trong hệ thống! Vui lòng sử dụng tên khác hoặc kiểm tra lại dữ liệu.";
+                    return View(semesterDto);
                 }
 
-                if (semester.StartDate >= semester.EndDate)
+                if (semesterDto.StartDate >= semesterDto.EndDate)
                 {
-                    TempData["ErrorMessage"] = $"❌ Lỗi: Ngày bắt đầu ({semester.StartDate:dd/MM/yyyy}) phải trước ngày kết thúc ({semester.EndDate:dd/MM/yyyy})! Vui lòng điều chỉnh lại.";
-                    return View(semester);
+                    TempData["ErrorMessage"] = $"❌ Lỗi: Ngày bắt đầu ({semesterDto.StartDate:dd/MM/yyyy}) phải trước ngày kết thúc ({semesterDto.EndDate:dd/MM/yyyy})! Vui lòng điều chỉnh lại.";
+                    return View(semesterDto);
                 }
 
                 // Kiểm tra overlap với các học kỳ khác
                 var overlappingSemesters = allSemesters.Where(s => 
-                    (semester.StartDate >= s.StartDate && semester.StartDate <= s.EndDate) ||
-                    (semester.EndDate >= s.StartDate && semester.EndDate <= s.EndDate) ||
-                    (semester.StartDate <= s.StartDate && semester.EndDate >= s.EndDate)
+                    (semesterDto.StartDate >= s.StartDate && semesterDto.StartDate <= s.EndDate) ||
+                    (semesterDto.EndDate >= s.StartDate && semesterDto.EndDate <= s.EndDate) ||
+                    (semesterDto.StartDate <= s.StartDate && semesterDto.EndDate >= s.EndDate)
                 ).ToList();
 
                 if (overlappingSemesters.Any())
@@ -65,8 +65,8 @@ namespace StudentManagementMVC.Controllers
 
                 try
                 {
-                    await _semesterService.CreateAsync(semester);
-                    TempData["SuccessMessage"] = $"Tạo học kỳ '{semester.SemesterName}' thành công! ({semester.StartDate:dd/MM/yyyy} - {semester.EndDate:dd/MM/yyyy})";
+                    await _semesterService.CreateDtoAsync(semesterDto);
+                    TempData["SuccessMessage"] = $"Tạo học kỳ '{semesterDto.SemesterName}' thành công! ({semesterDto.StartDate:dd/MM/yyyy} - {semesterDto.EndDate:dd/MM/yyyy})";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (System.Exception ex)
@@ -78,7 +78,7 @@ namespace StudentManagementMVC.Controllers
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
             }
-            return View(semester);
+            return View(semesterDto);
         }
 
         // GET: Semesters/Edit/5
@@ -108,17 +108,16 @@ namespace StudentManagementMVC.Controllers
         // POST: Semesters/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Semester semester)
+        public async Task<IActionResult> Edit(int id, SemesterUpdateDto semesterDto)
         {
             Console.WriteLine($"[POST Edit] Bắt đầu cập nhật học kỳ ID: {id}");
-            Console.WriteLine($"[POST Edit] Semester data - ID: {semester.SemesterId}, Name: {semester.SemesterName}, Code: {semester.SemesterCode}");
             
             try
             {
-                if (id != semester.SemesterId)
+                if (id != semesterDto.SemesterId)
                 {
-                    Console.WriteLine($"[POST Edit] Lỗi: ID không khớp - URL: {id}, Model: {semester.SemesterId}");
-                    TempData["ErrorMessage"] = $"Không khớp ID: URL ID ({id}) khác với Semester ID ({semester.SemesterId})!";
+                    Console.WriteLine($"[POST Edit] Lỗi: ID không khớp - URL: {id}, Model: {semesterDto.SemesterId}");
+                    TempData["ErrorMessage"] = $"Không khớp ID: URL ID ({id}) khác với Semester ID ({semesterDto.SemesterId})!";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -130,30 +129,30 @@ namespace StudentManagementMVC.Controllers
                         Console.WriteLine($"[POST Edit] Validation Error: {error.ErrorMessage}");
                     }
                     TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
-                    return View(semester);
+                    return View(semesterDto);
                 }
 
                 // Kiểm tra duplicate SemesterName (trừ chính nó)
                 var allSemesters = await _semesterService.GetAllAsync();
-                if (allSemesters.Any(s => s.SemesterName == semester.SemesterName && s.SemesterId != semester.SemesterId))
+                if (allSemesters.Any(s => s.SemesterName == semesterDto.SemesterName && s.SemesterId != semesterDto.SemesterId))
                 {
-                    Console.WriteLine($"[POST Edit] Tên học kỳ '{semester.SemesterName}' đã tồn tại");
-                    TempData["ErrorMessage"] = $"❌ Tên học kỳ '{semester.SemesterName}' đã được sử dụng bởi học kỳ khác!";
-                    return View(semester);
+                    Console.WriteLine($"[POST Edit] Tên học kỳ '{semesterDto.SemesterName}' đã tồn tại");
+                    TempData["ErrorMessage"] = $"❌ Tên học kỳ '{semesterDto.SemesterName}' đã được sử dụng bởi học kỳ khác!";
+                    return View(semesterDto);
                 }
 
-                if (semester.StartDate >= semester.EndDate)
+                if (semesterDto.StartDate >= semesterDto.EndDate)
                 {
-                    Console.WriteLine($"[POST Edit] Ngày không hợp lệ - Start: {semester.StartDate}, End: {semester.EndDate}");
-                    TempData["ErrorMessage"] = $"❌ Ngày bắt đầu ({semester.StartDate:dd/MM/yyyy}) phải trước ngày kết thúc ({semester.EndDate:dd/MM/yyyy})!";
-                    return View(semester);
+                    Console.WriteLine($"[POST Edit] Ngày không hợp lệ - Start: {semesterDto.StartDate}, End: {semesterDto.EndDate}");
+                    TempData["ErrorMessage"] = $"❌ Ngày bắt đầu ({semesterDto.StartDate:dd/MM/yyyy}) phải trước ngày kết thúc ({semesterDto.EndDate:dd/MM/yyyy})!";
+                    return View(semesterDto);
                 }
 
-                Console.WriteLine($"[POST Edit] Đang gọi UpdateAsync...");
-                var result = await _semesterService.UpdateAsync(semester);
-                Console.WriteLine($"[POST Edit] UpdateAsync hoàn thành");
+                Console.WriteLine($"[POST Edit] Đang gọi UpdateDtoAsync...");
+                await _semesterService.UpdateDtoAsync(semesterDto);
+                Console.WriteLine($"[POST Edit] UpdateDtoAsync hoàn thành");
                 
-                TempData["SuccessMessage"] = $"✅ Cập nhật học kỳ '{semester.SemesterName}' thành công!";
+                TempData["SuccessMessage"] = $"✅ Cập nhật học kỳ '{semesterDto.SemesterName}' thành công!";
                 Console.WriteLine($"[POST Edit] Thành công - Redirect về Index");
                 return RedirectToAction(nameof(Index));
             }
@@ -162,7 +161,7 @@ namespace StudentManagementMVC.Controllers
                 Console.WriteLine($"[POST Edit] Exception: {ex.Message}");
                 Console.WriteLine($"[POST Edit] StackTrace: {ex.StackTrace}");
                 TempData["ErrorMessage"] = $"❌ Lỗi khi cập nhật học kỳ: {ex.Message}";
-                return View(semester);
+                return View(semesterDto);
             }
         }
 

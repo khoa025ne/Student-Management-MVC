@@ -45,19 +45,19 @@ namespace StudentManagementMVC.Controllers
         // POST: Grades/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Score score)
+        public async Task<IActionResult> Create(ScoreCreateDto scoreDto)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
                     // Get student and course info for email
-                    var student = await _studentService.GetByIdAsync(score.StudentId);
-                    var course = score.CourseId.HasValue ? await _courseService.GetByIdAsync(score.CourseId.Value) : null;
+                    var student = await _studentService.GetByIdAsync(scoreDto.StudentId);
+                    var course = scoreDto.CourseId.HasValue ? await _courseService.GetByIdAsync(scoreDto.CourseId.Value) : null;
                     
-                    if (score.CourseId.HasValue)
+                    if (scoreDto.CourseId.HasValue)
                     {
-                        await _scoreService.AddOrUpdateScoreAsync(score.StudentId, score.CourseId.Value, score.ScoreValue);
+                        await _scoreService.AddOrUpdateScoreAsync(scoreDto.StudentId, scoreDto.CourseId.Value, scoreDto.ScoreValue);
                     }
                     
                     // Gửi email thông báo điểm
@@ -66,7 +66,7 @@ namespace StudentManagementMVC.Controllers
                         if (student != null && course != null)
                         {
                             // Tính grade
-                            var scoreValue = score.ScoreValue;
+                            var scoreValue = scoreDto.ScoreValue;
                             string grade = scoreValue >= 8.5 ? "A" : scoreValue >= 8 ? "B+" : scoreValue >= 7 ? "B" : 
                                          scoreValue >= 6 ? "C+" : scoreValue >= 5.5 ? "C" : scoreValue >= 4 ? "D" : "F";
                             
@@ -160,9 +160,9 @@ namespace StudentManagementMVC.Controllers
                     TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
                 }
             }
-            ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName", score.StudentId);
-            ViewData["CourseId"] = new SelectList(await _courseService.GetAllAsync(), "CourseId", "CourseName", score.CourseId);
-            return View(score);
+            ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName", scoreDto.StudentId);
+            ViewData["CourseId"] = new SelectList(await _courseService.GetAllAsync(), "CourseId", "CourseName", scoreDto.CourseId);
+            return View(scoreDto);
         }
 
         // GET: Grades/Edit/5
@@ -181,9 +181,9 @@ namespace StudentManagementMVC.Controllers
         // POST: Grades/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Score score)
+        public async Task<IActionResult> Edit(int id, ScoreUpdateDto scoreDto)
         {
-            if (id != score.ScoreId)
+            if (id != scoreDto.ScoreId)
             {
                 TempData["ErrorMessage"] = "Không tìm thấy điểm cần sửa!";
                 return NotFound();
@@ -193,9 +193,9 @@ namespace StudentManagementMVC.Controllers
             {
                 try
                 {
-                    if (score.CourseId.HasValue)
+                    if (scoreDto.CourseId.HasValue)
                     {
-                        await _scoreService.AddOrUpdateScoreAsync(score.StudentId, score.CourseId.Value, score.ScoreValue);
+                        await _scoreService.AddOrUpdateScoreAsync(scoreDto.StudentId, scoreDto.CourseId.Value, scoreDto.ScoreValue);
                     }
                     TempData["SuccessMessage"] = "Cập nhật điểm thành công!";
                     return RedirectToAction(nameof(Index));
@@ -205,9 +205,9 @@ namespace StudentManagementMVC.Controllers
                     TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
                 }
             }
-            ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName", score.StudentId);
-            ViewData["CourseId"] = new SelectList(await _courseService.GetAllAsync(), "CourseId", "CourseName", score.CourseId);
-            return View(score);
+            ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName", scoreDto.StudentId);
+            ViewData["CourseId"] = new SelectList(await _courseService.GetAllAsync(), "CourseId", "CourseName", scoreDto.CourseId);
+            return View(scoreDto);
         }
         
         // GET: Grades/Delete/5

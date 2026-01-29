@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using DataAccess.Enums;
+using Services.Models;
 
 namespace StudentManagementMVC.ViewModels
 {

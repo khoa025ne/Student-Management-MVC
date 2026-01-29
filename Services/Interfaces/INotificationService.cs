@@ -7,6 +7,7 @@ namespace Services.Interfaces
 {
     public interface INotificationService
     {
+        // Entity-based methods
         Task<IEnumerable<Notification>> GetAllAsync();
         Task<IEnumerable<Notification>> GetMyNotificationsAsync(int userId);
         Task<Notification?> GetByIdAsync(int id);
@@ -28,6 +29,9 @@ namespace Services.Interfaces
         Task<int> CreateBulkNotificationsAsync(CreateNotificationDto model, int createdBy);
         Task SendGradeAlertAsync(int studentId, int classId, double score);
         Task<int> GetUnreadCountAsync(int userId, string userRole);
+        
+        // DTO-based methods (for Controllers)
+        Task<NotificationDto> CreateNotificationDtoAsync(NotificationDto dto);
     }
 }
 

@@ -31,21 +31,21 @@ namespace StudentManagementMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Course course)
+        public async Task<IActionResult> Create(CourseCreateDto courseDto)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _courseService.CreateAsync(course);
-                    TempData["SuccessMessage"] = $"Tạo môn học '{course.CourseName}' ({course.CourseCode}) thành công! Số tín chỉ: {course.Credits}.";
+                    await _courseService.CreateDtoAsync(courseDto);
+                    TempData["SuccessMessage"] = $"Tạo môn học '{courseDto.CourseName}' ({courseDto.CourseCode}) thành công! Số tín chỉ: {courseDto.Credits}.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     if (ex.Message.Contains("CourseCode") || ex.Message.Contains("duplicate"))
                     {
-                        TempData["ErrorMessage"] = $"Mã môn học '{course.CourseCode}' đã tồn tại! Vui lòng sử dụng mã khác.";
+                        TempData["ErrorMessage"] = $"Mã môn học '{courseDto.CourseCode}' đã tồn tại! Vui lòng sử dụng mã khác.";
                     }
                     else
                     {
@@ -59,7 +59,7 @@ namespace StudentManagementMVC.Controllers
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
             }
             ViewBag.AllCourses = await _courseService.GetAllAsync();
-            return View(course);
+            return View(courseDto);
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -76,14 +76,14 @@ namespace StudentManagementMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Course course)
+        public async Task<IActionResult> Edit(CourseUpdateDto courseDto)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _courseService.UpdateAsync(course);
-                    TempData["SuccessMessage"] = $"Cập nhật môn học '{course.CourseName}' thành công!";
+                    await _courseService.UpdateDtoAsync(courseDto);
+                    TempData["SuccessMessage"] = $"Cập nhật môn học '{courseDto.CourseName}' thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -97,7 +97,7 @@ namespace StudentManagementMVC.Controllers
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại.";
             }
             ViewBag.AllCourses = await _courseService.GetAllAsync();
-            return View(course);
+            return View(courseDto);
         }
 
         [HttpPost]

@@ -89,40 +89,39 @@ namespace StudentManagementMVC.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Notification notification)
+        public async Task<IActionResult> Create(NotificationDto notificationDto)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
                     // Kiểm tra student tồn tại
-                    if (notification.StudentId.HasValue)
+                    if (notificationDto.StudentId.HasValue)
                     {
-                        var student = await _studentService.GetByIdAsync(notification.StudentId.Value);
+                        var student = await _studentService.GetByIdAsync(notificationDto.StudentId.Value);
                         if (student == null)
                         {
-                            TempData["ErrorMessage"] = $"Không tìm thấy sinh viên với ID: {notification.StudentId.Value}!";
+                            TempData["ErrorMessage"] = $"Không tìm thấy sinh viên với ID: {notificationDto.StudentId.Value}!";
                             var studentsErr = await _studentService.GetAllAsync();
-                            ViewData["StudentId"] = new SelectList(studentsErr, "StudentIdInt", "FullName", notification.StudentId);
-                            return View(notification);
+                            ViewData["StudentId"] = new SelectList(studentsErr, "StudentIdInt", "FullName", notificationDto.StudentId);
+                            return View(notificationDto);
                         }
                     }
 
                     // Validate message không rỗng
-                    if (string.IsNullOrWhiteSpace(notification.Message))
+                    if (string.IsNullOrWhiteSpace(notificationDto.Message))
                     {
                         TempData["ErrorMessage"] = "Nội dung thông báo không được để trống!";
                         var studentsErr = await _studentService.GetAllAsync();
-                        ViewData["StudentId"] = new SelectList(studentsErr, "StudentIdInt", "FullName", notification.StudentId);
-                        return View(notification);
+                        ViewData["StudentId"] = new SelectList(studentsErr, "StudentIdInt", "FullName", notificationDto.StudentId);
+                        return View(notificationDto);
                     }
 
-                    notification.CreatedAt = System.DateTime.Now;
-                    notification.IsRead = false;
-                    await _notificationService.CreateNotificationAsync(notification);
+                    // Create notification through service
+                    await _notificationService.CreateNotificationDtoAsync(notificationDto);
                     
-                    var studentName = notification.StudentId.HasValue 
-                        ? (await _studentService.GetByIdAsync(notification.StudentId.Value))?.FullName 
+                    var studentName = notificationDto.StudentId.HasValue 
+                        ? (await _studentService.GetByIdAsync(notificationDto.StudentId.Value))?.FullName 
                         : "tất cả sinh viên";
                     TempData["SuccessMessage"] = $"Gửi thông báo thành công đến {studentName}!";
                     return RedirectToAction(nameof(Index));
@@ -137,8 +136,8 @@ namespace StudentManagementMVC.Controllers
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
             }
             var studentsFinal = await _studentService.GetAllAsync();
-            ViewData["StudentId"] = new SelectList(studentsFinal, "StudentIdInt", "FullName", notification.StudentId);
-            return View(notification);
+            ViewData["StudentId"] = new SelectList(studentsFinal, "StudentIdInt", "FullName", notificationDto.StudentId);
+            return View(notificationDto);
         }
         
          // POST: Notifications/Delete/5

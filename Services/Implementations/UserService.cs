@@ -1,6 +1,7 @@
 using DataAccess.Entities;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using Services.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -107,6 +108,52 @@ namespace Services.Implementations
             catch (Exception ex)
             {
                 throw new Exception($"Lỗi khi kiểm tra email: {ex.Message}", ex);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // DTO-BASED METHODS (for Controllers)
+        // ═══════════════════════════════════════════════════════════════
+
+        public async Task<UserDto> UpdateDtoAsync(UserUpdateDto dto)
+        {
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(dto.UserId);
+                if (user == null)
+                {
+                    throw new Exception("Không tìm thấy người dùng");
+                }
+
+                user.Email = dto.Email;
+                user.FullName = dto.FullName;
+                user.PhoneNumber = dto.PhoneNumber;
+                user.IsActive = dto.IsActive;
+                user.RoleId = dto.RoleId;
+                if (!string.IsNullOrEmpty(dto.Avatar))
+                {
+                    user.AvatarUrl = dto.Avatar;
+                }
+
+                var updated = await _userRepository.UpdateAsync(user);
+                
+                return new UserDto
+                {
+                    UserIdInt = updated.UserId,
+                    UserId = updated.UserId.ToString(),
+                    Email = updated.Email,
+                    FullName = updated.FullName,
+                    PhoneNumber = updated.PhoneNumber,
+                    AvatarUrl = updated.AvatarUrl,
+                    IsActive = updated.IsActive,
+                    RoleId = updated.RoleId,
+                    CreatedAt = updated.CreatedAt,
+                    LastLogin = updated.LastLogin
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi cập nhật người dùng: {ex.Message}", ex);
             }
         }
     }

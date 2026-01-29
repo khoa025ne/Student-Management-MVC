@@ -3,6 +3,7 @@ using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Models;
 using System.Threading;
+using DataEnums = DataAccess.Enums;
 
 namespace Services.Implementations
 {
@@ -80,7 +81,7 @@ namespace Services.Implementations
             return student != null ? MapToDto(student) : null;
         }
 
-        public async Task<IEnumerable<StudentDto>> GetByMajorAsync(MajorType major)
+        public async Task<IEnumerable<StudentDto>> GetByMajorAsync(DataEnums.MajorType major)
         {
             var students = await _studentRepository.GetByMajorAsync(major);
             return students.Select(MapToDto);
@@ -109,7 +110,7 @@ namespace Services.Implementations
                 PhoneNumber = createDto.PhoneNumber,
                 StudentCode = createDto.StudentCode ?? await GenerateStudentCodeAsync(),
                 CreatedAt = DateTime.Now,
-                Major = MajorType.Undefined,
+                Major = DataEnums.MajorType.Undefined,
                 IsFirstLogin = true
             };
 

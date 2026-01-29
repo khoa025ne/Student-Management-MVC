@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
+using DataAccess.Entities;
+using DataAccess.Enums;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
@@ -228,16 +230,13 @@ namespace StudentManagementMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, User user)
+        public async Task<IActionResult> Edit(int id, UserUpdateDto userDto)
         {
-            if (id != user.UserId)
+            if (id != userDto.UserId)
             {
-                TempData["ErrorMessage"] = $"Không khớp ID: URL ID ({id}) khác với User ID ({user.UserId})!";
+                TempData["ErrorMessage"] = $"Không khớp ID: URL ID ({id}) khác với User ID ({userDto.UserId})!";
                 return RedirectToAction(nameof(Index));
             }
-
-            // Remove Role validation error (Role is navigation property, not submitted from form)
-            ModelState.Remove("Role");
 
             if (ModelState.IsValid)
             {
@@ -252,16 +251,16 @@ namespace StudentManagementMVC.Controllers
                     }
 
                     // Kiểm tra email duplicate (trừ chính nó)
-                    var emailExists = await _userService.GetByEmailAsync(user.Email);
-                    if (emailExists != null && emailExists.UserId != user.UserId)
+                    var emailExists = await _userService.GetByEmailAsync(userDto.Email);
+                    if (emailExists != null && existingUser.UserId != userDto.UserId)
                     {
-                        TempData["ErrorMessage"] = $"Email '{user.Email}' đã được sử dụng bởi người dùng khác!";
+                        TempData["ErrorMessage"] = $"Email '{userDto.Email}' đã được sử dụng bởi người dùng khác!";
                         ViewBag.Roles = await _roleService.GetAllAsync();
-                        return View(user);
+                        return View(userDto);
                     }
 
-                    await _userService.UpdateAsync(user);
-                    TempData["SuccessMessage"] = $"Cập nhật người dùng '{user.FullName}' thành công!";
+                    await _userService.UpdateDtoAsync(userDto);
+                    TempData["SuccessMessage"] = $"Cập nhật người dùng '{userDto.FullName}' thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -280,7 +279,7 @@ namespace StudentManagementMVC.Controllers
             }
 
             ViewBag.Roles = await _roleService.GetAllAsync();
-            return View(user);
+            return View(userDto);
         }
 
         [HttpPost]
