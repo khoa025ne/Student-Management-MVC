@@ -44,40 +44,36 @@ namespace StudentManagementMVC.Controllers
             if (enrollment == null) return NotFound();
 
             // Check authorization (is this student's enrollment?)
-             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (int.TryParse(userIdStr, out int userId))
             {
-                 var student = await _studentService.GetByUserIdAsync(userId);
-                 if(student == null || enrollment.StudentId != student.StudentId) return Forbid();
+                var student = await _studentService.GetByUserIdAsync(userId);
+                if (student == null || enrollment.StudentId != student.StudentId) return Forbid();
+            }
+            else
+            {
+                return RedirectToAction("Login", "Auth");
             }
 
-            // Load available classes for the same course
-            // Need ClassService to have GetByCourseId
-            // assuming it returns lists
-            // For now, load all classes and filter (not optimal but ok for prototype)
-            // Or better: enrollment.Class.CourseId
-            
-            // To do this cleaner, I need to know CourseId of current class.
-            // Enrollment usually has Class navigation.
-            // Let's assume navigation populated or we fetch Class.
-            
-            // Temp logic: fetch all classes
+            // FIX: Chỉ hiển thị các lớp cùng CourseId, loại bỏ lớp hiện tại
             var allClasses = await _classService.GetAllAsync();
+            var currentCourseId = enrollment.Class?.CourseId ?? 0;
             
-            // Need to filter by CourseId. 
-            // If enrollment.Class is null, we need to fetch it.
-            // Service GetById usually returns entity. If navigation not included, we might failed.
-            // Let's assume we can filter in memory if needed or use specific service method.
+            // Filter: cùng CourseId, khác ClassId hiện tại, còn chỗ trống
+            var availableClasses = allClasses
+                .Where(c => c.CourseId == currentCourseId 
+                         && c.ClassId != enrollment.ClassId 
+                         && c.CurrentEnrollment < c.MaxCapacity)
+                .ToList();
             
-            // NOTE: IClassService doesn't have GetByCourseId exposed in interface previously?
-            // Existing interface had GetAllAsync only.
+            if (!availableClasses.Any())
+            {
+                TempData["WarningMessage"] = "Không có lớp khác có thể chuyển đến cho môn học này!";
+            }
             
-            // Let's assume we filter on client or server side for now roughly.
-            // Ideally: _classService.GetClassesByCourse(courseId)
-            
-            ViewData["TargetClassId"] = new SelectList(allClasses, "ClassId", "ClassCode"); 
-            // This is UNSAFE as it lists all classes.
-            // Need to improve IClassService later. 
+            ViewData["TargetClassId"] = new SelectList(availableClasses, "ClassId", "ClassName");
+            ViewData["CurrentClassName"] = enrollment.Class?.ClassName ?? "N/A";
+            ViewData["CurrentCourseName"] = enrollment.Class?.Course?.CourseName ?? "N/A";
             
             return View(enrollment);
         }

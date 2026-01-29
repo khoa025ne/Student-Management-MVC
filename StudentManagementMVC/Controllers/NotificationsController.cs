@@ -80,7 +80,8 @@ namespace StudentManagementMVC.Controllers
         [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Create()
         {
-            ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName");
+            var students = await _studentService.GetAllAsync();
+            ViewData["StudentId"] = new SelectList(students, "StudentIdInt", "FullName");
             return View();
         }
 
@@ -101,7 +102,8 @@ namespace StudentManagementMVC.Controllers
                         if (student == null)
                         {
                             TempData["ErrorMessage"] = $"Không tìm thấy sinh viên với ID: {notification.StudentId.Value}!";
-                            ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName", notification.StudentId);
+                            var studentsErr = await _studentService.GetAllAsync();
+                            ViewData["StudentId"] = new SelectList(studentsErr, "StudentIdInt", "FullName", notification.StudentId);
                             return View(notification);
                         }
                     }
@@ -110,7 +112,8 @@ namespace StudentManagementMVC.Controllers
                     if (string.IsNullOrWhiteSpace(notification.Message))
                     {
                         TempData["ErrorMessage"] = "Nội dung thông báo không được để trống!";
-                        ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName", notification.StudentId);
+                        var studentsErr = await _studentService.GetAllAsync();
+                        ViewData["StudentId"] = new SelectList(studentsErr, "StudentIdInt", "FullName", notification.StudentId);
                         return View(notification);
                     }
 
@@ -119,7 +122,7 @@ namespace StudentManagementMVC.Controllers
                     await _notificationService.CreateNotificationAsync(notification);
                     
                     var studentName = notification.StudentId.HasValue 
-                        ? (await _studentService.GetByIdAsync(notification.StudentId.Value))?.User?.FullName 
+                        ? (await _studentService.GetByIdAsync(notification.StudentId.Value))?.FullName 
                         : "tất cả sinh viên";
                     TempData["SuccessMessage"] = $"Gửi thông báo thành công đến {studentName}!";
                     return RedirectToAction(nameof(Index));
@@ -133,7 +136,8 @@ namespace StudentManagementMVC.Controllers
             {
                 TempData["ErrorMessage"] = "Dữ liệu không hợp lệ! Vui lòng kiểm tra lại thông tin.";
             }
-            ViewData["StudentId"] = new SelectList(await _studentService.GetAllAsync(), "StudentId", "User.FullName", notification.StudentId);
+            var studentsFinal = await _studentService.GetAllAsync();
+            ViewData["StudentId"] = new SelectList(studentsFinal, "StudentIdInt", "FullName", notification.StudentId);
             return View(notification);
         }
         

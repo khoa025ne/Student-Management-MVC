@@ -19,24 +19,21 @@ namespace Repositories.Implementations
 
         public async Task<IEnumerable<Score>> GetAllAsync()
         {
+            // FIX: Sửa cách Include để tránh null reference
             return await _context.Scores
                 .Include(s => s.Student)
-                    .ThenInclude(st => st.User)
                 .Include(s => s.Course)
                 .Include(s => s.Class)
-                    .ThenInclude(c => c.Semester)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Score>> GetByStudentIdAsync(int studentId)
         {
+            // FIX: Sửa cách Include để tránh null reference  
             return await _context.Scores
                 .Where(s => s.StudentId == studentId)
                 .Include(s => s.Course)
                 .Include(s => s.Class)
-                    .ThenInclude(c => c.Course)
-                .Include(s => s.Class)
-                    .ThenInclude(c => c.Semester)
                 .ToListAsync();
         }
 

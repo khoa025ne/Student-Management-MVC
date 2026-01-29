@@ -9,7 +9,6 @@
       "StudentManagementMVC/1.0.0": {
         "dependencies": {
           "BCrypt.Net-Next": "4.0.3",
-          "DataAccess": "1.0.0",
           "Microsoft.EntityFrameworkCore.Design": "8.0.0",
           "Pomelo.EntityFrameworkCore.MySql": "8.0.0",
           "Repositories": "1.0.0",

@@ -1,8 +1,8 @@
-@model IEnumerable<DataAccess.Entities.Class>
+@model IEnumerable<Services.Models.ClassDto>
 
 @{
     ViewData["Title"] = "Đăng ký môn học";
-    var student = ViewBag.Student as DataAccess.Entities.Student;
+    var student = ViewBag.Student as Services.Models.StudentDto;
 }
 
 <div class="space-y-6">
@@ -21,10 +21,10 @@
     <div class="glass-card">
         <div class="d-flex align-items-center gap-3">
             <div class="sidebar-user-avatar" style="width: 50px; height: 50px;">
-                @(student?.User?.FullName?.Substring(0, 2).ToUpper() ?? "SV")
+                @(student?.FullName?.Substring(0, 2).ToUpper() ?? "SV")
             </div>
             <div>
-                <h5 class="mb-0 fw-semibold">@student?.User?.FullName</h5>
+                <h5 class="mb-0 fw-semibold">@student?.FullName</h5>
                 <p class="text-muted mb-0">MSSV: @student?.StudentCode • @student?.Major</p>
             </div>
         </div>
@@ -56,7 +56,7 @@
                     <div class="course-card animate-fadeIn">
                         <div class="course-card-header">
                             <div>
-                                <h5 class="course-card-title">@item.Course?.CourseName</h5>
+                                <h5 class="course-card-title">@item.CourseName</h5>
                                 <span class="course-card-code">@item.ClassCode</span>
                             </div>
                             <span class="badge-modern badge-primary">@item.Course?.Credits TC</span>
@@ -73,7 +73,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-2 text-muted small">
                                 <i class="fas fa-calendar-alt"></i>
-                                <span>@item.Semester?.SemesterName</span>
+                                <span>@item.SemesterName</span>
                             </div>
                         </div>
 
@@ -99,7 +99,7 @@
                             else
                             {
                                 <button type="submit" class="btn btn-primary w-100" 
-                                        onclick="return confirm('Bạn có chắc muốn đăng ký lớp @item.ClassCode - @item.Course?.CourseName?');">
+                                        onclick="return confirm('Bạn có chắc muốn đăng ký lớp @item.ClassCode - @item.CourseName?');">
                                     <i class="fas fa-plus-circle me-2"></i>Đăng ký
                                 </button>
                             }

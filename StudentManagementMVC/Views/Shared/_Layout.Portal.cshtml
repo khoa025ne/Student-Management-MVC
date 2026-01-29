@@ -1,0 +1,258 @@
+@{
+    var userRole = User.IsInRole("Teacher") ? "teacher" : "student";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var userName = User.Identity?.Name ?? "Người dùng";
+    var userInitials = userName.Length >= 2 ? userName.Substring(0, 2).ToUpper() : userName.ToUpper();
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Student Portal</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Bootstrap (for grid & utilities) -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <!-- Academia Portal CSS -->
+    <link rel="stylesheet" href="~/css/academia-portal.css" asp-append-version="true" />
+    
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="portal-layout">
+        <!-- Header -->
+        <header class="portal-header">
+            <div class="portal-header-inner">
+                <!-- Brand -->
+                <a href="@(userRole == "teacher" ? "/Teacher/Dashboard" : "/Student/Dashboard")" class="portal-brand">
+                    <div class="portal-brand-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="portal-brand-text">
+                        <h1>Student Portal</h1>
+                        <p>@(userRole == "teacher" ? "Cổng giảng viên" : "Cổng sinh viên")</p>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation -->
+                <nav class="portal-nav">
+                    @if (userRole == "student")
+                    {
+                        <a asp-controller="Student" asp-action="Dashboard" 
+                           class="portal-nav-item @(currentController == "Student" ? "active" : "")">
+                            <i class="fas fa-home"></i>
+                            Trang chủ
+                        </a>
+                        <a asp-controller="Enrollments" asp-action="Register" 
+                           class="portal-nav-item @(currentController == "Enrollments" ? "active" : "")">
+                            <i class="fas fa-book-open"></i>
+                            Môn học
+                        </a>
+                        <a asp-controller="Schedule" asp-action="Index" 
+                           class="portal-nav-item @(currentController == "Schedule" ? "active" : "")">
+                            <i class="fas fa-calendar"></i>
+                            Lịch học
+                        </a>
+                        <a asp-controller="Scores" asp-action="MyGrades" 
+                           class="portal-nav-item @(currentController == "Scores" ? "active" : "")">
+                            <i class="fas fa-chart-line"></i>
+                            Bảng điểm
+                        </a>
+                        <a asp-controller="Notifications" asp-action="MyNotifications" 
+                           class="portal-nav-item @(currentController == "Notifications" ? "active" : "")">
+                            <i class="fas fa-bell"></i>
+                            Thông báo
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Teacher" asp-action="Dashboard" 
+                           class="portal-nav-item @(currentController == "Teacher" && currentAction == "Dashboard" ? "active" : "")">
+                            <i class="fas fa-home"></i>
+                            Trang chủ
+                        </a>
+                        <a asp-controller="Classes" asp-action="MyClasses" 
+                           class="portal-nav-item @(currentAction == "MyClasses" ? "active" : "")">
+                            <i class="fas fa-users"></i>
+                            Lớp học
+                        </a>
+                        <a asp-controller="EnrollmentGrades" asp-action="Index" 
+                           class="portal-nav-item @(currentController == "EnrollmentGrades" ? "active" : "")">
+                            <i class="fas fa-edit"></i>
+                            Nhập điểm
+                        </a>
+                        <a asp-controller="StudentComment" asp-action="SelectClass" 
+                           class="portal-nav-item @(currentController == "StudentComment" ? "active" : "")">
+                            <i class="fas fa-comment"></i>
+                            Nhận xét
+                        </a>
+                        <a asp-controller="Notifications" asp-action="MyNotifications" 
+                           class="portal-nav-item @(currentController == "Notifications" ? "active" : "")">
+                            <i class="fas fa-bell"></i>
+                            Thông báo
+                        </a>
+                    }
+                </nav>
+
+                <!-- Right Section -->
+                <div class="portal-header-right">
+                    <!-- Notifications -->
+                    <a asp-controller="Notifications" asp-action="MyNotifications" class="portal-notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="portal-notification-badge" id="notificationBadge" style="display:none;">0</span>
+                    </a>
+
+                    <!-- User Menu -->
+                    <div class="dropdown">
+                        <button class="portal-user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="portal-user-avatar">@userInitials</div>
+                            <div class="portal-user-info">
+                                <span>@userName</span>
+                                <small>@(userRole == "teacher" ? "Giảng viên" : "Sinh viên")</small>
+                            </div>
+                            <i class="fas fa-chevron-down" style="font-size: 0.75rem; margin-left: 0.25rem;"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" asp-controller="@(userRole == "teacher" ? "Home" : "StudentProfile")" asp-action="Index">
+                                    <i class="fas fa-user me-2"></i> Hồ sơ
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Auth" asp-action="ChangePassword">
+                                    <i class="fas fa-key me-2"></i> Đổi mật khẩu
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Mobile Menu Toggle -->
+                    <button class="portal-mobile-toggle" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile Navigation -->
+        <div class="portal-mobile-nav" id="mobileNav">
+            <div class="portal-mobile-overlay" onclick="toggleMobileMenu()"></div>
+            <div class="portal-mobile-menu">
+                <div class="portal-mobile-header">
+                    <div class="portal-brand">
+                        <div class="portal-brand-icon" style="background: var(--primary);">
+                            <i class="fas fa-graduation-cap" style="color: white;"></i>
+                        </div>
+                        <div class="portal-brand-text">
+                            <h1 style="color: var(--portal-foreground);">Student Portal</h1>
+                        </div>
+                    </div>
+                    <button class="portal-mobile-close" onclick="toggleMobileMenu()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="portal-mobile-links">
+                    @if (userRole == "student")
+                    {
+                        <a asp-controller="Student" asp-action="Dashboard" class="portal-mobile-link @(currentController == "Student" ? "active" : "")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                        <a asp-controller="Enrollments" asp-action="Register" class="portal-mobile-link @(currentController == "Enrollments" ? "active" : "")">
+                            <i class="fas fa-book-open"></i> Đăng ký môn học
+                        </a>
+                        <a asp-controller="Schedule" asp-action="Index" class="portal-mobile-link @(currentController == "Schedule" ? "active" : "")">
+                            <i class="fas fa-calendar"></i> Lịch học
+                        </a>
+                        <a asp-controller="Scores" asp-action="MyGrades" class="portal-mobile-link @(currentController == "Scores" ? "active" : "")">
+                            <i class="fas fa-chart-line"></i> Bảng điểm
+                        </a>
+                        <a asp-controller="Transfers" asp-action="Index" class="portal-mobile-link @(currentController == "Transfers" ? "active" : "")">
+                            <i class="fas fa-exchange-alt"></i> Chuyển lớp
+                        </a>
+                        <a asp-controller="LearningPath" asp-action="Index" class="portal-mobile-link @(currentController == "LearningPath" ? "active" : "")">
+                            <i class="fas fa-road"></i> Lộ trình học tập
+                        </a>
+                        <a asp-controller="Notifications" asp-action="MyNotifications" class="portal-mobile-link @(currentController == "Notifications" ? "active" : "")">
+                            <i class="fas fa-bell"></i> Thông báo
+                        </a>
+                        <a asp-controller="StudentProfile" asp-action="Index" class="portal-mobile-link @(currentController == "StudentProfile" ? "active" : "")">
+                            <i class="fas fa-user"></i> Hồ sơ
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Teacher" asp-action="Dashboard" class="portal-mobile-link @(currentController == "Teacher" && currentAction == "Dashboard" ? "active" : "")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                        <a asp-controller="Classes" asp-action="MyClasses" class="portal-mobile-link @(currentAction == "MyClasses" ? "active" : "")">
+                            <i class="fas fa-users"></i> Lớp học
+                        </a>
+                        <a asp-controller="EnrollmentGrades" asp-action="Index" class="portal-mobile-link @(currentController == "EnrollmentGrades" ? "active" : "")">
+                            <i class="fas fa-edit"></i> Nhập điểm
+                        </a>
+                        <a asp-controller="StudentComment" asp-action="SelectClass" class="portal-mobile-link @(currentController == "StudentComment" ? "active" : "")">
+                            <i class="fas fa-comment"></i> Nhận xét sinh viên
+                        </a>
+                        <a asp-controller="Notifications" asp-action="MyNotifications" class="portal-mobile-link @(currentController == "Notifications" ? "active" : "")">
+                            <i class="fas fa-bell"></i> Thông báo
+                        </a>
+                    }
+                    <hr style="margin: 1rem 0; border-color: var(--border);">
+                    <a asp-controller="Auth" asp-action="Logout" class="portal-mobile-link" style="color: var(--danger);">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="portal-main">
+            <!-- Flash Messages -->
+            <partial name="_Notifications" />
+            
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="portal-footer">
+            &copy; @DateTime.Now.Year Student Portal - Hệ thống quản lý sinh viên
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobileNav').classList.toggle('active');
+        }
+        
+        // Close mobile menu on escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('mobileNav').classList.remove('active');
+            }
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

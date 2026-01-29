@@ -2,6 +2,7 @@ using DataAccess.Entities;
 using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Models;
+using System.Threading;
 
 namespace Services.Implementations
 {
@@ -141,30 +142,42 @@ namespace Services.Implementations
         }
 
         // ===== BUSINESS LOGIC METHODS =====
+        
+        // FIX: Sử dụng lock để tránh race condition khi generate StudentCode
+        private static readonly SemaphoreSlim _studentCodeLock = new SemaphoreSlim(1, 1);
+        
         public async Task<string> GenerateStudentCodeAsync()
         {
-            var year = DateTime.Now.Year;
-            var allStudents = await _studentRepository.GetAllAsync();
-            
-            var prefix = $"STU{year}";
-            var studentsThisYear = allStudents
-                .Where(s => s.StudentCode?.StartsWith(prefix) == true)
-                .ToList();
-
-            var maxNumber = 0;
-            foreach (var student in studentsThisYear)
+            await _studentCodeLock.WaitAsync();
+            try
             {
-                if (student.StudentCode?.Length >= 11)
+                var year = DateTime.Now.Year;
+                var allStudents = await _studentRepository.GetAllAsync();
+                
+                var prefix = $"STU{year}";
+                var studentsThisYear = allStudents
+                    .Where(s => s.StudentCode?.StartsWith(prefix) == true)
+                    .ToList();
+
+                var maxNumber = 0;
+                foreach (var student in studentsThisYear)
                 {
-                    var numberPart = student.StudentCode.Substring(7);
-                    if (int.TryParse(numberPart, out int number))
+                    if (student.StudentCode?.Length >= 11)
                     {
-                        maxNumber = Math.Max(maxNumber, number);
+                        var numberPart = student.StudentCode.Substring(7);
+                        if (int.TryParse(numberPart, out int number))
+                        {
+                            maxNumber = Math.Max(maxNumber, number);
+                        }
                     }
                 }
-            }
 
-            return $"{prefix}{(maxNumber + 1):D5}";
+                return $"{prefix}{(maxNumber + 1):D5}";
+            }
+            finally
+            {
+                _studentCodeLock.Release();
+            }
         }
 
         public string GenerateDefaultPassword(DateTime dateOfBirth)

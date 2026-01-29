@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
+using System.Security.Claims;
 
 namespace StudentManagementMVC.Controllers
 {
@@ -26,7 +27,13 @@ namespace StudentManagementMVC.Controllers
         /// </summary>
         public async Task<IActionResult> Dashboard()
         {
-            var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+            // FIX: Sử dụng đúng ClaimTypes.NameIdentifier thay vì "UserId"
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId))
+            {
+                TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ!";
+                return RedirectToAction("Login", "Auth");
+            }
             
             var dashboard = await _studentService.GetDashboardAsync(userId);
             

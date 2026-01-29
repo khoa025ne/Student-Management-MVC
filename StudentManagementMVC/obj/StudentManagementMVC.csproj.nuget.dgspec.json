@@ -273,9 +273,6 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "F:\\ALL\\StudentManagementMVC\\DataAccess\\DataAccess.csproj": {
-                "projectPath": "F:\\ALL\\StudentManagementMVC\\DataAccess\\DataAccess.csproj"
-              },
               "F:\\ALL\\StudentManagementMVC\\Repositories\\Repositories.csproj": {
                 "projectPath": "F:\\ALL\\StudentManagementMVC\\Repositories\\Repositories.csproj"
               },

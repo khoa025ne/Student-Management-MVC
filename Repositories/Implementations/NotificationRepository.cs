@@ -19,7 +19,12 @@ namespace Repositories.Implementations
 
         public async Task<IEnumerable<Notification>> GetAllAsync()
         {
-            return await _context.Notifications.Include(n => n.Student).ThenInclude(s => s.User).OrderByDescending(n => n.CreatedAt).ToListAsync();
+            // FIX: Thêm null check để tránh CS8602 warning
+            return await _context.Notifications
+                .Include(n => n.Student)
+                .ThenInclude(s => s != null ? s.User : null)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Notification>> GetByStudentIdAsync(int studentId)

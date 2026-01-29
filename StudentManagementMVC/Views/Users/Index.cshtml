@@ -34,20 +34,24 @@
                         @{
                             var usersWithInfo = ViewBag.UsersWithStudentInfo as IEnumerable<dynamic>;
                         }
-                        @foreach (var userInfo in usersWithInfo)
+                        @if (usersWithInfo != null)
                         {
-                            var user = userInfo.User as DataAccess.Entities.User;
-                            var student = userInfo.Student as DataAccess.Entities.Student;
-                            var hasStudentProfile = student != null;
-                            
-                            <tr>
-                                <td>@user.UserId</td>
-                                <td>
-                                    <strong>@user.FullName</strong>
-                                    @if (user.MustChangePassword)
-                                    {
-                                        <span class="badge bg-warning text-dark ms-1" title="Phải đổi mật khẩu">
-                                            <i class="fas fa-key"></i>
+                            @foreach (var userInfo in usersWithInfo)
+                            {
+                                var user = userInfo.User as DataAccess.Entities.User;
+                                var student = userInfo.Student as DataAccess.Entities.Student;
+                                var hasStudentProfile = student != null;
+                                
+                                @if (user != null)
+                                {
+                                <tr>
+                                    <td>@user.UserId</td>
+                                    <td>
+                                        <strong>@user.FullName</strong>
+                                        @if (user.MustChangePassword)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-1" title="Phải đổi mật khẩu">
+                                                <i class="fas fa-key"></i>
                                         </span>
                                     }
                                 </td>
@@ -65,7 +69,7 @@
                                             <form asp-action="UpdateRole" asp-route-userId="@user.UserId" method="post" class="d-inline role-update-form">
                                                 @Html.AntiForgeryToken()
                                                 <select name="newRoleId" class="form-select form-select-sm d-inline-block role-selector" style="width: auto;" data-original-role="@user.RoleId">
-                                                    @foreach (var role in ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>)
+                                                    @foreach (var role in (ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>) ?? Enumerable.Empty<DataAccess.Entities.Role>())
                                                     {
                                                         <option value="@role.RoleId" selected="@(role.RoleId == user.RoleId)">
                                                             @role.RoleName
@@ -83,7 +87,7 @@
                                 <td>
                                     @if (user.Role?.RoleName == "Student")
                                     {
-                                        @if (hasStudentProfile)
+                                        @if (hasStudentProfile && student != null)
                                         {
                                             <a href="@Url.Action("Edit", "Students", new { id = student.StudentId })" 
                                                class="badge bg-success text-decoration-none" title="Xem hồ sơ sinh viên">
@@ -157,6 +161,8 @@
                                     </div>
                                 </td>
                             </tr>
+                                }
+                            }
                         }
                     </tbody>
                 </table>

@@ -141,18 +141,18 @@
             
             <!-- User Section -->
             <div class="sidebar-user">
-                @if (User.Identity.IsAuthenticated)
+                @if (User.Identity?.IsAuthenticated == true)
                 {
                     <div class="sidebar-user-info">
                         <div class="sidebar-user-avatar">
                             @{
-                                var userName = User.Identity.Name ?? "U";
+                                var userName = User.Identity?.Name ?? "U";
                                 var initials = userName.Length >= 2 ? userName.Substring(0, 2).ToUpper() : userName.ToUpper();
                             }
                             @initials
                         </div>
                         <div class="sidebar-user-details">
-                            <h4>@User.Identity.Name</h4>
+                            <h4>@(User.Identity?.Name ?? "Unknown")</h4>
                             <p>@(User.IsInRole("Admin") ? "Admin" : User.IsInRole("Manager") ? "Manager" : User.IsInRole("Teacher") ? "Teacher" : "Student")</p>
                         </div>
                     </div>

@@ -192,11 +192,15 @@ namespace StudentManagementMVC.Controllers
                         studentCode: string.IsNullOrEmpty(studentCode) ? email.Split('@')[0] : studentCode,
                         tempPassword: finalPassword
                     );
-                    TempData["SuccessMessage"] = $"Tạo người dùng thành công! Email chào mừng đã được gửi. Mật khẩu tạm: {finalPassword}";
+                    // FIX: Không hiển thị mật khẩu trên UI, chỉ thông báo đã gửi email
+                    TempData["SuccessMessage"] = $"Tạo người dùng thành công! Thông tin đăng nhập đã được gửi qua email: {email}";
                 }
                 catch (Exception emailEx)
                 {
-                    TempData["WarningMessage"] = $"Tạo người dùng thành công nhưng gửi email thất bại: {emailEx.Message}. Mật khẩu tạm: {finalPassword}";
+                    // Chỉ hiển thị mật khẩu khi email thất bại (cần thiết cho admin)
+                    TempData["WarningMessage"] = $"Tạo người dùng thành công nhưng gửi email thất bại: {emailEx.Message}. Vui lòng cung cấp mật khẩu cho người dùng qua kênh khác.";
+                    // Log mật khẩu cho admin xem trong console thay vì UI
+                    Console.WriteLine($"[ADMIN] Password for {email}: {finalPassword}");
                 }
 
                 return RedirectToAction(nameof(Index));

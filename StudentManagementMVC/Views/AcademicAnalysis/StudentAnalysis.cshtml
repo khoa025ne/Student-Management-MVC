@@ -1,4 +1,4 @@
-@model IEnumerable<DataAccess.Entities.AcademicAnalysis>
+@model IEnumerable<Services.Models.AcademicAnalysisDto>
 @{
     ViewData["Title"] = "Phân tích Học tập của " + ViewBag.StudentName;
     var studentName = ViewBag.StudentName as string ?? "Sinh viên";
@@ -46,7 +46,7 @@
             </div>
             <form asp-action="GenerateAnalysis" method="post">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="studentId" value="@(Model.FirstOrDefault()?.StudentId ?? 0)" />
+                <input type="hidden" name="studentId" value="@(Model.FirstOrDefault()?.StudentId ?? "")" />
                 <button type="submit" class="btn btn-success">
                     <i class="fas fa-robot"></i> Tạo Phân tích Mới bằng AI
                 </button>
@@ -72,8 +72,8 @@
                 <div class="row">
                     @foreach (var analysis in Model.OrderByDescending(a => a.AnalysisDate))
                     {
-                        var strongSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(analysis.StrongSubjectsJson ?? "[]");
-                        var weakSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(analysis.WeakSubjectsJson ?? "[]");
+                        var strongSubjects = analysis.StrongSubjects ?? new List<string>();
+                        var weakSubjects = analysis.WeakSubjects ?? new List<string>();
 
                         <div class="col-md-6 mb-3">
                             <div class="card h-100 shadow-sm">

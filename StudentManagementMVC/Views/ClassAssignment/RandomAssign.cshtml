@@ -1,8 +1,8 @@
-@model IEnumerable<DataAccess.Entities.Class>
+@model IEnumerable<Services.Models.ClassDto>
 
 @{
     ViewData["Title"] = "Xếp Lớp Tự Động";
-    var student = ViewBag.Student as DataAccess.Entities.Student;
+    var student = ViewBag.Student as Services.Models.StudentDto;
 }
 
 <div class="space-y-6">
@@ -55,11 +55,11 @@
                             <div class="card-body">
                                 <!-- Class Info -->
                                 <div class="mb-3">
-                                    <h5 class="card-title mb-1">@classItem.Course?.CourseName</h5>
+                                    <h5 class="card-title mb-1">@classItem.CourseName</h5>
                                     <p class="text-muted mb-2">
                                         <small>
                                             <strong>@classItem.ClassCode</strong> • 
-                                            <span class="badge bg-info">@classItem.Course?.Credits TC</span>
+                                            <span class="badge bg-info">@(classItem.Course?.Credits ?? 3) TC</span>
                                         </small>
                                     </p>
                                 </div>
@@ -68,7 +68,7 @@
                                 <div class="mb-3 border-top pt-3">
                                     <p class="mb-2 small">
                                         <i class="fas fa-calendar-alt text-muted"></i>
-                                        <strong>Kỳ:</strong> @classItem.Semester?.SemesterName
+                                        <strong>Kỳ:</strong> @classItem.SemesterName
                                     </p>
                                     <p class="mb-2 small">
                                         <i class="fas fa-clock text-muted"></i>

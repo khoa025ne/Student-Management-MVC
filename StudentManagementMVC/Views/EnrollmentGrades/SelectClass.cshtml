@@ -1,4 +1,4 @@
-@model IEnumerable<DataAccess.Entities.Class>
+@model IEnumerable<Services.Models.ClassDto>
 
 @{
     ViewData["Title"] = "Chọn lớp học - " + ViewBag.SemesterName;
@@ -45,12 +45,12 @@
                                             <td>@classItem.ClassName</td>
                                             <td>
                                                 <span class="badge bg-info">
-                                                    @classItem.Course?.CourseName
+                                                    @classItem.CourseName
                                                 </span>
                                             </td>
                                             <td>
                                                 <i class="fas fa-user-tie"></i>
-                                                N/A
+                                                @(classItem.TeacherName ?? "N/A")
                                             </td>
                                             <td>
                                                 <span class="badge @(classItem.CurrentEnrollment >= classItem.MaxCapacity ? "bg-danger" : "bg-success")">

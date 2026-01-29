@@ -1,0 +1,396 @@
+@model Services.Models.TeacherClassDetailDto
+
+@{
+    ViewData["Title"] = $"Chi tiết lớp {Model.ClassName}";
+}
+
+<div class="animate-fade-in">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a asp-controller="Teacher" asp-action="Dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Teacher" asp-action="MyClasses">Lớp học</a></li>
+                    <li class="breadcrumb-item active">@Model.ClassName</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-1 fw-bold" style="font-family: var(--font-display);">
+                <i class="fas fa-chalkboard text-primary me-2"></i>@Model.ClassName
+            </h1>
+            <p class="text-muted mb-0">@Model.ClassCode • @Model.CourseName</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Teacher" asp-action="MyClasses" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
+            <a asp-controller="Teacher" asp-action="GradeEntry" asp-route-classId="@Model.ClassId" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Nhập điểm
+            </a>
+        </div>
+    </div>
+
+    <!-- Class Info Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: rgba(37, 99, 235, 0.1);">
+                        <div class="rounded-circle p-3" style="background: var(--primary);">
+                            <i class="fas fa-book text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Môn học</p>
+                            <h6 class="mb-0 fw-bold">@Model.CourseName</h6>
+                            <small class="text-muted">@Model.CourseCode</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: rgba(34, 197, 94, 0.1);">
+                        <div class="rounded-circle p-3" style="background: #22c55e;">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Sinh viên</p>
+                            <h6 class="mb-0 fw-bold">@Model.Students.Count SV</h6>
+                            <small class="text-muted">Đang học</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: rgba(245, 158, 11, 0.1);">
+                        <div class="rounded-circle p-3" style="background: #f59e0b;">
+                            <i class="fas fa-door-open text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Phòng học</p>
+                            <h6 class="mb-0 fw-bold">@(string.IsNullOrEmpty(Model.Room) ? "TBA" : Model.Room)</h6>
+                            <small class="text-muted">@(string.IsNullOrEmpty(Model.Schedule) ? Model.TimeSlot : Model.Schedule)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="d-flex align-items-center gap-3 p-3 rounded" style="background: rgba(139, 92, 246, 0.1);">
+                        <div class="rounded-circle p-3" style="background: #8b5cf6;">
+                            <i class="fas fa-graduation-cap text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Tín chỉ</p>
+                            <h6 class="mb-0 fw-bold">@Model.Credits TC</h6>
+                            <small class="text-muted">@Model.SemesterName</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Students.Any())
+    {
+        <!-- Grade Statistics -->
+        var gradedStudents = Model.Students.Where(s => s.TotalScore.HasValue).ToList();
+        var gradeA = gradedStudents.Count(s => s.Grade == "A");
+        var gradeB = gradedStudents.Count(s => s.Grade == "B");
+        var gradeC = gradedStudents.Count(s => s.Grade == "C");
+        var gradeD = gradedStudents.Count(s => s.Grade == "D");
+        var gradeF = gradedStudents.Count(s => s.Grade == "F");
+        var avgScore = gradedStudents.Any() ? gradedStudents.Average(s => s.TotalScore ?? 0) : 0;
+        
+        if (gradedStudents.Any())
+        {
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-chart-bar text-primary me-2"></i>Phân phối điểm
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col">
+                                    <div class="text-center p-3 rounded" style="background: rgba(34, 197, 94, 0.1);">
+                                        <h3 class="mb-1 fw-bold" style="color: #22c55e;">@gradeA</h3>
+                                        <div class="badge bg-success">Grade A</div>
+                                        <div class="text-muted small mt-1">@(gradedStudents.Any() ? (gradeA * 100 / gradedStudents.Count) : 0)%</div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-center p-3 rounded" style="background: rgba(37, 99, 235, 0.1);">
+                                        <h3 class="mb-1 fw-bold" style="color: #2563eb;">@gradeB</h3>
+                                        <div class="badge bg-primary">Grade B</div>
+                                        <div class="text-muted small mt-1">@(gradedStudents.Any() ? (gradeB * 100 / gradedStudents.Count) : 0)%</div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-center p-3 rounded" style="background: rgba(245, 158, 11, 0.1);">
+                                        <h3 class="mb-1 fw-bold" style="color: #f59e0b;">@gradeC</h3>
+                                        <div class="badge bg-warning text-dark">Grade C</div>
+                                        <div class="text-muted small mt-1">@(gradedStudents.Any() ? (gradeC * 100 / gradedStudents.Count) : 0)%</div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-center p-3 rounded" style="background: rgba(249, 115, 22, 0.1);">
+                                        <h3 class="mb-1 fw-bold" style="color: #f97316;">@gradeD</h3>
+                                        <div class="badge" style="background: #f97316;">Grade D</div>
+                                        <div class="text-muted small mt-1">@(gradedStudents.Any() ? (gradeD * 100 / gradedStudents.Count) : 0)%</div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="text-center p-3 rounded" style="background: rgba(239, 68, 68, 0.1);">
+                                        <h3 class="mb-1 fw-bold" style="color: #ef4444;">@gradeF</h3>
+                                        <div class="badge bg-danger">Grade F</div>
+                                        <div class="text-muted small mt-1">@(gradedStudents.Any() ? (gradeF * 100 / gradedStudents.Count) : 0)%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-info-circle text-primary me-2"></i>Thống kê
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Điểm trung bình</span>
+                                    <span class="h4 mb-0 fw-bold text-primary">@avgScore.ToString("F2")</span>
+                                </div>
+                            </div>
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Đã có điểm</span>
+                                    <span class="fw-bold">@gradedStudents.Count / @Model.Students.Count</span>
+                                </div>
+                            </div>
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Tỷ lệ đậu</span>
+                                    @{ var passRate = gradedStudents.Any() ? ((gradedStudents.Count - gradeF) * 100 / gradedStudents.Count) : 0; }
+                                    <span class="fw-bold text-success">@passRate%</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted">Chưa nhập điểm</span>
+                                    <span class="fw-bold text-warning">@(Model.Students.Count - gradedStudents.Count)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Student List -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-list text-primary me-2"></i>Danh sách sinh viên
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm..." 
+                               id="searchInput" style="width: 200px;">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="exportBtn">
+                            <i class="fas fa-download me-1"></i>Xuất
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="studentTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="py-3">#</th>
+                                <th class="py-3">MSSV</th>
+                                <th class="py-3">Họ tên</th>
+                                <th class="py-3 text-center">Chuyên cần</th>
+                                <th class="py-3 text-center">BT 1</th>
+                                <th class="py-3 text-center">BT 2</th>
+                                <th class="py-3 text-center">Giữa kỳ</th>
+                                <th class="py-3 text-center">Cuối kỳ</th>
+                                <th class="py-3 text-center">Tổng kết</th>
+                                <th class="py-3 text-center">Điểm chữ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{var index = 0;}
+                            @foreach (var student in Model.Students)
+                            {
+                                index++;
+                                <tr class="student-row">
+                                    <td class="py-3">@index</td>
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark">@student.StudentCode</span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center" 
+                                                 style="width: 32px; height: 32px; background: linear-gradient(135deg, #2563eb, #1d4ed8); font-size: 12px; color: white;">
+                                                @student.FullName.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">@student.FullName</div>
+                                                <small class="text-muted">@student.Email</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        @if (student.AttendanceScore.HasValue)
+                                        {
+                                            <span class="@GetScoreClass(student.AttendanceScore.Value)">@student.AttendanceScore.Value.ToString("F1")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        @if (student.Assignment1Score.HasValue)
+                                        {
+                                            <span class="@GetScoreClass(student.Assignment1Score.Value)">@student.Assignment1Score.Value.ToString("F1")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        @if (student.Assignment2Score.HasValue)
+                                        {
+                                            <span class="@GetScoreClass(student.Assignment2Score.Value)">@student.Assignment2Score.Value.ToString("F1")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        @if (student.MidtermScore.HasValue)
+                                        {
+                                            <span class="@GetScoreClass(student.MidtermScore.Value)">@student.MidtermScore.Value.ToString("F1")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        @if (student.FinalExamScore.HasValue)
+                                        {
+                                            <span class="@GetScoreClass(student.FinalExamScore.Value)">@student.FinalExamScore.Value.ToString("F1")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        @if (student.TotalScore.HasValue)
+                                        {
+                                            <span class="fw-bold @GetScoreClass(student.TotalScore.Value)">@student.TotalScore.Value.ToString("F2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 text-center">
+                                        @if (!string.IsNullOrEmpty(student.Grade))
+                                        {
+                                            <span class="badge @GetGradeBadgeClass(student.Grade) px-3 py-2">@student.Grade</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-users fa-4x text-muted"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Chưa có sinh viên</h4>
+                <p class="text-muted mb-4">Lớp học này chưa có sinh viên đăng ký.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetScoreClass(double score)
+    {
+        if (score >= 8.5) return "text-success fw-medium";
+        if (score >= 7.0) return "text-primary fw-medium";
+        if (score >= 5.0) return "text-warning fw-medium";
+        return "text-danger fw-medium";
+    }
+
+    string GetGradeBadgeClass(string grade)
+    {
+        return grade switch
+        {
+            "A" => "bg-success",
+            "B" => "bg-primary",
+            "C" => "bg-warning text-dark",
+            "D" => "bg-orange",
+            "F" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+@section Styles {
+    <style>
+        .bg-orange {
+            background-color: #f97316 !important;
+        }
+        .student-row {
+            transition: background-color 0.15s ease;
+        }
+        .student-row:hover {
+            background-color: rgba(37, 99, 235, 0.05) !important;
+        }
+        .avatar-sm {
+            font-weight: 600;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.student-row');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Export functionality (basic)
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            alert('Chức năng xuất file đang được phát triển');
+        });
+    </script>
+}

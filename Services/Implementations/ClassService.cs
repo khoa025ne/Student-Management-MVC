@@ -157,15 +157,23 @@ namespace Services.Implementations
             {
                 ClassId = classEntity.ClassId,
                 ClassName = classEntity.ClassName,
+                ClassCode = classEntity.ClassCode,
                 SemesterId = classEntity.SemesterId,
                 SemesterName = classEntity.Semester?.SemesterName,
                 CourseId = classEntity.CourseId,
                 CourseName = classEntity.Course?.CourseName,
                 MaxStudents = classEntity.MaxCapacity,
+                MaxCapacity = classEntity.MaxCapacity,
                 CurrentEnrollment = classEntity.CurrentEnrollment,
-                IsActive = true, // Default true since entity doesn't have this field
+                TeacherId = classEntity.TeacherId,
+                TeacherName = classEntity.Teacher?.User?.FullName,
+                IsActive = true,
                 Schedule = classEntity.Schedule,
-                Location = classEntity.Room
+                Location = classEntity.Room,
+                Room = classEntity.Room,
+                DayOfWeekPair = classEntity.DayOfWeekPair,
+                TimeSlot = classEntity.TimeSlot,
+                CreatedAt = classEntity.CreatedAt
             };
         }
     }

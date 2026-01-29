@@ -60,7 +60,7 @@
                             <label asp-for="RoleId" class="form-label">Vai trò *</label>
                             <select asp-for="RoleId" class="form-select" required id="roleSelect">
                                 <option value="">-- Chọn vai trò --</option>
-                                @foreach (var role in ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>)
+                                @foreach (var role in (ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>) ?? Enumerable.Empty<DataAccess.Entities.Role>())
                                 {
                                     <option value="@role.RoleId" data-rolename="@role.RoleName">@role.RoleName - @role.Description</option>
                                 }

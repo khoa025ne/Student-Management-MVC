@@ -3,6 +3,46 @@
   "WorkspaceRootPath": "F:\\ALL\\StudentManagementMVC\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\controllers\\studentprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\controllers\\studentprofilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\controllers\\studentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\controllers\\studentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\controllers\\transferscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\controllers\\transferscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\controllers\\academicanalysiscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\controllers\\academicanalysiscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{356DB3A5-FF66-48A4-8843-BD668D06EBA7}|Services\\Services.csproj|f:\\all\\studentmanagementmvc\\services\\models\\studentdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{356DB3A5-FF66-48A4-8843-BD668D06EBA7}|Services\\Services.csproj|solutionrelative:services\\models\\studentdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{356DB3A5-FF66-48A4-8843-BD668D06EBA7}|Services\\Services.csproj|f:\\all\\studentmanagementmvc\\services\\implementations\\academicanalysisservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{356DB3A5-FF66-48A4-8843-BD668D06EBA7}|Services\\Services.csproj|solutionrelative:services\\implementations\\academicanalysisservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\controllers\\schedulecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\controllers\\schedulecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\controllers\\learningpathcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\controllers\\learningpathcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|f:\\all\\studentmanagementmvc\\studentmanagementmvc\\views\\students\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{705AA34F-4A6C-4F58-BE7B-D16C8E2A0DEF}|StudentManagementMVC\\StudentManagementMVC.csproj|solutionrelative:studentmanagementmvc\\views\\students\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
@@ -43,19 +83,146 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Views\\Students\\Index.cshtml",
-              "RelativeDocumentMoniker": "StudentManagementMVC\\Views\\Students\\Index.cshtml",
-              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Views\\Students\\Index.cshtml",
-              "RelativeToolTip": "StudentManagementMVC\\Views\\Students\\Index.cshtml",
-              "ViewState": "AgIAAH8AAAAAAAAAAAApwIsAAABJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-01-21T05:56:55.492Z",
+              "Title": "Program.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Program.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Program.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Program.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Program.cs",
+              "ViewState": "AgIAAIgAAAAAAAAAAAAgwJQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T10:39:48.436Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AcademicAnalysisController.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\AcademicAnalysisController.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Controllers\\AcademicAnalysisController.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\AcademicAnalysisController.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Controllers\\AcademicAnalysisController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T09:15:41.517Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UsersController.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\UsersController.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Controllers\\UsersController.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\UsersController.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Controllers\\UsersController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T09:00:33.272Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "TransfersController.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\TransfersController.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Controllers\\TransfersController.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\TransfersController.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Controllers\\TransfersController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T09:00:39.179Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "StudentsController.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\StudentsController.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Controllers\\StudentsController.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\StudentsController.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Controllers\\StudentsController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T09:00:43.34Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "StudentProfileController.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\StudentProfileController.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Controllers\\StudentProfileController.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\StudentProfileController.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Controllers\\StudentProfileController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T09:00:46.081Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "StudentDto.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\Services\\Models\\StudentDto.cs",
+              "RelativeDocumentMoniker": "Services\\Models\\StudentDto.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\Services\\Models\\StudentDto.cs",
+              "RelativeToolTip": "Services\\Models\\StudentDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-29T09:15:36.183Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AcademicAnalysisService.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\Services\\Implementations\\AcademicAnalysisService.cs",
+              "RelativeDocumentMoniker": "Services\\Implementations\\AcademicAnalysisService.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\Services\\Implementations\\AcademicAnalysisService.cs",
+              "RelativeToolTip": "Services\\Implementations\\AcademicAnalysisService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T09:01:46.773Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ScheduleController.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\ScheduleController.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Controllers\\ScheduleController.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\ScheduleController.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Controllers\\ScheduleController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T09:01:36.519Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "LearningPathController.cs",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\LearningPathController.cs",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Controllers\\LearningPathController.cs",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Controllers\\LearningPathController.cs",
+              "RelativeToolTip": "StudentManagementMVC\\Controllers\\LearningPathController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T09:00:27.186Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Views\\Students\\Index.cshtml",
+              "RelativeDocumentMoniker": "StudentManagementMVC\\Views\\Students\\Index.cshtml",
+              "ToolTip": "F:\\ALL\\StudentManagementMVC\\StudentManagementMVC\\Views\\Students\\Index.cshtml",
+              "RelativeToolTip": "StudentManagementMVC\\Views\\Students\\Index.cshtml",
+              "ViewState": "AgIAALQBAAAAAAAAAAAQwIsAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-21T05:56:55.492Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
               "Title": "CourseRepository.cs",
               "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\Repositories\\Implementations\\CourseRepository.cs",
               "RelativeDocumentMoniker": "Repositories\\Implementations\\CourseRepository.cs",
@@ -67,7 +234,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 12,
               "Title": "ClassRepository.cs",
               "DocumentMoniker": "F:\\ALL\\StudentManagementMVC\\Repositories\\Implementations\\ClassRepository.cs",
               "RelativeDocumentMoniker": "Repositories\\Implementations\\ClassRepository.cs",

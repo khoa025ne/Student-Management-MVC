@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
+using System.Security.Claims;
 
 namespace StudentManagementMVC.Controllers
 {
@@ -8,6 +10,7 @@ namespace StudentManagementMVC.Controllers
     /// Controller cho Teacher Dashboard
     /// TUÂN THỦ 3-LAYER: Chỉ gọi Service, không truy cập DataAccess trực tiếp
     /// </summary>
+    [Authorize(Roles = "Teacher,Admin")]
     public class TeacherController : Controller
     {
         private readonly ITeacherService _teacherService;
@@ -19,14 +22,34 @@ namespace StudentManagementMVC.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Lấy UserId từ Claims an toàn
+        /// </summary>
+        private int? GetCurrentUserId()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                return userId;
+            }
+            return null;
+        }
+
         public async Task<IActionResult> Dashboard()
         {
-            var teacherId = HttpContext.Session.GetInt32("UserId") ?? 1;
+            // FIX: Loại bỏ hardcoded fallback UserId = 1
+            var teacherId = GetCurrentUserId();
+            if (!teacherId.HasValue)
+            {
+                TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ!";
+                return RedirectToAction("Login", "Auth");
+            }
             
-            var dashboard = await _teacherService.GetDashboardAsync(teacherId);
+            var dashboard = await _teacherService.GetDashboardAsync(teacherId.Value);
             
             if (dashboard == null)
             {
+                TempData["WarningMessage"] = "Không tìm thấy thông tin giảng viên!";
                 return RedirectToAction("Login", "Auth");
             }
 
@@ -36,9 +59,15 @@ namespace StudentManagementMVC.Controllers
         [HttpGet]
         public async Task<IActionResult> MyClasses()
         {
-            var teacherId = HttpContext.Session.GetInt32("UserId") ?? 1;
+            // FIX: Loại bỏ hardcoded fallback UserId = 1
+            var teacherId = GetCurrentUserId();
+            if (!teacherId.HasValue)
+            {
+                TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ!";
+                return RedirectToAction("Login", "Auth");
+            }
             
-            var classes = await _teacherService.GetMyClassesAsync(teacherId);
+            var classes = await _teacherService.GetMyClassesAsync(teacherId.Value);
 
             return View(classes);
         }

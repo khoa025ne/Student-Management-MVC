@@ -289,7 +289,7 @@
                             <p>Lớp học này chưa có sinh viên đăng ký</p>
                             @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
                             {
-                                <a href="@Url.Action("AddStudents", "Classes", new { classId = Model.ClassId })" class="btn btn-primary mt-3">
+                                <a href="@Url.Action("AddStudents", "Classes", new { classId = Model?.ClassId ?? 0 })" class="btn btn-primary mt-3">
                                     <i class="fas fa-user-plus me-2"></i>Thêm sinh viên
                                 </a>
                             }

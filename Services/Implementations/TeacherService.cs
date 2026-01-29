@@ -31,10 +31,13 @@ namespace Services.Implementations
             return teacher != null ? MapToDto(teacher) : null;
         }
 
-        public async Task<TeacherDashboardDto?> GetDashboardAsync(int teacherId)
+        public async Task<TeacherDashboardDto?> GetDashboardAsync(int userId)
         {
-            var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.Id == teacherId);
+            // FIX: Tìm Teacher bằng UserId thay vì TeacherId
+            var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
             if (teacher == null) return null;
+            
+            var teacherId = teacher.Id; // Lấy TeacherId thực sự để query các bảng khác
 
             // Get current semester
             var currentSemester = await _context.Semesters
@@ -137,8 +140,14 @@ namespace Services.Implementations
             };
         }
 
-        public async Task<IEnumerable<TeacherClassDto>> GetMyClassesAsync(int teacherId)
+        public async Task<IEnumerable<TeacherClassDto>> GetMyClassesAsync(int userId)
         {
+            // FIX: Tìm Teacher bằng UserId trước
+            var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (teacher == null) return Enumerable.Empty<TeacherClassDto>();
+            
+            var teacherId = teacher.Id;
+            
             var classes = await _context.Classes
                 .Include(c => c.Course)
                 .Include(c => c.Semester)

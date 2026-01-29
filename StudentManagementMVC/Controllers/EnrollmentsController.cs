@@ -181,6 +181,21 @@ namespace StudentManagementMVC.Controllers
                     TempData["ErrorMessage"] = "Không tìm thấy thông tin đăng ký!";
                     return RedirectToAction(nameof(MyEnrollments));
                 }
+
+                // FIX: Verify ownership - Kiểm tra enrollment có thuộc về current user không
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdStr, out int userId))
+                {
+                    TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ!";
+                    return RedirectToAction("Login", "Auth");
+                }
+                
+                var currentStudent = await _studentService.GetByUserIdAsync(userId);
+                if (currentStudent == null || enrollment.StudentId != currentStudent.StudentId)
+                {
+                    TempData["ErrorMessage"] = "Bạn không có quyền hủy đăng ký này!";
+                    return RedirectToAction(nameof(MyEnrollments));
+                }
                 
                 var student = enrollment.Student;
                 var className = enrollment.Class?.ClassName ?? "Lớp học";

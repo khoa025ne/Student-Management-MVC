@@ -1,4 +1,4 @@
-@model (DataAccess.Entities.Class ClassInfo, IEnumerable<(DataAccess.Entities.Enrollment Enrollment, DataAccess.Entities.Student Student, DataAccess.Entities.Score Score)> StudentList)
+@model (Services.Models.ClassDto ClassInfo, IEnumerable<(DataAccess.Entities.Enrollment Enrollment, DataAccess.Entities.Student Student, DataAccess.Entities.Score Score)> StudentList)
 
 @{
     ViewData["Title"] = "Danh Sách Sinh Viên - " + Model.ClassInfo.ClassName;
@@ -11,7 +11,7 @@
                 <div class="card-header bg-primary text-white">
                     <h4><i class="fas fa-list"></i> Danh Sách Sinh Viên - @Model.ClassInfo.ClassName</h4>
                     <small class="text-white-50">
-                        @Model.ClassInfo.Course?.CourseName (@Model.ClassInfo.ClassCode)
+                        @Model.ClassInfo.CourseName (@Model.ClassInfo.ClassCode)
                     </small>
                 </div>
                 <div class="card-body">

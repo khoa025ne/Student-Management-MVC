@@ -1,3 +1,25 @@
 ﻿@{
-    Layout = "_Layout";
+    // Determine layout based on user role
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    
+    // Auth pages use basic layout
+    if (controller == "Auth")
+    {
+        Layout = "_Layout";
+    }
+    // Admin and Manager use Admin layout
+    else if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+    {
+        Layout = "_Layout.Admin";
+    }
+    // Student and Teacher use Portal layout
+    else if (User.IsInRole("Student") || User.IsInRole("Teacher"))
+    {
+        Layout = "_Layout.Portal";
+    }
+    // Default layout for unauthenticated or other roles
+    else
+    {
+        Layout = "_Layout";
+    }
 }

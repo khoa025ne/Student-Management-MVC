@@ -1,102 +1,341 @@
 @model Services.Models.StudentDashboardDto
 
 @{
-    ViewData["Title"] = "Trang chủ";
-    ViewData["Subtitle"] = $"Chào mừng, {Model.Student.FullName}!";
-    Layout = "~/Views/Shared/_LayoutTailAdmin.cshtml";
+    ViewData["Title"] = "Trang chủ Sinh viên";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <style>
-        .welcome-banner {
-            background: linear-gradient(135deg, #465fff 0%, #7592ff 100%);
-            border-radius: var(--radius-xl);
-            padding: 32px;
+        :root {
+            --primary-red: #dc2626;
+            --primary-red-dark: #b91c1c;
+            --primary-orange: #ea580c;
+            --gradient-uni: linear-gradient(135deg, #dc2626 0%, #ea580c 50%, #f97316 100%);
+            --gradient-dark: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+        
+        /* University Banner */
+        .uni-banner {
+            background: var(--gradient-uni);
+            border-radius: 20px;
+            padding: 2rem 2.5rem;
             color: white;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 20px 60px rgba(220, 38, 38, 0.3);
         }
-        .welcome-banner::before {
+        .uni-banner::before {
             content: '';
             position: absolute;
-            right: -50px;
-            top: -50px;
-            width: 200px;
-            height: 200px;
-            background: rgba(255,255,255,0.1);
+            right: -100px;
+            top: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
             border-radius: 50%;
         }
-        .welcome-banner::after {
-            content: '';
-            position: absolute;
-            right: 50px;
-            bottom: -30px;
-            width: 100px;
-            height: 100px;
-            background: rgba(255,255,255,0.05);
+        
+        .student-avatar {
+            width: 90px;
+            height: 90px;
+            background: rgba(255,255,255,0.25);
+            border: 3px solid rgba(255,255,255,0.5);
             border-radius: 50%;
-        }
-        .gpa-circle {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: conic-gradient(
-                var(--success-500) 0% @(Model.OverallGPA * 10)%,
-                var(--gray-200) @(Model.OverallGPA * 10)% 100%
-            );
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
+            font-size: 2rem;
+            font-weight: 700;
+            backdrop-filter: blur(5px);
         }
-        .gpa-circle-inner {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            background: var(--bg-secondary);
+        
+        .student-info-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(5px);
+        }
+        
+        .banner-action-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .banner-action-btn:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Stats Grid */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        .stat-card.gpa::before { background: linear-gradient(90deg, #dc2626, #ea580c); }
+        .stat-card.credits::before { background: linear-gradient(90deg, #16a34a, #22c55e); }
+        .stat-card.current::before { background: linear-gradient(90deg, #2563eb, #3b82f6); }
+        .stat-card.progress::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
+        
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .stat-icon.red { background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(234, 88, 12, 0.15)); color: #dc2626; }
+        .stat-icon.green { background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), rgba(34, 197, 94, 0.15)); color: #16a34a; }
+        .stat-icon.blue { background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(59, 130, 246, 0.15)); color: #2563eb; }
+        .stat-icon.orange { background: linear-gradient(135deg, rgba(217, 119, 6, 0.15), rgba(245, 158, 11, 0.15)); color: #d97706; }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            line-height: 1;
+        }
+        
+        /* Content Cards */
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .content-card-header {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .content-card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .content-card-body { padding: 1.5rem; }
+        
+        /* Schedule Items */
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .schedule-item:last-child { margin-bottom: 0; }
+        .schedule-item:hover { background: #f1f5f9; }
+        .schedule-item.active {
+            border-left-color: #dc2626;
+            background: rgba(220, 38, 38, 0.05);
+        }
+        
+        .schedule-time {
+            min-width: 70px;
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--gradient-uni);
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        /* Score Table */
+        .score-table {
+            width: 100%;
+        }
+        .score-table thead th {
+            background: #f1f5f9;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #64748b;
+            border: none;
+        }
+        .score-table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .score-table tbody tr:hover { background: #fafafa; }
+        
+        .grade-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .grade-badge.A { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #166534; }
+        .grade-badge.B { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; }
+        .grade-badge.C { background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0369a1; }
+        .grade-badge.D { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #b45309; }
+        .grade-badge.F { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #b91c1c; }
+        
+        /* Quick Actions */
+        .quick-action {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 1.25rem;
+            border-radius: 16px;
+            text-decoration: none;
+            transition: all 0.3s;
+            background: #f8fafc;
+            border: 1px solid transparent;
         }
-        .schedule-item {
+        .quick-action:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.15);
+            border-color: rgba(220, 38, 38, 0.2);
+            background: white;
+        }
+        .quick-action-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px;
-            background: var(--gray-50);
-            border-radius: var(--radius-lg);
-            margin-bottom: 12px;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+            color: white;
         }
-        .schedule-time {
-            min-width: 80px;
+        .quick-action span { font-size: 0.85rem; font-weight: 500; color: #374151; }
+        
+        /* Grade Distribution */
+        .grade-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+        }
+        .grade-bar-label {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .grade-bar-track {
+            flex: 1;
+            height: 12px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .grade-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Warning Alert */
+        .warning-alert {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .warning-alert-icon {
+            width: 48px;
+            height: 48px;
+            background: #dc2626;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+        
+        .empty-state {
             text-align: center;
-            padding: 8px 12px;
-            background: var(--brand-100);
-            color: var(--brand-700);
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 13px;
+            padding: 3rem;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #e2e8f0;
+            margin-bottom: 1rem;
         }
     </style>
 }
 
-<!-- Welcome Banner -->
-<div class="welcome-banner mb-6">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold mb-2">Xin chào, @Model.Student.FullName! 👋</h1>
-            <p class="opacity-90">Mã sinh viên: @Model.Student.StudentCode | Lớp: @Model.Student.ClassCode</p>
-            @if (Model.CurrentSemester != null)
-            {
-                <p class="opacity-75 mt-2">
-                    <i class="fas fa-calendar-alt"></i> Học kỳ: @Model.CurrentSemester.SemesterName
-                </p>
-            }
+<!-- University Banner -->
+<div class="uni-banner mb-4">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-4 position-relative" style="z-index: 1;">
+        <div class="d-flex align-items-center gap-4">
+            <div class="student-avatar">
+                @Model.Student.FullName.Substring(0, 1).ToUpper()
+            </div>
+            <div>
+                <p class="mb-1 opacity-75 small">Xin chào sinh viên,</p>
+                <h1 class="h3 fw-bold mb-2" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    @Model.Student.FullName
+                </h1>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="student-info-badge"><i class="fas fa-id-card me-1"></i>@Model.Student.StudentCode</span>
+                    <span class="student-info-badge"><i class="fas fa-users me-1"></i>@Model.Student.ClassCode</span>
+                    <span class="student-info-badge"><i class="fas fa-graduation-cap me-1"></i>@Model.Student.Major</span>
+                </div>
+            </div>
         </div>
-        <div class="hidden lg:block">
-            <img src="~/images/student-illustration.svg" alt="" class="h-32" onerror="this.style.display='none'" />
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-controller="Schedule" asp-action="Index" class="banner-action-btn">
+                <i class="fas fa-calendar-alt me-2"></i>Lịch học
+            </a>
+            <a asp-controller="Scores" asp-action="MyGrades" class="banner-action-btn">
+                <i class="fas fa-chart-line me-2"></i>Bảng điểm
+            </a>
+            <a asp-controller="Enrollments" asp-action="Register" class="banner-action-btn">
+                <i class="fas fa-plus-circle me-2"></i>Đăng ký môn
+            </a>
         </div>
     </div>
 </div>
@@ -104,116 +343,100 @@
 <!-- Academic Warning -->
 @if (Model.NeedsAcademicWarning)
 {
-    <div class="alert-card danger mb-6">
-        <div class="alert-card-icon">
-            <i class="fas fa-exclamation-circle"></i>
+    <div class="warning-alert mb-4">
+        <div class="warning-alert-icon">
+            <i class="fas fa-exclamation-triangle"></i>
         </div>
-        <div class="alert-card-content">
-            <div class="alert-card-title">⚠️ Cảnh báo học vụ</div>
-            <div class="alert-card-description">
-                GPA của bạn đang dưới 2.0. Hãy tập trung cải thiện kết quả học tập và liên hệ cố vấn học tập để được hỗ trợ.
-            </div>
+        <div class="flex-grow-1">
+            <h6 class="fw-bold text-danger mb-1">⚠️ Cảnh báo học vụ</h6>
+            <p class="mb-0 small text-muted">GPA của bạn đang dưới 2.0. Hãy tập trung cải thiện kết quả học tập để đạt yêu cầu.</p>
         </div>
-        <a href="@Url.Action("Index", "LearningPath")" class="alert-card-action">
-            Xem gợi ý lộ trình
+        <a asp-controller="LearningPath" asp-action="Index" class="btn btn-danger btn-sm">
+            <i class="fas fa-robot me-1"></i>Xem gợi ý AI
         </a>
     </div>
 }
 
-<!-- Stats Row -->
-<div class="stats-row mb-6">
-    <!-- GPA Card -->
-    <div class="stat-card">
-        <div class="flex items-center justify-between">
-            <div>
-                <div class="stat-card-label mb-1">GPA Tổng kết</div>
-                <div class="stat-card-value @GetGPAColor(Model.OverallGPA)">@Model.OverallGPA.ToString("F2")</div>
-                <div class="text-sm text-secondary mt-1">
-                    Xếp loại: <span class="font-semibold">@GetRankText(Model.OverallGPA)</span>
+<!-- Stats Grid -->
+<div class="row g-4 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card gpa">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <p class="text-muted small mb-2">GPA Tích lũy</p>
+                    <div class="stat-value @GetGPAColor(Model.OverallGPA)">@Model.OverallGPA.ToString("F2")</div>
+                    <p class="text-muted small mb-0 mt-1">/ 10.00 điểm</p>
                 </div>
+                <div class="stat-icon red"><i class="fas fa-trophy"></i></div>
             </div>
-            <div class="gpa-circle">
-                <div class="gpa-circle-inner">
-                    <span class="text-3xl font-bold @GetGPAColor(Model.OverallGPA)">@Model.OverallGPA.ToString("F1")</span>
-                    <span class="text-xs text-secondary">/10</span>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card credits">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <p class="text-muted small mb-2">Tín chỉ tích lũy</p>
+                    <div class="stat-value text-success">@Model.TotalCredits</div>
+                    <p class="text-muted small mb-0 mt-1">/ 130 tín chỉ</p>
                 </div>
+                <div class="stat-icon green"><i class="fas fa-medal"></i></div>
             </div>
         </div>
     </div>
-
-    <!-- Credits -->
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon courses">
-                <i class="fas fa-graduation-cap"></i>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card current">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <p class="text-muted small mb-2">Đang học kỳ này</p>
+                    <div class="stat-value text-primary">@Model.TotalCreditsThisSemester</div>
+                    <p class="text-muted small mb-0 mt-1">tín chỉ</p>
+                </div>
+                <div class="stat-icon blue"><i class="fas fa-book-open"></i></div>
             </div>
-        </div>
-        <div class="stat-card-body">
-            <div class="stat-card-value">@Model.TotalCredits</div>
-            <div class="stat-card-label">Tín chỉ đã hoàn thành</div>
-        </div>
-        <div class="stat-card-footer">
-            <span>@Model.TotalCreditsThisSemester tín chỉ học kỳ này</span>
         </div>
     </div>
-
-    <!-- Enrolled Courses -->
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon enrollments">
-                <i class="fas fa-book-open"></i>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card progress">
+            <div class="d-flex align-items-start justify-content-between">
+                <div>
+                    <p class="text-muted small mb-2">Tiến độ hoàn thành</p>
+                    <div class="stat-value" style="color: #d97706;">@(Math.Round((double)Model.TotalCredits / 130 * 100))%</div>
+                    <div class="progress mt-2" style="height: 8px; width: 100px; background: #f1f5f9;">
+                        <div class="progress-bar" style="width: @(Math.Round((double)Model.TotalCredits / 130 * 100))%; background: linear-gradient(90deg, #d97706, #f59e0b);"></div>
+                    </div>
+                </div>
+                <div class="stat-icon orange"><i class="fas fa-tasks"></i></div>
             </div>
-        </div>
-        <div class="stat-card-body">
-            <div class="stat-card-value">@Model.EnrolledCoursesCount</div>
-            <div class="stat-card-label">Môn đang học</div>
-        </div>
-        <div class="stat-card-footer">
-            <span>@Model.CompletedCoursesCount môn đã hoàn thành</span>
-        </div>
-    </div>
-
-    <!-- Pass Rate -->
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <div class="stat-card-icon @(Model.PassRate >= 80 ? "pass" : "warning")">
-                <i class="fas fa-chart-pie"></i>
-            </div>
-        </div>
-        <div class="stat-card-body">
-            <div class="stat-card-value">@Model.PassRate.ToString("F0")%</div>
-            <div class="stat-card-label">Tỷ lệ đậu</div>
         </div>
     </div>
 </div>
 
-<!-- Main Content Grid -->
-<div class="grid grid-cols-12 gap-6">
+<!-- Main Content -->
+<div class="row g-4">
     <!-- Today's Schedule -->
-    <div class="col-span-12 lg:col-span-5">
-        <div class="chart-card">
-            <div class="chart-card-header">
-                <div>
-                    <div class="chart-card-title">
-                        <i class="fas fa-calendar-day text-brand"></i> Lịch học hôm nay
-                    </div>
-                    <div class="chart-card-subtitle">@DateTime.Now.ToString("dddd, dd/MM/yyyy")</div>
-                </div>
-                <a href="@Url.Action("Index", "Schedule")" class="btn btn-sm btn-ghost">
-                    Xem tuần <i class="fas fa-arrow-right"></i>
+    <div class="col-12 col-lg-5">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="fas fa-calendar-day"></i> Lịch học hôm nay</h5>
+                <a asp-controller="Schedule" asp-action="Index" class="text-white-50 small text-decoration-none">
+                    Xem tất cả <i class="fas fa-chevron-right ms-1"></i>
                 </a>
             </div>
-            <div class="chart-card-body">
-                @if (Model.UpcomingClasses.Any())
+            <div class="content-card-body">
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-clock me-1"></i>@DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"))
+                </p>
+                
+                @if (Model.UpcomingClasses != null && Model.UpcomingClasses.Any())
                 {
-                    @foreach (dynamic cls in Model.UpcomingClasses)
+                    foreach (dynamic cls in Model.UpcomingClasses)
                     {
-                        <div class="schedule-item">
+                        <div class="schedule-item active">
                             <div class="schedule-time">@cls.TimeSlot</div>
-                            <div class="flex-1">
-                                <div class="font-semibold text-primary">@cls.CourseName</div>
-                                <div class="text-sm text-secondary">
-                                    <i class="fas fa-door-open"></i> Phòng @cls.Room
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-semibold" style="font-size: 0.95rem;">@cls.CourseName</h6>
+                                <div class="d-flex align-items-center gap-3 text-muted small">
+                                    <span><i class="fas fa-door-open me-1"></i>@cls.Room</span>
                                 </div>
                             </div>
                         </div>
@@ -221,9 +444,10 @@
                 }
                 else
                 {
-                    <div class="text-center py-8 text-secondary">
-                        <i class="fas fa-coffee text-4xl mb-3"></i>
-                        <p>Hôm nay không có lớp! 🎉</p>
+                    <div class="empty-state">
+                        <i class="fas fa-mug-hot"></i>
+                        <h6 class="text-muted">Không có lịch học hôm nay!</h6>
+                        <p class="text-muted small">Hãy tận dụng thời gian ôn bài 📚</p>
                     </div>
                 }
             </div>
@@ -231,28 +455,23 @@
     </div>
 
     <!-- Recent Scores -->
-    <div class="col-span-12 lg:col-span-7">
-        <div class="chart-card">
-            <div class="chart-card-header">
-                <div>
-                    <div class="chart-card-title">
-                        <i class="fas fa-star text-warning"></i> Điểm gần đây
-                    </div>
-                    <div class="chart-card-subtitle">5 môn học gần nhất có điểm</div>
-                </div>
-                <a href="@Url.Action("MyGrades", "Scores")" class="btn btn-sm btn-ghost">
-                    Xem tất cả <i class="fas fa-arrow-right"></i>
+    <div class="col-12 col-lg-7">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="fas fa-star"></i> Điểm gần đây</h5>
+                <a asp-controller="Scores" asp-action="MyGrades" class="text-white-50 small text-decoration-none">
+                    Xem tất cả <i class="fas fa-chevron-right ms-1"></i>
                 </a>
             </div>
-            <div class="chart-card-body p-0">
-                <div class="table-container">
-                    <table class="top-students-table">
+            <div class="content-card-body p-0">
+                <div class="table-responsive">
+                    <table class="score-table">
                         <thead>
                             <tr>
                                 <th>Môn học</th>
-                                <th>Tín chỉ</th>
-                                <th>Điểm</th>
-                                <th>Xếp loại</th>
+                                <th class="text-center">Tín chỉ</th>
+                                <th class="text-center">Điểm TB</th>
+                                <th class="text-center">Xếp loại</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -262,17 +481,15 @@
                                 {
                                     <tr>
                                         <td>
-                                            <div class="font-semibold">@score.CourseName</div>
-                                            <div class="text-xs text-secondary">@score.CourseCode</div>
+                                            <div class="fw-semibold" style="font-size: 0.9rem;">@score.CourseName</div>
+                                            <div class="text-muted small">@score.CourseCode</div>
                                         </td>
-                                        <td>@score.Credits</td>
-                                        <td>
-                                            <span class="font-semibold">@((score.TotalScore as double?)?.ToString("F1") ?? "-")</span>
+                                        <td class="text-center fw-medium">@score.Credits</td>
+                                        <td class="text-center">
+                                            <span class="fw-bold" style="font-size: 1.1rem;">@((score.TotalScore as double?)?.ToString("F1") ?? "-")</span>
                                         </td>
-                                        <td>
-                                            <span class="gpa-badge @GetGradeBadgeClass(score.Grade as string)">
-                                                @(score.Grade ?? "-")
-                                            </span>
+                                        <td class="text-center">
+                                            <span class="grade-badge @(score.Grade ?? "")">@(score.Grade ?? "-")</span>
                                         </td>
                                     </tr>
                                 }
@@ -280,7 +497,8 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="4" class="text-center py-8 text-secondary">
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class="fas fa-inbox fa-2x mb-2 d-block" style="color: #e2e8f0;"></i>
                                         Chưa có điểm nào
                                     </td>
                                 </tr>
@@ -291,110 +509,120 @@
             </div>
         </div>
     </div>
+</div>
 
+<!-- Second Row -->
+<div class="row g-4 mt-0">
     <!-- Grade Distribution -->
-    <div class="col-span-12 lg:col-span-6">
-        <div class="chart-card">
-            <div class="chart-card-header">
-                <div>
-                    <div class="chart-card-title">Phân bố điểm của bạn</div>
-                </div>
+    <div class="col-12 col-lg-5">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="fas fa-chart-bar"></i> Phân bố điểm</h5>
             </div>
-            <div class="chart-card-body">
-                <div class="gpa-distribution">
-                    @{
-                        var total = Model.GradeACount + Model.GradeBCount + Model.GradeCCount + Model.GradeDCount + Model.GradeFCount;
-                    }
-                    <div class="gpa-bar">
-                        <span class="gpa-grade a">A</span>
-                        <div class="gpa-bar-container">
-                            <div class="gpa-bar-fill a" style="width: @(total > 0 ? (Model.GradeACount * 100.0 / total) : 0)%"></div>
-                        </div>
-                        <span class="gpa-count">@Model.GradeACount</span>
+            <div class="content-card-body">
+                @{
+                    var total = Model.GradeACount + Model.GradeBCount + Model.GradeCCount + Model.GradeDCount + Model.GradeFCount;
+                    if(total == 0) total = 1;
+                }
+                <div class="grade-bar">
+                    <div class="grade-bar-label" style="background: linear-gradient(135deg, #16a34a, #22c55e);">A</div>
+                    <div class="grade-bar-track">
+                        <div class="grade-bar-fill" style="width: @(Model.GradeACount * 100.0 / total)%; background: linear-gradient(90deg, #16a34a, #22c55e);"></div>
                     </div>
-                    <div class="gpa-bar">
-                        <span class="gpa-grade b">B</span>
-                        <div class="gpa-bar-container">
-                            <div class="gpa-bar-fill b" style="width: @(total > 0 ? (Model.GradeBCount * 100.0 / total) : 0)%"></div>
-                        </div>
-                        <span class="gpa-count">@Model.GradeBCount</span>
+                    <span class="text-muted fw-medium" style="min-width: 30px;">@Model.GradeACount</span>
+                </div>
+                <div class="grade-bar">
+                    <div class="grade-bar-label" style="background: linear-gradient(135deg, #2563eb, #3b82f6);">B</div>
+                    <div class="grade-bar-track">
+                        <div class="grade-bar-fill" style="width: @(Model.GradeBCount * 100.0 / total)%; background: linear-gradient(90deg, #2563eb, #3b82f6);"></div>
                     </div>
-                    <div class="gpa-bar">
-                        <span class="gpa-grade c">C</span>
-                        <div class="gpa-bar-container">
-                            <div class="gpa-bar-fill c" style="width: @(total > 0 ? (Model.GradeCCount * 100.0 / total) : 0)%"></div>
-                        </div>
-                        <span class="gpa-count">@Model.GradeCCount</span>
+                    <span class="text-muted fw-medium" style="min-width: 30px;">@Model.GradeBCount</span>
+                </div>
+                <div class="grade-bar">
+                    <div class="grade-bar-label" style="background: linear-gradient(135deg, #0ea5e9, #38bdf8);">C</div>
+                    <div class="grade-bar-track">
+                        <div class="grade-bar-fill" style="width: @(Model.GradeCCount * 100.0 / total)%; background: linear-gradient(90deg, #0ea5e9, #38bdf8);"></div>
                     </div>
-                    <div class="gpa-bar">
-                        <span class="gpa-grade d">D</span>
-                        <div class="gpa-bar-container">
-                            <div class="gpa-bar-fill d" style="width: @(total > 0 ? (Model.GradeDCount * 100.0 / total) : 0)%"></div>
-                        </div>
-                        <span class="gpa-count">@Model.GradeDCount</span>
+                    <span class="text-muted fw-medium" style="min-width: 30px;">@Model.GradeCCount</span>
+                </div>
+                <div class="grade-bar">
+                    <div class="grade-bar-label" style="background: linear-gradient(135deg, #d97706, #f59e0b);">D</div>
+                    <div class="grade-bar-track">
+                        <div class="grade-bar-fill" style="width: @(Model.GradeDCount * 100.0 / total)%; background: linear-gradient(90deg, #d97706, #f59e0b);"></div>
                     </div>
-                    <div class="gpa-bar">
-                        <span class="gpa-grade f">F</span>
-                        <div class="gpa-bar-container">
-                            <div class="gpa-bar-fill f" style="width: @(total > 0 ? (Model.GradeFCount * 100.0 / total) : 0)%"></div>
-                        </div>
-                        <span class="gpa-count">@Model.GradeFCount</span>
+                    <span class="text-muted fw-medium" style="min-width: 30px;">@Model.GradeDCount</span>
+                </div>
+                <div class="grade-bar">
+                    <div class="grade-bar-label" style="background: linear-gradient(135deg, #dc2626, #ef4444);">F</div>
+                    <div class="grade-bar-track">
+                        <div class="grade-bar-fill" style="width: @(Model.GradeFCount * 100.0 / total)%; background: linear-gradient(90deg, #dc2626, #ef4444);"></div>
                     </div>
+                    <span class="text-muted fw-medium" style="min-width: 30px;">@Model.GradeFCount</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="col-span-12 lg:col-span-6">
-        <div class="chart-card">
-            <div class="chart-card-header">
-                <div>
-                    <div class="chart-card-title">Thao tác nhanh</div>
-                </div>
+    <div class="col-12 col-lg-7">
+        <div class="content-card h-100">
+            <div class="content-card-header">
+                <h5><i class="fas fa-bolt"></i> Thao tác nhanh</h5>
             </div>
-            <div class="chart-card-body">
-                <div class="quick-actions">
-                    <a href="@Url.Action("Register", "Enrollments")" class="quick-action-card">
-                        <div class="quick-action-icon">
-                            <i class="fas fa-plus-circle"></i>
-                        </div>
-                        <span class="quick-action-label">Đăng ký môn học</span>
-                    </a>
-                    <a href="@Url.Action("Index", "Schedule")" class="quick-action-card">
-                        <div class="quick-action-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <span class="quick-action-label">Xem lịch học</span>
-                    </a>
-                    <a href="@Url.Action("MyGrades", "Scores")" class="quick-action-card">
-                        <div class="quick-action-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <span class="quick-action-label">Bảng điểm</span>
-                    </a>
-                    <a href="@Url.Action("Index", "LearningPath")" class="quick-action-card">
-                        <div class="quick-action-icon">
-                            <i class="fas fa-route"></i>
-                        </div>
-                        <span class="quick-action-label">Lộ trình AI</span>
-                    </a>
-                    <a href="@Url.Action("MyAnalysis", "AcademicAnalysis")" class="quick-action-card">
-                        <div class="quick-action-icon">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <span class="quick-action-label">Phân tích AI</span>
-                    </a>
-                    <a href="@Url.Action("Index", "Notifications")" class="quick-action-card">
-                        <div class="quick-action-icon">
-                            <i class="fas fa-bell"></i>
+            <div class="content-card-body">
+                <div class="row g-3">
+                    <div class="col-4 col-md-4">
+                        <a asp-controller="Enrollments" asp-action="Register" class="quick-action">
+                            <div class="quick-action-icon" style="background: var(--gradient-uni);">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <span>Đăng ký môn</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-4">
+                        <a asp-controller="Schedule" asp-action="Index" class="quick-action">
+                            <div class="quick-action-icon" style="background: linear-gradient(135deg, #16a34a, #22c55e);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <span>Lịch học</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-4">
+                        <a asp-controller="Scores" asp-action="MyGrades" class="quick-action">
+                            <div class="quick-action-icon" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <span>Bảng điểm</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-4">
+                        <a asp-controller="LearningPath" asp-action="Index" class="quick-action">
+                            <div class="quick-action-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+                                <i class="fas fa-route"></i>
+                            </div>
+                            <span>Lộ trình AI</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-4">
+                        <a asp-controller="AcademicAnalysis" asp-action="MyAnalysis" class="quick-action">
+                            <div class="quick-action-icon" style="background: linear-gradient(135deg, #db2777, #ec4899);">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <span>Phân tích AI</span>
+                        </a>
+                    </div>
+                    <div class="col-4 col-md-4">
+                        <a asp-controller="Notifications" asp-action="MyNotifications" class="quick-action position-relative">
+                            <div class="quick-action-icon" style="background: linear-gradient(135deg, #0891b2, #06b6d4);">
+                                <i class="fas fa-bell"></i>
+                            </div>
                             @if (Model.UnreadNotifications > 0)
                             {
-                                <span class="badge" style="position:absolute;top:-5px;right:-5px;">@Model.UnreadNotifications</span>
+                                <span class="position-absolute badge bg-danger rounded-pill" style="top: 5px; right: 15px;">@Model.UnreadNotifications</span>
                             }
-                        </div>
-                        <span class="quick-action-label">Thông báo</span>
-                    </a>
+                            <span>Thông báo</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -407,34 +635,9 @@
         return gpa switch
         {
             >= 8.5 => "text-success",
-            >= 7.0 => "text-brand",
+            >= 7.0 => "text-primary",
             >= 5.5 => "text-warning",
-            _ => "text-error"
-        };
-    }
-
-    string GetRankText(double gpa)
-    {
-        return gpa switch
-        {
-            >= 8.5 => "Xuất sắc",
-            >= 7.0 => "Giỏi",
-            >= 5.5 => "Khá",
-            >= 4.0 => "Trung bình",
-            _ => "Yếu"
-        };
-    }
-
-    string GetGradeBadgeClass(string? grade)
-    {
-        return grade switch
-        {
-            "A" => "excellent",
-            "B" => "good",
-            "C" => "average",
-            "D" => "average",
-            "F" => "poor",
-            _ => "average"
+            _ => "text-danger"
         };
     }
 }

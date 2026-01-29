@@ -46,7 +46,7 @@
                             @if (Model.Role?.RoleName == "Admin")
                             {
                                 <select asp-for="RoleId" class="form-select" required disabled>
-                                    @foreach (var role in ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>)
+                                    @foreach (var role in (ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>) ?? Enumerable.Empty<DataAccess.Entities.Role>())
                                     {
                                         <option value="@role.RoleId" selected="@(role.RoleId == Model.RoleId)">
                                             @role.RoleName - @role.Description
@@ -59,7 +59,7 @@
                             else
                             {
                                 <select asp-for="RoleId" class="form-select" required>
-                                    @foreach (var role in ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>)
+                                    @foreach (var role in (ViewBag.Roles as IEnumerable<DataAccess.Entities.Role>) ?? Enumerable.Empty<DataAccess.Entities.Role>())
                                     {
                                         <option value="@role.RoleId" selected="@(role.RoleId == Model.RoleId)">
                                             @role.RoleName - @role.Description

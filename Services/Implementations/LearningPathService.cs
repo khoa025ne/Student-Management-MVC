@@ -37,19 +37,20 @@ namespace Services.Implementations
         public async Task<LearningPathRecommendation> GenerateRecommendationAsync(int userId)
         {
             var student = await _studentService.GetByUserIdAsync(userId);
-            if (student == null) throw new System.Exception("Student not found");
+            if (student == null) throw new Exception("Student not found");
 
             var activeSemester = await _semesterService.GetActiveAsync();
+            var semesterId = activeSemester?.SemesterId ?? 1;
             
             // FLOW 3: Sử dụng Gemini AI thật thay vì mock data
             try
             {
                 var aiResult = await _geminiAIService.GenerateLearningPathAsync(
                     student.StudentId, 
-                    activeSemester?.SemesterId ?? 1
+                    semesterId
                 );
 
-                if (aiResult.Success && aiResult.RecommendedCourses.Length > 0)
+                if (aiResult.Success && aiResult.RecommendedCourses?.Length > 0)
                 {
                     // Chuyển đổi từ AI result sang JSON
                     var coursesJson = JsonConvert.SerializeObject(

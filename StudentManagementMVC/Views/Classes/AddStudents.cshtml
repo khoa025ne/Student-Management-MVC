@@ -1,8 +1,8 @@
-@model IEnumerable<DataAccess.Entities.Student>
+@model IEnumerable<Services.Models.StudentDto>
 
 @{
     ViewData["Title"] = "Thêm sinh viên vào lớp";
-    var classEntity = ViewBag.Class as DataAccess.Entities.Class;
+    var classEntity = ViewBag.Class as Services.Models.ClassDto;
     var availableSlots = (int)ViewBag.AvailableSlots;
     var currentEnrollment = (int)ViewBag.CurrentEnrollment;
 }
@@ -77,15 +77,15 @@
                                             {
                                                 <tr class="student-row" 
                                                     data-code="@student.StudentCode" 
-                                                    data-name="@student.User?.FullName" 
-                                                    data-email="@student.User?.Email">
+                                                    data-name="@student.FullName" 
+                                                    data-email="@student.Email">
                                                     <td>
-                                                        <input type="checkbox" name="studentIds" value="@student.StudentId" 
+                                                        <input type="checkbox" name="studentIds" value="@student.StudentIdInt" 
                                                                class="student-checkbox" onchange="updateCount()">
                                                     </td>
                                                     <td><strong>@student.StudentCode</strong></td>
-                                                    <td>@student.User?.FullName</td>
-                                                    <td>@student.User?.Email</td>
+                                                    <td>@student.FullName</td>
+                                                    <td>@student.Email</td>
                                                     <td>
                                                         <span class="badge bg-secondary">@student.Major</span>
                                                     </td>

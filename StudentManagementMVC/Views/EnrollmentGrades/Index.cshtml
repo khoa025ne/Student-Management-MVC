@@ -2,47 +2,114 @@
     ViewData["Title"] = "Quản lý điểm số";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-graduation-cap"></i> Quản lý điểm số theo lớp
-                    </h4>
+<style>
+    .page-container { padding: 1.5rem; background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%); min-height: calc(100vh - 60px); }
+    .page-header-card { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; color: white; box-shadow: 0 10px 40px rgba(245, 158, 11, 0.3); }
+    .page-header-card h1 { font-size: 1.75rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header-card p { margin: 0.5rem 0 0 0; opacity: 0.9; }
+    .main-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .card-header-custom { background: linear-gradient(135deg, #1f2937 0%, #374151 100%); color: white; padding: 1.5rem; }
+    .card-header-custom h4 { margin: 0; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; }
+    .card-body-custom { padding: 2rem; }
+    .info-alert { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 1rem; }
+    .info-alert i { color: #3b82f6; font-size: 1.5rem; margin-top: 0.25rem; }
+    .info-alert-content h5 { margin: 0 0 0.5rem 0; color: #1e40af; font-weight: 600; }
+    .info-alert-content p { margin: 0; color: #3b82f6; font-size: 0.95rem; }
+    .form-section { margin-top: 1.5rem; }
+    .form-label-custom { display: block; margin-bottom: 0.75rem; font-weight: 600; color: #374151; font-size: 1rem; }
+    .form-label-custom i { color: #f59e0b; margin-right: 0.5rem; }
+    .form-label-custom .required { color: #ef4444; margin-left: 0.25rem; }
+    .select-custom { width: 100%; padding: 1rem 1.25rem; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 1rem; transition: all 0.3s ease; background: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; }
+    .select-custom:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15); }
+    .select-custom:hover { border-color: #d1d5db; }
+    .btn-submit { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4); }
+    .btn-submit:active { transform: translateY(0); }
+    .decorative-icons { display: flex; justify-content: center; gap: 2rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #f3f4f6; }
+    .decorative-icon { width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+    .decorative-icon.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15)); color: #d97706; }
+    .decorative-icon.blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.15)); color: #2563eb; }
+    .decorative-icon.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15)); color: #059669; }
+    .decorative-icon.purple { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(109, 40, 217, 0.15)); color: #7c3aed; }
+    .steps-indicator { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+    .step { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; background: #f3f4f6; border-radius: 25px; font-size: 0.9rem; color: #6b7280; }
+    .step.active { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .step-number { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; background: rgba(255,255,255,0.3); }
+    .step.active .step-number { background: rgba(255,255,255,0.3); }
+</style>
+
+<div class="page-container">
+    <div class="page-header-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1><i class="fas fa-graduation-cap"></i> Quản lý Điểm số</h1>
+                <p>Nhập và quản lý điểm số sinh viên theo lớp học</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <div class="card-header-custom">
+            <h4><i class="fas fa-clipboard-list"></i> Chọn học kỳ để nhập điểm</h4>
+        </div>
+        <div class="card-body-custom">
+            <partial name="_Notifications" />
+
+            <div class="steps-indicator">
+                <div class="step active">
+                    <span class="step-number">1</span>
+                    <span>Chọn học kỳ</span>
                 </div>
-                <div class="card-body">
-                    <partial name="_Notifications" />
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <span>Chọn lớp học</span>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <span>Nhập điểm</span>
+                </div>
+            </div>
 
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Hướng dẫn:</strong> Chọn học kỳ để xem danh sách lớp học, sau đó chọn lớp để nhập điểm cho sinh viên.
-                    </div>
+            <div class="info-alert">
+                <i class="fas fa-info-circle"></i>
+                <div class="info-alert-content">
+                    <h5>Hướng dẫn sử dụng</h5>
+                    <p>Chọn học kỳ để xem danh sách lớp học mà bạn phụ trách, sau đó chọn lớp để nhập điểm cho sinh viên.</p>
+                </div>
+            </div>
 
-                    <form asp-action="SelectClass" method="get" class="needs-validation" novalidate>
-                        <div class="row align-items-end">
-                            <div class="col-md-8">
-                                <label for="semesterId" class="form-label">
-                                    <i class="fas fa-calendar-alt"></i> Chọn học kỳ <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select" 
-                                        id="semesterId" 
-                                        name="semesterId" 
-                                        required>
-                                    <option value="">-- Chọn học kỳ --</option>
-                                    @foreach (var item in ViewData["Semesters"] as SelectList ?? new SelectList(Array.Empty<object>()))
-                                    {
-                                        <option value="@item.Value">@item.Text</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search"></i> Xem danh sách lớp
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+            <form asp-action="SelectClass" method="get" class="needs-validation" novalidate>
+                <div class="form-section">
+                    <label for="semesterId" class="form-label-custom">
+                        <i class="fas fa-calendar-alt"></i> Chọn học kỳ <span class="required">*</span>
+                    </label>
+                    <select class="select-custom" id="semesterId" name="semesterId" required>
+                        <option value="">-- Vui lòng chọn học kỳ --</option>
+                        @foreach (var item in ViewData["Semesters"] as SelectList ?? new SelectList(Array.Empty<object>()))
+                        {
+                            <option value="@item.Value">📅 @item.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-section">
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-search"></i> Xem danh sách lớp học
+                    </button>
+                </div>
+            </form>
+
+            <div class="decorative-icons">
+                <div class="decorative-icon orange">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="decorative-icon blue">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="decorative-icon green">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div class="decorative-icon purple">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
         </div>
@@ -51,20 +118,18 @@
 
 @section Scripts {
     <script>
-        // Bootstrap validation
         (function () {
             'use strict'
             var forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms)
-                .forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (!form.checkValidity()) {
-                            event.preventDefault()
-                            event.stopPropagation()
-                        }
-                        form.classList.add('was-validated')
-                    }, false)
-                })
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
         })()
     </script>
 }

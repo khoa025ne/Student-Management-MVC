@@ -1,4 +1,4 @@
-@model IEnumerable<DataAccess.Entities.Student>
+@model IEnumerable<Services.Models.StudentDto>
 
 @{
     ViewData["Title"] = "Quản lý sinh viên";
@@ -116,7 +116,7 @@
                     {
                         var student = Model?.FirstOrDefault(s => s.UserId == user.UserId);
                         
-                        <tr id="row_@(student?.StudentId ?? 0)">
+                        <tr id="row_@(student?.StudentIdInt ?? 0)">
                             <td>@index</td>
                             <td>
                                 <span class="badge-modern badge-primary">@(student?.StudentCode ?? "N/A")</span>
@@ -181,13 +181,13 @@
                                 <div class="d-flex gap-1">
                                     @if (student != null)
                                     {
-                                        <a asp-action="Details" asp-route-id="@student.StudentId" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                        <a asp-action="Details" asp-route-id="@student.StudentIdInt" class="btn btn-info btn-sm" title="Xem chi tiết">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a asp-action="Edit" asp-route-id="@student.StudentId" class="btn btn-warning btn-sm" title="Chỉnh sửa">
+                                        <a asp-action="Edit" asp-route-id="@student.StudentIdInt" class="btn btn-warning btn-sm" title="Chỉnh sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button class="btn btn-danger btn-sm" onclick="deleteStudent(@student.StudentId, '@user.FullName')" title="Xóa">
+                                        <button class="btn btn-danger btn-sm" onclick="deleteStudent(@student.StudentIdInt, '@user.FullName')" title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     }

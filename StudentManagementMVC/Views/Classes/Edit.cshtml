@@ -35,7 +35,7 @@
                             <div class="col-md-6 mb-3">
                                 <label asp-for="CourseId" class="form-label">Môn học *</label>
                                 <select asp-for="CourseId" class="form-select" required>
-                                    @foreach (var course in ViewBag.Courses as IEnumerable<DataAccess.Entities.Course>)
+                                    @foreach (var course in (ViewBag.Courses as IEnumerable<DataAccess.Entities.Course>) ?? Enumerable.Empty<DataAccess.Entities.Course>())
                                     {
                                         <option value="@course.CourseId" selected="@(course.CourseId == Model.CourseId)">
                                             @course.CourseCode - @course.CourseName
@@ -47,7 +47,7 @@
                             <div class="col-md-6 mb-3">
                                 <label asp-for="SemesterId" class="form-label">Học kỳ *</label>
                                 <select asp-for="SemesterId" class="form-select" required>
-                                    @foreach (var semester in ViewBag.Semesters as IEnumerable<DataAccess.Entities.Semester>)
+                                    @foreach (var semester in (ViewBag.Semesters as IEnumerable<DataAccess.Entities.Semester>) ?? Enumerable.Empty<DataAccess.Entities.Semester>())
                                     {
                                         <option value="@semester.SemesterId" selected="@(semester.SemesterId == Model.SemesterId)">
                                             @semester.SemesterCode - @semester.SemesterName

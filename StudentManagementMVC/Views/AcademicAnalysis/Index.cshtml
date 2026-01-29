@@ -1,4 +1,4 @@
-@model IEnumerable<DataAccess.Entities.AcademicAnalysis>
+@model IEnumerable<Services.Models.AcademicAnalysisDto>
 @{
     ViewData["Title"] = "Quản lý Phân tích Học tập AI";
 }
@@ -57,16 +57,16 @@
                         <tbody>
                             @foreach (var item in Model)
                             {
-                                var strongSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(item.StrongSubjectsJson ?? "[]");
-                                var weakSubjects = System.Text.Json.JsonSerializer.Deserialize<string[]>(item.WeakSubjectsJson ?? "[]");
+                                var strongSubjects = item.StrongSubjects ?? new List<string>();
+                                var weakSubjects = item.WeakSubjects ?? new List<string>();
 
                                 <tr>
                                     <td>@item.AnalysisId</td>
                                     <td>
-                                        @if (item.Student != null)
+                                        @if (!string.IsNullOrEmpty(item.StudentName))
                                         {
-                                            <strong>@item.Student.FullName</strong><br/>
-                                            <small class="text-muted">@item.Student.StudentCode</small>
+                                            <strong>@item.StudentName</strong><br/>
+                                            <small class="text-muted">@item.StudentId</small>
                                         }
                                         else
                                         {
@@ -80,12 +80,12 @@
                                         </span>
                                     </td>
                                     <td>
-                                        @if (strongSubjects != null && strongSubjects.Any())
+                                        @if (strongSubjects.Any())
                                         {
                                             <small>@string.Join(", ", strongSubjects.Take(2))</small>
-                                            @if (strongSubjects.Length > 2)
+                                            @if (strongSubjects.Count > 2)
                                             {
-                                                <span class="badge bg-info">+@(strongSubjects.Length - 2)</span>
+                                                <span class="badge bg-info">+@(strongSubjects.Count - 2)</span>
                                             }
                                         }
                                         else
@@ -94,12 +94,12 @@
                                         }
                                     </td>
                                     <td>
-                                        @if (weakSubjects != null && weakSubjects.Any())
+                                        @if (weakSubjects.Any())
                                         {
                                             <small>@string.Join(", ", weakSubjects.Take(2))</small>
-                                            @if (weakSubjects.Length > 2)
+                                            @if (weakSubjects.Count > 2)
                                             {
-                                                <span class="badge bg-warning">+@(weakSubjects.Length - 2)</span>
+                                                <span class="badge bg-warning">+@(weakSubjects.Count - 2)</span>
                                             }
                                         }
                                         else

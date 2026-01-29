@@ -1,4 +1,4 @@
-@model IEnumerable<DataAccess.Entities.Class>
+@model IEnumerable<Services.Models.ClassDto>
 
 @{
     ViewData["Title"] = "Danh sách Lớp học";
@@ -8,142 +8,177 @@
     var totalStudents = Model.Sum(c => c.CurrentEnrollment);
 }
 
-<div class="space-y-6">
-    <!-- Page Header -->
-    <div class="page-header animate-fadeIn">
-        <div>
-            <h1><i class="fas fa-chalkboard-teacher"></i>Quản lý Lớp học</h1>
-            <p>Danh sách tất cả các lớp học phần</p>
+<style>
+    .page-container { padding: 1.5rem; background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%); min-height: calc(100vh - 60px); }
+    .page-header-card { background: linear-gradient(135deg, #10b981 0%, #047857 100%); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; color: white; box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3); }
+    .page-header-card h1 { font-size: 1.75rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header-card p { margin: 0.5rem 0 0 0; opacity: 0.9; }
+    .btn-add-new { background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; transition: all 0.3s ease; backdrop-filter: blur(10px); text-decoration: none; }
+    .btn-add-new:hover { background: white; color: #047857; border-color: white; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @@media (max-width: 992px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 576px) { .stats-grid { grid-template-columns: 1fr; } }
+    .stat-box { background: white; border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; border-left: 4px solid; }
+    .stat-box:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+    .stat-box.total { border-color: #10b981; }
+    .stat-box.active { border-color: #3b82f6; }
+    .stat-box.full { border-color: #ef4444; }
+    .stat-box.students { border-color: #8b5cf6; }
+    .stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .stat-box.total .stat-icon { background: linear-gradient(135deg, #10b981, #047857); color: white; }
+    .stat-box.active .stat-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+    .stat-box.full .stat-icon { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .stat-box.students .stat-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+    .stat-info h3 { font-size: 1.75rem; font-weight: 700; margin: 0; color: #1f2937; }
+    .stat-info p { margin: 0; color: #6b7280; font-size: 0.875rem; font-weight: 500; }
+    .filter-card { background: white; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .search-input-wrapper { position: relative; flex: 1; max-width: 400px; }
+    .search-input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+    .search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 0.95rem; transition: all 0.3s ease; }
+    .search-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+    .filter-select { padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 0.95rem; min-width: 200px; transition: all 0.3s ease; cursor: pointer; }
+    .filter-select:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+    .classes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    @@media (max-width: 1200px) { .classes-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 768px) { .classes-grid { grid-template-columns: 1fr; } }
+    .class-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; }
+    .class-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+    .class-card-header { padding: 1.25rem; border-bottom: 1px solid #f3f4f6; }
+    .class-card-header h5 { font-size: 1.1rem; font-weight: 700; color: #1f2937; margin: 0 0 0.25rem 0; }
+    .class-code { display: inline-block; font-size: 0.75rem; color: #6b7280; font-family: monospace; background: #f3f4f6; padding: 0.2rem 0.5rem; border-radius: 4px; }
+    .status-badge { padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .status-badge.success { background: linear-gradient(135deg, #10b981, #047857); color: white; }
+    .status-badge.warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .status-badge.danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .class-card-body { padding: 1.25rem; }
+    .class-info-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; color: #4b5563; font-size: 0.9rem; }
+    .class-info-row i { width: 20px; color: #9ca3af; }
+    .progress-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f3f4f6; }
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.85rem; }
+    .progress-label span:first-child { color: #6b7280; }
+    .progress-label span:last-child { font-weight: 600; color: #1f2937; }
+    .progress-bar-container { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .progress-bar-fill.success { background: linear-gradient(135deg, #10b981, #047857); }
+    .progress-bar-fill.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .progress-bar-fill.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .class-card-footer { padding: 1rem 1.25rem; background: #f9fafb; display: flex; gap: 0.5rem; }
+    .btn-detail { flex: 1; padding: 0.6rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem; text-decoration: none; text-align: center; transition: all 0.3s ease; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; }
+    .btn-detail:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); color: white; }
+    .btn-edit-sm { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; text-decoration: none; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; }
+    .btn-edit-sm:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); color: white; }
+    .btn-delete-sm { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; cursor: pointer; }
+    .btn-delete-sm:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+    .empty-state-box { background: white; border-radius: 16px; text-align: center; padding: 4rem 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .empty-state-box i { font-size: 4rem; color: #d1d5db; margin-bottom: 1rem; }
+    .empty-state-box h3 { font-size: 1.25rem; color: #374151; margin-bottom: 0.5rem; }
+    .empty-state-box p { color: #6b7280; margin-bottom: 1.5rem; }
+</style>
+
+<div class="page-container">
+    <div class="page-header-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1><i class="fas fa-chalkboard-teacher"></i> Quản lý Lớp học</h1>
+                <p>Danh sách tất cả các lớp học phần</p>
+            </div>
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a asp-action="Create" class="btn-add-new"><i class="fas fa-plus me-2"></i>Tạo lớp mới</a>
+            }
         </div>
-        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-        {
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Tạo lớp mới
-            </a>
-        }
     </div>
 
-    <!-- Stats Cards -->
-    <div class="row g-4">
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn">
-                <div class="stat-card-icon">
-                    <i class="fas fa-chalkboard"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Tổng số lớp</p>
-                    <p class="stat-card-value">@totalClasses</p>
-                </div>
-            </div>
+    <div class="stats-grid">
+        <div class="stat-box total">
+            <div class="stat-icon"><i class="fas fa-chalkboard"></i></div>
+            <div class="stat-info"><h3>@totalClasses</h3><p>Tổng số lớp</p></div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn" style="animation-delay: 0.1s;">
-                <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Đang hoạt động</p>
-                    <p class="stat-card-value">@activeClasses</p>
-                </div>
-            </div>
+        <div class="stat-box active">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-info"><h3>@activeClasses</h3><p>Đang hoạt động</p></div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn" style="animation-delay: 0.2s;">
-                <div class="stat-card-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
-                    <i class="fas fa-user-times"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Đã đầy</p>
-                    <p class="stat-card-value">@fullClasses</p>
-                </div>
-            </div>
+        <div class="stat-box full">
+            <div class="stat-icon"><i class="fas fa-user-times"></i></div>
+            <div class="stat-info"><h3>@fullClasses</h3><p>Đã đầy</p></div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn" style="animation-delay: 0.3s;">
-                <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Tổng SV</p>
-                    <p class="stat-card-value">@totalStudents</p>
-                </div>
-            </div>
+        <div class="stat-box students">
+            <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+            <div class="stat-info"><h3>@totalStudents</h3><p>Tổng sinh viên</p></div>
         </div>
     </div>
 
-    <!-- Search & Filter -->
-    <div class="glass-card">
+    <div class="filter-card">
         <div class="d-flex flex-wrap gap-3 align-items-center">
-            <div class="input-group-modern flex-grow-1" style="max-width: 400px;">
-                <i class="fas fa-search input-icon"></i>
-                <input type="text" id="searchClass" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm kiếm lớp học...">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchClass" class="search-input" placeholder="Tìm kiếm lớp học...">
             </div>
-            <select id="semesterFilter" class="form-control" style="width: auto; min-width: 180px;">
-                <option value="">Tất cả học kỳ</option>
+            <select id="semesterFilter" class="filter-select">
+                <option value="">📅 Tất cả học kỳ</option>
             </select>
         </div>
     </div>
 
-    <!-- Classes Grid -->
     @if (Model.Any())
     {
-        <div class="row g-4" id="classesGrid">
+        <div class="classes-grid" id="classesGrid">
             @foreach (var item in Model)
             {
                 var capacityPercent = item.MaxCapacity > 0 ? (item.CurrentEnrollment * 100 / item.MaxCapacity) : 0;
                 var statusClass = capacityPercent >= 100 ? "danger" : capacityPercent >= 80 ? "warning" : "success";
+                var statusText = capacityPercent >= 100 ? "Đầy" : capacityPercent >= 80 ? "Gần đầy" : "Còn chỗ";
                 
-                <div class="col-md-6 col-lg-4">
-                    <div class="course-card animate-fadeIn">
-                        <div class="course-card-header">
+                <div class="class-card">
+                    <div class="class-card-header">
+                        <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h5 class="course-card-title">@item.Course?.CourseName</h5>
-                                <span class="course-card-code">@item.ClassCode</span>
+                                <h5>@(item.CourseName ?? "N/A")</h5>
+                                <span class="class-code">@item.ClassCode</span>
                             </div>
-                            <span class="badge-modern badge-@statusClass">
-                                @(capacityPercent >= 100 ? "Đầy" : capacityPercent >= 80 ? "Gần đầy" : "Còn chỗ")
-                            </span>
+                            <span class="status-badge @statusClass">@statusText</span>
                         </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
-                                <i class="fas fa-clock"></i>
-                                <span>@item.DayOfWeekPair - @item.TimeSlot</span>
+                    </div>
+                    <div class="class-card-body">
+                        <div class="class-info-row">
+                            <i class="fas fa-clock"></i>
+                            <span>@item.DayOfWeekPair - @item.TimeSlot</span>
+                        </div>
+                        <div class="class-info-row">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Phòng @(item.Room ?? "N/A")</span>
+                        </div>
+                        <div class="class-info-row">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>@(item.SemesterName ?? "N/A")</span>
+                        </div>
+                        <div class="class-info-row">
+                            <i class="fas fa-user-tie"></i>
+                            <span>@(item.TeacherName ?? "Chưa phân công")</span>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-label">
+                                <span>Sĩ số</span>
+                                <span>@item.CurrentEnrollment / @item.MaxCapacity</span>
                             </div>
-                            <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>Phòng @item.Room</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 text-muted small">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>@item.Semester?.SemesterName</span>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill @statusClass" style="width: @capacityPercent%"></div>
                             </div>
                         </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="small text-muted">Sĩ số</span>
-                                <span class="small fw-semibold">@item.CurrentEnrollment / @item.MaxCapacity</span>
-                            </div>
-                            <div class="progress" style="height: 6px; border-radius: 3px;">
-                                <div class="progress-bar bg-@statusClass" style="width: @capacityPercent%"></div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <a asp-action="Details" asp-route-id="@item.ClassId" class="btn btn-outline-primary btn-sm flex-fill">
-                                <i class="fas fa-info-circle me-1"></i>Chi tiết
+                    </div>
+                    <div class="class-card-footer">
+                        <a asp-action="Details" asp-route-id="@item.ClassId" class="btn-detail">
+                            <i class="fas fa-info-circle me-1"></i>Chi tiết
+                        </a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.ClassId" class="btn-edit-sm" title="Sửa">
+                                <i class="fas fa-edit"></i>
                             </a>
-                            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                            {
-                                <a asp-action="Edit" asp-route-id="@item.ClassId" class="btn btn-outline-warning btn-sm">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button onclick="deleteClass(@item.ClassId, '@item.ClassCode')" class="btn btn-outline-danger btn-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            }
-                        </div>
+                            <button onclick="deleteClass(@item.ClassId, '@item.ClassCode')" class="btn-delete-sm" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        }
                     </div>
                 </div>
             }
@@ -151,138 +186,34 @@
     }
     else
     {
-        <div class="glass-card">
-            <div class="empty-state">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <h3>Chưa có lớp học</h3>
-                <p>Chưa có lớp học nào trong hệ thống.</p>
-                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
-                {
-                    <a asp-action="Create" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Tạo lớp học đầu tiên
-                    </a>
-                }
-            </div>
+        <div class="empty-state-box">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <h3>Chưa có lớp học</h3>
+            <p>Chưa có lớp học nào trong hệ thống.</p>
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+            {
+                <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Tạo lớp học đầu tiên</a>
+            }
         </div>
     }
-    <!-- Pagination -->
-    @if (ViewBag.TotalPages > 1)
-    {
-        <div class="glass-card">
-            <nav aria-label="Phân trang">
-                <ul class="pagination pagination-modern justify-content-center mb-0">
-                    <!-- First Page -->
-                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                        <a class="page-link" href="?page=1&pageSize=@ViewBag.PageSize">
-                            <i class="fas fa-angle-double-left"></i>
-                        </a>
-                    </li>
-                    
-                    <!-- Previous Page -->
-                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)&pageSize=@ViewBag.PageSize">
-                            <i class="fas fa-angle-left"></i>
-                        </a>
-                    </li>
+</div>
 
-                    @{
-                        var currentPage = (int)ViewBag.CurrentPage;
-                        var totalPages = (int)ViewBag.TotalPages;
-                        var startPage = Math.Max(1, currentPage - 2);
-                        var endPage = Math.Min(totalPages, currentPage + 2);
-
-                        // Hiển thị trang đầu nếu cần
-                        if (startPage > 1)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1&pageSize=@ViewBag.PageSize">1</a>
-                            </li>
-                            if (startPage > 2)
-                            {
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            }
-                        }
-
-                        // Hiển thị các trang xung quanh trang hiện tại
-                        for (var i = startPage; i <= endPage; i++)
-                        {
-                            <li class="page-item @(i == currentPage ? "active" : "")">
-                                <a class="page-link" href="?page=@i&pageSize=@ViewBag.PageSize">@i</a>
-                            </li>
-                        }
-
-                        // Hiển thị trang cuối nếu cần
-                        if (endPage < totalPages)
-                        {
-                            if (endPage < totalPages - 1)
-                            {
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            }
-                            <li class="page-item">
-                                <a class="page-link" href="?page=@totalPages&pageSize=@ViewBag.PageSize">@totalPages</a>
-                            </li>
-                        }
-                    }
-
-                    <!-- Next Page -->
-                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)&pageSize=@ViewBag.PageSize">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                    </li>
-                    
-                    <!-- Last Page -->
-                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                        <a class="page-link" href="?page=@ViewBag.TotalPages&pageSize=@ViewBag.PageSize">
-                            <i class="fas fa-angle-double-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <!-- Pagination Info -->
-            <div class="text-center mt-3">
-                <small class="text-muted">
-                    Hiển thị <strong>@((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1)</strong> - 
-                    <strong>@Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalItems)</strong> 
-                    trong tổng số <strong>@ViewBag.TotalItems</strong> lớp học
-                </small>
-            </div>
-        </div>
-    }</div>
-
-<form id="deleteForm" method="post" style="display:none;">
-    @Html.AntiForgeryToken()
-</form>
+<form id="deleteForm" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
 
 @section Scripts {
     <script>
         function deleteClass(id, code) {
-            Swal.fire({
-                title: 'Xác nhận xóa?',
-                text: `Bạn có chắc muốn xóa lớp ${code}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.getElementById('deleteForm');
-                    form.action = `/Classes/Delete/${id}`;
-                    form.submit();
-                }
+            Swal.fire({ title: 'Xác nhận xóa?', text: `Bạn có chắc muốn xóa lớp ${code}?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280', confirmButtonText: '<i class="fas fa-trash me-1"></i> Xóa', cancelButtonText: '<i class="fas fa-times me-1"></i> Hủy' }).then((result) => { if (result.isConfirmed) { document.getElementById('deleteForm').action = `/Classes/Delete/${id}`; document.getElementById('deleteForm').submit(); } });
+        }
+        document.getElementById('searchClass').addEventListener('input', filterClasses);
+        document.getElementById('semesterFilter').addEventListener('change', filterClasses);
+        function filterClasses() {
+            const searchTerm = document.getElementById('searchClass').value.toLowerCase();
+            const semesterFilter = document.getElementById('semesterFilter').value.toLowerCase();
+            document.querySelectorAll('#classesGrid .class-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) && (!semesterFilter || text.includes(semesterFilter)) ? '' : 'none';
             });
         }
-
-        // Search filter
-        document.getElementById('searchClass').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            document.querySelectorAll('.course-card').forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.closest('.col-md-6').style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        });
     </script>
 }

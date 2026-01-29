@@ -8,131 +8,149 @@
     var aiCourses = Model.Count(c => c.Major?.ToString() == "AI" || c.Major?.ToString() == "ArtificialIntelligence");
 }
 
-<div class="space-y-6">
-    <!-- Page Header -->
-    <div class="page-header animate-fadeIn">
-        <div>
-            <h1><i class="fas fa-book"></i>Quản lý Môn học</h1>
-            <p>Danh sách tất cả các môn học trong hệ thống</p>
+<style>
+    .page-container { padding: 1.5rem; background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%); min-height: calc(100vh - 60px); }
+    .page-header-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; color: white; box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3); }
+    .page-header-card h1 { font-size: 1.75rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.75rem; }
+    .page-header-card p { margin: 0.5rem 0 0 0; opacity: 0.9; }
+    .btn-add-new { background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; transition: all 0.3s ease; backdrop-filter: blur(10px); text-decoration: none; }
+    .btn-add-new:hover { background: white; color: #667eea; border-color: white; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @@media (max-width: 992px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 576px) { .stats-grid { grid-template-columns: 1fr; } }
+    .stat-box { background: white; border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: all 0.3s ease; border-left: 4px solid; }
+    .stat-box:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+    .stat-box.total { border-color: #667eea; }
+    .stat-box.se { border-color: #3b82f6; }
+    .stat-box.ia { border-color: #10b981; }
+    .stat-box.ai { border-color: #8b5cf6; }
+    .stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .stat-box.total .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .stat-box.se .stat-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+    .stat-box.ia .stat-icon { background: linear-gradient(135deg, #10b981, #047857); color: white; }
+    .stat-box.ai .stat-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+    .stat-info h3 { font-size: 1.75rem; font-weight: 700; margin: 0; color: #1f2937; }
+    .stat-info p { margin: 0; color: #6b7280; font-size: 0.875rem; font-weight: 500; }
+    .filter-card { background: white; border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .search-input-wrapper { position: relative; flex: 1; max-width: 400px; }
+    .search-input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+    .search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 0.95rem; transition: all 0.3s ease; }
+    .search-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15); }
+    .filter-select { padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 0.95rem; min-width: 200px; transition: all 0.3s ease; cursor: pointer; }
+    .filter-select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15); }
+    .data-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .modern-table { width: 100%; border-collapse: collapse; }
+    .modern-table thead { background: linear-gradient(135deg, #1f2937 0%, #374151 100%); }
+    .modern-table thead th { padding: 1rem 1.25rem; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: white; border: none; }
+    .modern-table tbody tr { transition: all 0.2s ease; border-bottom: 1px solid #f3f4f6; }
+    .modern-table tbody tr:hover { background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); }
+    .modern-table tbody td { padding: 1rem 1.25rem; vertical-align: middle; }
+    .course-info { display: flex; align-items: center; gap: 1rem; }
+    .course-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+    .course-icon.se { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+    .course-icon.ia { background: linear-gradient(135deg, #10b981, #047857); color: white; }
+    .course-icon.ai { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+    .course-icon.default { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+    .course-name { font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+    .course-code { font-size: 0.8rem; color: #6b7280; font-family: 'Monaco', 'Consolas', monospace; background: #f3f4f6; padding: 0.2rem 0.5rem; border-radius: 4px; }
+    .credit-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 60px; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3); }
+    .major-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+    .major-badge.se { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(29, 78, 216, 0.15)); color: #1d4ed8; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .major-badge.ia { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(4, 120, 87, 0.15)); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .major-badge.ai { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(109, 40, 217, 0.15)); color: #6d28d9; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .major-badge.default { background: #f3f4f6; color: #4b5563; }
+    .action-btns { display: flex; gap: 0.5rem; justify-content: center; }
+    .btn-action { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; text-decoration: none; }
+    .btn-edit { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+    .btn-edit:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); color: white; }
+    .btn-delete { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .btn-delete:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+    .empty-state-box { text-align: center; padding: 4rem 2rem; }
+    .empty-state-box i { font-size: 4rem; color: #d1d5db; margin-bottom: 1rem; }
+    .empty-state-box h3 { font-size: 1.25rem; color: #374151; margin-bottom: 0.5rem; }
+    .empty-state-box p { color: #6b7280; margin-bottom: 1.5rem; }
+</style>
+
+<div class="page-container">
+    <div class="page-header-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1><i class="fas fa-book-open"></i> Quản lý Môn học</h1>
+                <p>Danh sách tất cả các môn học trong hệ thống</p>
+            </div>
+            <a asp-action="Create" class="btn-add-new"><i class="fas fa-plus me-2"></i>Thêm môn học mới</a>
         </div>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Thêm môn học
-        </a>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="row g-4">
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn">
-                <div class="stat-card-icon">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Tổng môn học</p>
-                    <p class="stat-card-value">@totalCourses</p>
-                </div>
-            </div>
+    <div class="stats-grid">
+        <div class="stat-box total">
+            <div class="stat-icon"><i class="fas fa-book"></i></div>
+            <div class="stat-info"><h3>@totalCourses</h3><p>Tổng môn học</p></div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn" style="animation-delay: 0.1s;">
-                <div class="stat-card-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
-                    <i class="fas fa-code"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Ngành SE</p>
-                    <p class="stat-card-value">@seCourses</p>
-                </div>
-            </div>
+        <div class="stat-box se">
+            <div class="stat-icon"><i class="fas fa-code"></i></div>
+            <div class="stat-info"><h3>@seCourses</h3><p>Software Engineering</p></div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn" style="animation-delay: 0.2s;">
-                <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Ngành IA</p>
-                    <p class="stat-card-value">@iaCourses</p>
-                </div>
-            </div>
+        <div class="stat-box ia">
+            <div class="stat-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="stat-info"><h3>@iaCourses</h3><p>Information Assurance</p></div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card animate-fadeIn" style="animation-delay: 0.3s;">
-                <div class="stat-card-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div>
-                    <p class="stat-card-label">Ngành AI</p>
-                    <p class="stat-card-value">@aiCourses</p>
-                </div>
-            </div>
+        <div class="stat-box ai">
+            <div class="stat-icon"><i class="fas fa-robot"></i></div>
+            <div class="stat-info"><h3>@aiCourses</h3><p>Artificial Intelligence</p></div>
         </div>
     </div>
 
-    <!-- Search & Filter -->
-    <div class="glass-card">
+    <div class="filter-card">
         <div class="d-flex flex-wrap gap-3 align-items-center">
-            <div class="input-group-modern flex-grow-1" style="max-width: 400px;">
-                <i class="fas fa-search input-icon"></i>
-                <input type="text" id="searchCourse" class="form-control" style="padding-left: 2.5rem;" placeholder="Tìm kiếm môn học...">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchCourse" class="search-input" placeholder="Tìm kiếm môn học...">
             </div>
-            <select id="majorFilter" class="form-control" style="width: auto; min-width: 180px;">
-                <option value="">Tất cả chuyên ngành</option>
-                <option value="SE">Software Engineering</option>
-                <option value="IA">Information Assurance</option>
-                <option value="AI">Artificial Intelligence</option>
+            <select id="majorFilter" class="filter-select">
+                <option value="">🎓 Tất cả chuyên ngành</option>
+                <option value="SE">💻 Software Engineering</option>
+                <option value="IA">🛡️ Information Assurance</option>
+                <option value="AI">🤖 Artificial Intelligence</option>
             </select>
         </div>
     </div>
 
-    <!-- Courses Table -->
-    <div class="glass-card">
+    <div class="data-card">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table-modern" id="coursesTable">
+                <table class="modern-table" id="coursesTable">
                     <thead>
                         <tr>
-                            <th>Môn học</th>
-                            <th style="text-align: center;">Tín chỉ</th>
-                            <th style="text-align: center;">Chuyên ngành</th>
-                            <th style="text-align: center; width: 150px;">Thao tác</th>
+                            <th style="text-align: left;">Môn học</th>
+                            <th style="text-align: center; width: 120px;">Tín chỉ</th>
+                            <th style="text-align: center; width: 200px;">Chuyên ngành</th>
+                            <th style="text-align: center; width: 120px;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            var majorClass = item.Major?.ToString() switch {
-                                "SE" or "SoftwareEngineering" => "primary",
-                                "IA" or "InformationAssurance" => "success",
-                                "AI" or "ArtificialIntelligence" => "info",
-                                _ => "secondary"
-                            };
-                            <tr class="animate-fadeIn">
+                            var majorStr = item.Major?.ToString() ?? "";
+                            var majorClass = majorStr switch { "SE" or "SoftwareEngineering" => "se", "IA" or "InformationAssurance" => "ia", "AI" or "ArtificialIntelligence" => "ai", _ => "default" };
+                            var majorIcon = majorStr switch { "SE" or "SoftwareEngineering" => "fa-code", "IA" or "InformationAssurance" => "fa-shield-alt", "AI" or "ArtificialIntelligence" => "fa-robot", _ => "fa-book" };
+                            <tr>
                                 <td>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="stat-card-icon" style="width: 40px; height: 40px; font-size: 0.875rem;">
-                                            <i class="fas fa-book-open"></i>
-                                        </div>
+                                    <div class="course-info">
+                                        <div class="course-icon @majorClass"><i class="fas @majorIcon"></i></div>
                                         <div>
-                                            <div class="fw-semibold">@item.CourseName</div>
-                                            <code class="small text-muted">@item.CourseCode</code>
+                                            <div class="course-name">@item.CourseName</div>
+                                            <span class="course-code">@item.CourseCode</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td style="text-align: center;">
-                                    <span class="badge-modern badge-secondary">@item.Credits TC</span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="badge-modern badge-@majorClass">@item.Major</span>
-                                </td>
+                                <td style="text-align: center;"><span class="credit-badge">@item.Credits TC</span></td>
+                                <td style="text-align: center;"><span class="major-badge @majorClass"><i class="fas @majorIcon"></i> @item.Major</span></td>
                                 <td>
-                                    <div class="d-flex gap-2 justify-content-center">
-                                        <a asp-action="Edit" asp-route-id="@item.CourseId" class="btn btn-sm btn-outline-primary" title="Sửa">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button onclick="deleteCourse(@item.CourseId, '@item.CourseCode')" class="btn btn-sm btn-outline-danger" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                    <div class="action-btns">
+                                        <a asp-action="Edit" asp-route-id="@item.CourseId" class="btn-action btn-edit" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
+                                        <button onclick="deleteCourse(@item.CourseId, '@item.CourseCode')" class="btn-action btn-delete" title="Xóa"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -143,56 +161,31 @@
         }
         else
         {
-            <div class="empty-state">
+            <div class="empty-state-box">
                 <i class="fas fa-book"></i>
                 <h3>Chưa có môn học</h3>
                 <p>Chưa có môn học nào trong hệ thống.</p>
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Thêm môn học đầu tiên
-                </a>
+                <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Thêm môn học đầu tiên</a>
             </div>
         }
     </div>
 </div>
 
-<form id="deleteForm" method="post" style="display:none;">
-    @Html.AntiForgeryToken()
-</form>
+<form id="deleteForm" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
 
 @section Scripts {
     <script>
         function deleteCourse(id, code) {
-            Swal.fire({
-                title: 'Xác nhận xóa?',
-                text: `Bạn có chắc muốn xóa môn ${code}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Xóa',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.getElementById('deleteForm');
-                    form.action = `/Courses/Delete/${id}`;
-                    form.submit();
-                }
-            });
+            Swal.fire({ title: 'Xác nhận xóa?', text: `Bạn có chắc muốn xóa môn ${code}?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280', confirmButtonText: '<i class="fas fa-trash me-1"></i> Xóa', cancelButtonText: '<i class="fas fa-times me-1"></i> Hủy' }).then((result) => { if (result.isConfirmed) { document.getElementById('deleteForm').action = `/Courses/Delete/${id}`; document.getElementById('deleteForm').submit(); } });
         }
-
-        // Search filter
         document.getElementById('searchCourse').addEventListener('input', filterTable);
         document.getElementById('majorFilter').addEventListener('change', filterTable);
-
         function filterTable() {
             const searchTerm = document.getElementById('searchCourse').value.toLowerCase();
             const majorFilter = document.getElementById('majorFilter').value.toLowerCase();
-            
             document.querySelectorAll('#coursesTable tbody tr').forEach(row => {
                 const text = row.textContent.toLowerCase();
-                const matchSearch = text.includes(searchTerm);
-                const matchMajor = !majorFilter || text.includes(majorFilter);
-                row.style.display = matchSearch && matchMajor ? '' : 'none';
+                row.style.display = text.includes(searchTerm) && (!majorFilter || text.includes(majorFilter)) ? '' : 'none';
             });
         }
     </script>

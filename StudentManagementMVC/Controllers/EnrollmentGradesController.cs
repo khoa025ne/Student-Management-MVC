@@ -230,7 +230,7 @@ namespace StudentManagementMVC.Controllers
                 }
 
                 // Quay về trang chi tiết lớp
-                return RedirectToAction(nameof(ClassDetails), new { classId = enrollment.ClassId });
+                return RedirectToAction(nameof(ClassDetails), new { classId = enrollment?.ClassId ?? 0 });
             }
             catch (Exception ex)
             {

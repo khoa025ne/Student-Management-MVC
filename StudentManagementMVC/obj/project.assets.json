@@ -2697,7 +2697,6 @@
   "projectFileDependencyGroups": {
     "net9.0": [
       "BCrypt.Net-Next >= 4.0.3",
-      "DataAccess >= 1.0.0",
       "Microsoft.EntityFrameworkCore.Design >= 8.0.0",
       "Pomelo.EntityFrameworkCore.MySql >= 8.0.0",
       "Repositories >= 1.0.0",
@@ -2736,9 +2735,6 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "F:\\ALL\\StudentManagementMVC\\DataAccess\\DataAccess.csproj": {
-              "projectPath": "F:\\ALL\\StudentManagementMVC\\DataAccess\\DataAccess.csproj"
-            },
             "F:\\ALL\\StudentManagementMVC\\Repositories\\Repositories.csproj": {
               "projectPath": "F:\\ALL\\StudentManagementMVC\\Repositories\\Repositories.csproj"
             },

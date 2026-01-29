@@ -68,6 +68,7 @@ namespace Services.Implementations
         {
             try
             {
+                await Task.CompletedTask; // Placeholder for async compliance
                 var adminEmail = _configuration["AdminAccount:Email"];
                 var adminPassword = _configuration["AdminAccount:Password"];
 
@@ -163,8 +164,9 @@ namespace Services.Implementations
                 // Tạo User
                 var createdUser = await _userRepository.AddAsync(user);
 
-                // Nếu là Student (RoleId = 4), tự động tạo Student record
-                if (createdUser.RoleId == 4)
+                // FIX: Thống nhất RoleId cho Student = 3 (Admin=1, Teacher=2, Student=3, Staff=4)
+                // Nếu là Student (RoleId = 3), tự động tạo Student record
+                if (createdUser.RoleId == 3)
                 {
                     var studentCreateDto = new StudentCreateDto
                     {

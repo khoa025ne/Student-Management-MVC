@@ -116,6 +116,38 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine($"⚠️ FK constraint already updated or error: {ex.Message}");
     }
+    
+    // Add missing columns to notifications table (MySQL compatible)
+    var columnsToAdd = new Dictionary<string, string>
+    {
+        ["CreatedBy"] = "VARCHAR(255) NULL",
+        ["Priority"] = "VARCHAR(20) DEFAULT 'medium'",
+        ["Link"] = "VARCHAR(200) NULL",
+        ["ReadAt"] = "DATETIME NULL",
+        ["TeacherId"] = "INT NULL"
+    };
+    
+    foreach (var column in columnsToAdd)
+    {
+        try
+        {
+            // Check if column exists
+            var checkSql = $@"SELECT COUNT(*) FROM information_schema.columns 
+                              WHERE table_schema = DATABASE() 
+                              AND table_name = 'notifications' 
+                              AND column_name = '{column.Key}'";
+            var exists = await context.Database.ExecuteSqlRawAsync(checkSql);
+            
+            // Try to add column (will fail if exists, which is fine)
+            var addSql = $"ALTER TABLE notifications ADD COLUMN {column.Key} {column.Value}";
+            await context.Database.ExecuteSqlRawAsync(addSql);
+            Console.WriteLine($"✅ Added column {column.Key} to notifications table");
+        }
+        catch (Exception)
+        {
+            // Column already exists, ignore
+        }
+    }
 }
 
 // Configure the HTTP request pipeline.

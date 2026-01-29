@@ -1,0 +1,209 @@
+@model IEnumerable<Services.Models.TeacherClassDto>
+
+@{
+    ViewData["Title"] = "Lớp học của tôi";
+}
+
+<div class="animate-fade-in">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1 fw-bold" style="font-family: var(--font-display);">
+                <i class="fas fa-chalkboard-teacher text-primary me-2"></i>Lớp học của tôi
+            </h1>
+            <p class="text-muted mb-0">Danh sách các lớp bạn đang phụ trách giảng dạy</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="EnrollmentGrades" asp-action="Index" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Nhập điểm
+            </a>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Stats Summary -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid var(--primary) !important;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted small mb-1">Tổng lớp</p>
+                                <h3 class="mb-0 fw-bold">@Model.Count()</h3>
+                            </div>
+                            <div class="rounded-3 p-3" style="background: rgba(37, 99, 235, 0.1);">
+                                <i class="fas fa-chalkboard fa-lg text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #22c55e !important;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted small mb-1">Tổng sinh viên</p>
+                                <h3 class="mb-0 fw-bold">@Model.Sum(c => c.StudentCount)</h3>
+                            </div>
+                            <div class="rounded-3 p-3" style="background: rgba(34, 197, 94, 0.1);">
+                                <i class="fas fa-user-graduate fa-lg" style="color: #22c55e;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #f59e0b !important;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted small mb-1">Môn học</p>
+                                <h3 class="mb-0 fw-bold">@Model.Select(c => c.CourseCode).Distinct().Count()</h3>
+                            </div>
+                            <div class="rounded-3 p-3" style="background: rgba(245, 158, 11, 0.1);">
+                                <i class="fas fa-book fa-lg" style="color: #f59e0b;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #8b5cf6 !important;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <p class="text-muted small mb-1">Sức chứa TB</p>
+                                <h3 class="mb-0 fw-bold">
+                                    @{
+                                        var avgCapacity = Model.Any() ? Math.Round(Model.Average(c => (double)c.StudentCount / Math.Max(c.MaxCapacity, 1) * 100)) : 0;
+                                    }
+                                    @avgCapacity%
+                                </h3>
+                            </div>
+                            <div class="rounded-3 p-3" style="background: rgba(139, 92, 246, 0.1);">
+                                <i class="fas fa-chart-pie fa-lg" style="color: #8b5cf6;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classes Grid -->
+        <div class="row g-4">
+            @foreach (var cls in Model)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="card border-0 shadow-sm h-100 class-card">
+                        <div class="card-body">
+                            <!-- Header -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="card-title mb-1 fw-bold">@cls.ClassName</h5>
+                                    <p class="text-muted small mb-0">@cls.ClassCode</p>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+                                    @cls.SemesterName
+                                </span>
+                            </div>
+                            
+                            <!-- Course Info -->
+                            <div class="d-flex align-items-center gap-2 mb-3 p-2 rounded" style="background: var(--muted, #f1f5f9);">
+                                <i class="fas fa-book text-primary"></i>
+                                <div>
+                                    <span class="fw-medium">@cls.CourseName</span>
+                                    <br>
+                                    <small class="text-muted">@cls.CourseCode</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Details -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-users text-success"></i>
+                                        <span class="small">@cls.StudentCount / @cls.MaxCapacity SV</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-door-open text-warning"></i>
+                                        <span class="small">@(string.IsNullOrEmpty(cls.Room) ? "TBA" : cls.Room)</span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-clock text-info"></i>
+                                        <span class="small">@(string.IsNullOrEmpty(cls.Schedule) ? (string.IsNullOrEmpty(cls.TimeSlot) ? "TBA" : cls.TimeSlot) : cls.Schedule)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Capacity Progress -->
+                            <div class="mb-3">
+                                @{
+                                    var percentage = cls.MaxCapacity > 0 ? (cls.StudentCount * 100 / cls.MaxCapacity) : 0;
+                                    var progressColor = percentage >= 90 ? "bg-danger" : percentage >= 70 ? "bg-warning" : "bg-success";
+                                }
+                                <div class="d-flex justify-content-between align-items-center small mb-1">
+                                    <span class="text-muted">Sĩ số</span>
+                                    <span class="fw-medium">@percentage%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar @progressColor" style="width: @percentage%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Footer -->
+                        <div class="card-footer bg-transparent border-top py-3">
+                            <div class="d-flex gap-2">
+                                <a asp-controller="Classes" asp-action="Details" asp-route-id="@cls.Id" 
+                                   class="btn btn-outline-primary btn-sm flex-fill">
+                                    <i class="fas fa-eye me-1"></i>Chi tiết
+                                </a>
+                                <a asp-controller="EnrollmentGrades" asp-action="ClassDetails" asp-route-classId="@cls.Id" 
+                                   class="btn btn-primary btn-sm flex-fill">
+                                    <i class="fas fa-edit me-1"></i>Nhập điểm
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-chalkboard fa-4x text-muted"></i>
+                </div>
+                <h4 class="fw-bold mb-2">Chưa có lớp học nào</h4>
+                <p class="text-muted mb-4">Bạn chưa được phân công giảng dạy lớp nào trong học kỳ này.</p>
+                <a asp-controller="Teacher" asp-action="Dashboard" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>Về trang chủ
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .class-card {
+            transition: all 0.2s ease;
+        }
+        .class-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        }
+        .bg-primary-subtle {
+            background-color: rgba(37, 99, 235, 0.1) !important;
+        }
+    </style>
+}
