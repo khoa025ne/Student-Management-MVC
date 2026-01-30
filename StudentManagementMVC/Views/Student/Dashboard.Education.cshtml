@@ -1,0 +1,1026 @@
+@model Services.Models.StudentDashboardDto
+
+@{
+    ViewData["Title"] = "Trang chủ Sinh viên";
+    Layout = "~/Views/Shared/_Layout.Education.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* Hero Section */
+        .edu-student-hero {
+            position: relative;
+            padding: var(--space-2xl) var(--space-xl);
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .edu-student-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1751EF 0%, #4B7BF5 50%, #0EA5E9 100%);
+            z-index: 0;
+        }
+        
+        .edu-student-hero::after {
+            content: '';
+            position: absolute;
+            right: -100px;
+            top: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .edu-hero-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+        
+        @@media (min-width: 1024px) {
+            .edu-hero-inner {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+        
+        .edu-hero-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+        
+        .edu-hero-avatar {
+            width: 88px;
+            height: 88px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        
+        .edu-hero-greeting {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-hero-name {
+            color: white;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .edu-hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+        
+        .edu-hero-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.375rem 0.875rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .edu-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+        
+        .edu-hero-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .edu-hero-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Floating Cards on Hero */
+        .edu-floating-cards {
+            position: absolute;
+            right: var(--space-xl);
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            flex-direction: column;
+            gap: var(--space-md);
+            z-index: 2;
+        }
+        
+        @@media (min-width: 1280px) {
+            .edu-floating-cards {
+                display: flex;
+            }
+        }
+        
+        .edu-float-card {
+            background: white;
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .edu-float-card:nth-child(2) {
+            animation-delay: 1.5s;
+        }
+        
+        .edu-float-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .edu-float-card-icon.primary {
+            background: var(--edu-primary);
+        }
+        
+        .edu-float-card-icon.accent {
+            background: var(--edu-accent);
+        }
+        
+        .edu-float-card-text strong {
+            display: block;
+            font-size: 0.9375rem;
+            color: var(--edu-dark);
+        }
+        
+        .edu-float-card-text span {
+            font-size: 0.75rem;
+            color: var(--edu-gray);
+        }
+        
+        /* Warning Alert */
+        .edu-warning-alert {
+            background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+            border: 1px solid #FECACA;
+            border-left: 4px solid var(--edu-accent);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md) var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .edu-warning-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--edu-accent);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .edu-warning-content {
+            flex: 1;
+        }
+        
+        .edu-warning-title {
+            font-weight: 600;
+            color: var(--edu-accent);
+            margin-bottom: 2px;
+        }
+        
+        .edu-warning-text {
+            font-size: 0.875rem;
+            color: var(--edu-gray);
+            margin: 0;
+        }
+        
+        /* Stats Grid */
+        .edu-stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        @@media (min-width: 1024px) {
+            .edu-stats-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-stat-box {
+            background: var(--edu-card-bg);
+            border: 1px solid var(--edu-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-stat-box:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card-hover);
+        }
+        
+        .edu-stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .edu-stat-box.gpa::before { background: var(--edu-primary); }
+        .edu-stat-box.credits::before { background: var(--edu-success); }
+        .edu-stat-box.current::before { background: var(--edu-info); }
+        .edu-stat-box.progress::before { background: var(--edu-accent); }
+        
+        .edu-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .edu-stat-label {
+            font-size: 0.8125rem;
+            color: var(--edu-gray);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-stat-number {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        
+        .edu-stat-number.primary { color: var(--edu-primary); }
+        .edu-stat-number.success { color: var(--edu-success); }
+        .edu-stat-number.info { color: var(--edu-info); }
+        .edu-stat-number.accent { color: var(--edu-accent); }
+        
+        .edu-stat-subtitle {
+            font-size: 0.75rem;
+            color: var(--edu-gray);
+            margin-top: var(--space-xs);
+        }
+        
+        .edu-stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .edu-stat-icon-box.primary {
+            background: rgba(23, 81, 239, 0.1);
+            color: var(--edu-primary);
+        }
+        
+        .edu-stat-icon-box.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--edu-success);
+        }
+        
+        .edu-stat-icon-box.info {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--edu-info);
+        }
+        
+        .edu-stat-icon-box.accent {
+            background: rgba(161, 84, 60, 0.1);
+            color: var(--edu-accent);
+        }
+        
+        /* Progress Bar in Stat */
+        .edu-stat-progress {
+            margin-top: var(--space-sm);
+            height: 6px;
+            background: var(--edu-muted);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        
+        .edu-stat-progress-fill {
+            height: 100%;
+            background: var(--gradient-accent);
+            border-radius: var(--radius-full);
+            transition: width 0.5s ease;
+        }
+        
+        /* Content Grid */
+        .edu-content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-lg);
+        }
+        
+        @@media (min-width: 1024px) {
+            .edu-content-grid {
+                grid-template-columns: 5fr 7fr;
+            }
+            
+            .edu-content-grid.reverse {
+                grid-template-columns: 7fr 5fr;
+            }
+        }
+        
+        /* Card Styles */
+        .edu-content-card {
+            background: var(--edu-card-bg);
+            border: 1px solid var(--edu-card-border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        
+        .edu-content-header {
+            background: var(--edu-dark);
+            color: white;
+            padding: var(--space-md) var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .edu-content-header.primary {
+            background: var(--gradient-primary);
+        }
+        
+        .edu-content-header.accent {
+            background: var(--gradient-accent);
+        }
+        
+        .edu-content-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+        }
+        
+        .edu-content-link {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8125rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            transition: color 0.2s;
+        }
+        
+        .edu-content-link:hover {
+            color: white;
+        }
+        
+        .edu-content-body {
+            padding: var(--space-lg);
+        }
+        
+        /* Schedule Item */
+        .edu-schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .edu-schedule-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--edu-muted);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--edu-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .edu-schedule-item:hover {
+            background: var(--edu-card-border);
+        }
+        
+        .edu-schedule-time {
+            min-width: 70px;
+            padding: var(--space-sm);
+            background: var(--edu-primary);
+            color: white;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8125rem;
+        }
+        
+        .edu-schedule-info h6 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--edu-dark);
+            margin-bottom: 2px;
+        }
+        
+        .edu-schedule-info span {
+            font-size: 0.8125rem;
+            color: var(--edu-gray);
+        }
+        
+        /* Empty State */
+        .edu-empty-state {
+            text-align: center;
+            padding: var(--space-2xl);
+        }
+        
+        .edu-empty-state i {
+            font-size: 3rem;
+            color: var(--edu-card-border);
+            margin-bottom: var(--space-md);
+        }
+        
+        .edu-empty-state h6 {
+            color: var(--edu-gray);
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-empty-state p {
+            font-size: 0.875rem;
+        }
+        
+        /* Score Table */
+        .edu-score-table {
+            width: 100%;
+        }
+        
+        .edu-score-table thead th {
+            padding: var(--space-md);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--edu-gray);
+            background: var(--edu-muted);
+            border: none;
+        }
+        
+        .edu-score-table tbody td {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--edu-card-border);
+            vertical-align: middle;
+        }
+        
+        .edu-score-table tbody tr:hover {
+            background: var(--edu-muted);
+        }
+        
+        .edu-course-name {
+            font-weight: 600;
+            color: var(--edu-dark);
+            font-size: 0.9375rem;
+        }
+        
+        .edu-course-code {
+            font-size: 0.75rem;
+            color: var(--edu-gray);
+        }
+        
+        .edu-grade-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.8125rem;
+        }
+        
+        .edu-grade-badge.A { background: var(--edu-success-light); color: var(--edu-success); }
+        .edu-grade-badge.B { background: rgba(23, 81, 239, 0.1); color: var(--edu-primary); }
+        .edu-grade-badge.C { background: var(--edu-info-light); color: #0369A1; }
+        .edu-grade-badge.D { background: var(--edu-warning-light); color: #92400E; }
+        .edu-grade-badge.F { background: var(--edu-danger-light); color: var(--edu-danger); }
+        
+        /* Grade Distribution */
+        .edu-grade-bar {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-sm) 0;
+        }
+        
+        .edu-grade-label {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 0.875rem;
+        }
+        
+        .edu-grade-label.A { background: var(--edu-success); }
+        .edu-grade-label.B { background: var(--edu-primary); }
+        .edu-grade-label.C { background: var(--edu-info); }
+        .edu-grade-label.D { background: var(--edu-warning); }
+        .edu-grade-label.F { background: var(--edu-danger); }
+        
+        .edu-grade-track {
+            flex: 1;
+            height: 10px;
+            background: var(--edu-muted);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        
+        .edu-grade-fill {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width 0.5s ease;
+        }
+        
+        .edu-grade-fill.A { background: var(--edu-success); }
+        .edu-grade-fill.B { background: var(--edu-primary); }
+        .edu-grade-fill.C { background: var(--edu-info); }
+        .edu-grade-fill.D { background: var(--edu-warning); }
+        .edu-grade-fill.F { background: var(--edu-danger); }
+        
+        .edu-grade-count {
+            min-width: 30px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--edu-dark);
+        }
+        
+        /* Quick Actions Grid */
+        .edu-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-md);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-actions-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+        
+        .edu-action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-lg);
+            background: var(--edu-muted);
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            position: relative;
+        }
+        
+        .edu-action-item:hover {
+            transform: translateY(-4px);
+            background: white;
+            border-color: var(--edu-primary);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .edu-action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-sm);
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .edu-action-item span {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--edu-dark);
+            text-align: center;
+        }
+        
+        .edu-action-badge {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            min-width: 18px;
+            height: 18px;
+            background: var(--edu-danger);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+        
+        /* Animation */
+        @@keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+}
+
+<!-- Hero Section -->
+<div class="edu-student-hero">
+    <div class="edu-hero-inner">
+        <div class="edu-hero-profile">
+            <div class="edu-hero-avatar">
+                @Model.Student.FullName.Substring(0, 1).ToUpper()
+            </div>
+            <div>
+                <p class="edu-hero-greeting">Shape Your Future with Knowledge</p>
+                <h1 class="edu-hero-name">Xin chào, @Model.Student.FullName!</h1>
+                <div class="edu-hero-badges">
+                    <span class="edu-hero-badge"><i class="fas fa-id-card"></i>@Model.Student.StudentCode</span>
+                    <span class="edu-hero-badge"><i class="fas fa-users"></i>@Model.Student.ClassCode</span>
+                    <span class="edu-hero-badge"><i class="fas fa-graduation-cap"></i>@Model.Student.Major</span>
+                </div>
+            </div>
+        </div>
+        <div class="edu-hero-actions">
+            <a asp-controller="Enrollments" asp-action="Register" class="edu-hero-btn">
+                <i class="fas fa-plus-circle"></i> Đăng ký môn
+            </a>
+            <a asp-controller="Schedule" asp-action="Index" class="edu-hero-btn">
+                <i class="fas fa-calendar-alt"></i> Lịch học
+            </a>
+            <a asp-controller="Scores" asp-action="MyGrades" class="edu-hero-btn">
+                <i class="fas fa-chart-line"></i> Bảng điểm
+            </a>
+        </div>
+    </div>
+    
+    <!-- Floating Cards -->
+    <div class="edu-floating-cards">
+        <div class="edu-float-card">
+            <div class="edu-float-card-icon primary">
+                <i class="fas fa-road"></i>
+            </div>
+            <div class="edu-float-card-text">
+                <strong>Personalized Learning</strong>
+                <span>Lộ trình học tập cá nhân</span>
+            </div>
+        </div>
+        <div class="edu-float-card">
+            <div class="edu-float-card-icon accent">
+                <i class="fas fa-award"></i>
+            </div>
+            <div class="edu-float-card-text">
+                <strong>@Model.TotalCredits Tín chỉ</strong>
+                <span>Tích lũy thành công</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Academic Warning -->
+@if (Model.NeedsAcademicWarning)
+{
+    <div class="edu-warning-alert">
+        <div class="edu-warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="edu-warning-content">
+            <h6 class="edu-warning-title">⚠️ Cảnh báo học vụ</h6>
+            <p class="edu-warning-text">GPA của bạn đang dưới 2.0. Hãy tập trung cải thiện kết quả học tập để đạt yêu cầu.</p>
+        </div>
+        <a asp-controller="LearningPath" asp-action="Index" class="edu-btn edu-btn-accent edu-btn-sm">
+            <i class="fas fa-robot"></i> Xem gợi ý AI
+        </a>
+    </div>
+}
+
+<!-- Stats Grid -->
+<div class="edu-stats-container">
+    <div class="edu-stat-box gpa">
+        <div class="edu-stat-header">
+            <div>
+                <p class="edu-stat-label">GPA Tích lũy</p>
+                <div class="edu-stat-number @GetGPAColorClass(Model.OverallGPA)">@Model.OverallGPA.ToString("F2")</div>
+                <p class="edu-stat-subtitle">/ 10.00 điểm</p>
+            </div>
+            <div class="edu-stat-icon-box primary">
+                <i class="fas fa-trophy"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="edu-stat-box credits">
+        <div class="edu-stat-header">
+            <div>
+                <p class="edu-stat-label">Tín chỉ tích lũy</p>
+                <div class="edu-stat-number success">@Model.TotalCredits</div>
+                <p class="edu-stat-subtitle">/ 130 tín chỉ</p>
+            </div>
+            <div class="edu-stat-icon-box success">
+                <i class="fas fa-medal"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="edu-stat-box current">
+        <div class="edu-stat-header">
+            <div>
+                <p class="edu-stat-label">Đang học kỳ này</p>
+                <div class="edu-stat-number info">@Model.TotalCreditsThisSemester</div>
+                <p class="edu-stat-subtitle">tín chỉ</p>
+            </div>
+            <div class="edu-stat-icon-box info">
+                <i class="fas fa-book-open"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="edu-stat-box progress">
+        <div class="edu-stat-header">
+            <div>
+                <p class="edu-stat-label">Tiến độ hoàn thành</p>
+                <div class="edu-stat-number accent">@(Math.Round((double)Model.TotalCredits / 130 * 100))%</div>
+            </div>
+            <div class="edu-stat-icon-box accent">
+                <i class="fas fa-tasks"></i>
+            </div>
+        </div>
+        <div class="edu-stat-progress">
+            <div class="edu-stat-progress-fill" style="width: @(Math.Round((double)Model.TotalCredits / 130 * 100))%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid Row 1 -->
+<div class="edu-content-grid" style="margin-bottom: var(--space-lg);">
+    <!-- Today's Schedule -->
+    <div class="edu-content-card">
+        <div class="edu-content-header primary">
+            <h5 class="edu-content-title">
+                <i class="fas fa-calendar-day"></i> Lịch học hôm nay
+            </h5>
+            <a asp-controller="Schedule" asp-action="Index" class="edu-content-link">
+                Xem tất cả <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        <div class="edu-content-body">
+            <p style="font-size: 0.8125rem; color: var(--edu-gray); margin-bottom: var(--space-md);">
+                <i class="fas fa-clock me-1"></i>@DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"))
+            </p>
+            
+            @if (Model.UpcomingClasses != null && Model.UpcomingClasses.Any())
+            {
+                <div class="edu-schedule-list">
+                    @foreach (dynamic cls in Model.UpcomingClasses)
+                    {
+                        <div class="edu-schedule-item">
+                            <div class="edu-schedule-time">@cls.TimeSlot</div>
+                            <div class="edu-schedule-info">
+                                <h6>@cls.CourseName</h6>
+                                <span><i class="fas fa-door-open me-1"></i>@cls.Room</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="edu-empty-state">
+                    <i class="fas fa-mug-hot"></i>
+                    <h6>Không có lịch học hôm nay!</h6>
+                    <p>Hãy tận dụng thời gian ôn bài 📚</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <!-- Recent Scores -->
+    <div class="edu-content-card">
+        <div class="edu-content-header">
+            <h5 class="edu-content-title">
+                <i class="fas fa-star"></i> Điểm gần đây
+            </h5>
+            <a asp-controller="Scores" asp-action="MyGrades" class="edu-content-link">
+                Xem tất cả <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        <div class="edu-content-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="edu-score-table">
+                    <thead>
+                        <tr>
+                            <th>Môn học</th>
+                            <th class="text-center">Tín chỉ</th>
+                            <th class="text-center">Điểm TB</th>
+                            <th class="text-center">Xếp loại</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentScores.Any())
+                        {
+                            @foreach (dynamic score in Model.RecentScores)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="edu-course-name">@score.CourseName</div>
+                                        <div class="edu-course-code">@score.CourseCode</div>
+                                    </td>
+                                    <td class="text-center fw-medium">@score.Credits</td>
+                                    <td class="text-center">
+                                        <span style="font-size: 1.1rem; font-weight: 700;">@((score.TotalScore as double?)?.ToString("F1") ?? "-")</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="edu-grade-badge @(score.Grade ?? "")">@(score.Grade ?? "-")</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4">
+                                    <div class="edu-empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <h6>Chưa có điểm nào</h6>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid Row 2 -->
+<div class="edu-content-grid reverse">
+    <!-- Quick Actions -->
+    <div class="edu-content-card">
+        <div class="edu-content-header accent">
+            <h5 class="edu-content-title">
+                <i class="fas fa-bolt"></i> Thao tác nhanh
+            </h5>
+        </div>
+        <div class="edu-content-body">
+            <div class="edu-actions-grid">
+                <a asp-controller="Enrollments" asp-action="Register" class="edu-action-item">
+                    <div class="edu-action-icon" style="background: var(--gradient-primary);">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <span>Đăng ký môn</span>
+                </a>
+                <a asp-controller="Schedule" asp-action="Index" class="edu-action-item">
+                    <div class="edu-action-icon" style="background: var(--edu-success);">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <span>Lịch học</span>
+                </a>
+                <a asp-controller="Scores" asp-action="MyGrades" class="edu-action-item">
+                    <div class="edu-action-icon" style="background: var(--edu-warning);">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <span>Bảng điểm</span>
+                </a>
+                <a asp-controller="LearningPath" asp-action="Index" class="edu-action-item">
+                    <div class="edu-action-icon" style="background: #7C3AED;">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <span>Lộ trình AI</span>
+                </a>
+                <a asp-controller="AcademicAnalysis" asp-action="MyAnalysis" class="edu-action-item">
+                    <div class="edu-action-icon" style="background: #DB2777;">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <span>Phân tích AI</span>
+                </a>
+                <a asp-controller="Notifications" asp-action="MyNotifications" class="edu-action-item">
+                    <div class="edu-action-icon" style="background: var(--edu-info);">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    @if (Model.UnreadNotifications > 0)
+                    {
+                        <span class="edu-action-badge">@Model.UnreadNotifications</span>
+                    }
+                    <span>Thông báo</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Grade Distribution -->
+    <div class="edu-content-card">
+        <div class="edu-content-header">
+            <h5 class="edu-content-title">
+                <i class="fas fa-chart-bar"></i> Phân bố điểm
+            </h5>
+        </div>
+        <div class="edu-content-body">
+            @{
+                var total = Model.GradeACount + Model.GradeBCount + Model.GradeCCount + Model.GradeDCount + Model.GradeFCount;
+                if(total == 0) total = 1;
+            }
+            <div class="edu-grade-bar">
+                <div class="edu-grade-label A">A</div>
+                <div class="edu-grade-track">
+                    <div class="edu-grade-fill A" style="width: @(Model.GradeACount * 100.0 / total)%;"></div>
+                </div>
+                <span class="edu-grade-count">@Model.GradeACount</span>
+            </div>
+            <div class="edu-grade-bar">
+                <div class="edu-grade-label B">B</div>
+                <div class="edu-grade-track">
+                    <div class="edu-grade-fill B" style="width: @(Model.GradeBCount * 100.0 / total)%;"></div>
+                </div>
+                <span class="edu-grade-count">@Model.GradeBCount</span>
+            </div>
+            <div class="edu-grade-bar">
+                <div class="edu-grade-label C">C</div>
+                <div class="edu-grade-track">
+                    <div class="edu-grade-fill C" style="width: @(Model.GradeCCount * 100.0 / total)%;"></div>
+                </div>
+                <span class="edu-grade-count">@Model.GradeCCount</span>
+            </div>
+            <div class="edu-grade-bar">
+                <div class="edu-grade-label D">D</div>
+                <div class="edu-grade-track">
+                    <div class="edu-grade-fill D" style="width: @(Model.GradeDCount * 100.0 / total)%;"></div>
+                </div>
+                <span class="edu-grade-count">@Model.GradeDCount</span>
+            </div>
+            <div class="edu-grade-bar">
+                <div class="edu-grade-label F">F</div>
+                <div class="edu-grade-track">
+                    <div class="edu-grade-fill F" style="width: @(Model.GradeFCount * 100.0 / total)%;"></div>
+                </div>
+                <span class="edu-grade-count">@Model.GradeFCount</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetGPAColorClass(double gpa)
+    {
+        return gpa switch
+        {
+            >= 8.5 => "success",
+            >= 7.0 => "primary",
+            >= 5.5 => "accent",
+            _ => "accent"
+        };
+    }
+}

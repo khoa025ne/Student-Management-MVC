@@ -1,0 +1,702 @@
+@model IEnumerable<Services.Models.StudentDto>
+
+@{
+    ViewData["Title"] = "Quản lý sinh viên";
+    Layout = "~/Views/Shared/_Layout.AdminDark.cshtml";
+    var studentUsers = ViewBag.StudentUsers as IEnumerable<DataAccess.Entities.User>;
+    var totalStudents = studentUsers?.Count() ?? 0;
+    var seStudents = Model?.Count(s => s.Major.ToString() == "SE" || s.Major.ToString().Contains("Phần mềm")) ?? 0;
+    var iaStudents = Model?.Count(s => s.Major.ToString() == "IA" || s.Major.ToString().Contains("An toàn")) ?? 0;
+    var aiStudents = Model?.Count(s => s.Major.ToString() == "AI" || s.Major.ToString().Contains("Trí tuệ")) ?? 0;
+}
+
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <style>
+        /* Page Header */
+        .edu-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title i { color: var(--edu-primary); }
+        
+        .edu-page-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: var(--space-xs);
+            font-size: 0.9375rem;
+        }
+        
+        /* Stats Grid */
+        .edu-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            transition: all 0.3s ease;
+        }
+        
+        .edu-stat-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-4px);
+            border-color: var(--edu-primary);
+        }
+        
+        .edu-stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.375rem;
+        }
+        
+        .edu-stat-card.primary .edu-stat-icon { background: rgba(23, 81, 239, 0.2); color: var(--edu-primary); }
+        .edu-stat-card.se .edu-stat-icon { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+        .edu-stat-card.ia .edu-stat-icon { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+        .edu-stat-card.ai .edu-stat-icon { background: rgba(139, 92, 246, 0.2); color: #8B5CF6; }
+        
+        .edu-stat-info h3 {
+            font-family: var(--font-display);
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin: 0 0 var(--space-xs) 0;
+        }
+        
+        .edu-stat-info p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        
+        /* Filter Section */
+        .edu-filter-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .edu-filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            align-items: center;
+        }
+        
+        .edu-search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        .edu-search-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .edu-search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 0.9375rem;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-search-input:focus {
+            outline: none;
+            border-color: var(--edu-primary);
+            box-shadow: 0 0 0 3px rgba(23, 81, 239, 0.15);
+        }
+        
+        .edu-search-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        
+        .edu-filter-select {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 0.9375rem;
+            min-width: 180px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-filter-select:focus {
+            outline: none;
+            border-color: var(--edu-primary);
+        }
+        
+        .edu-filter-select option {
+            background: var(--edu-dark);
+            color: white;
+        }
+        
+        /* Data Card */
+        .edu-data-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        
+        /* Modern Table */
+        .edu-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .edu-table thead {
+            background: linear-gradient(135deg, rgba(23, 81, 239, 0.3) 0%, rgba(23, 81, 239, 0.1) 100%);
+        }
+        
+        .edu-table thead th {
+            padding: 1rem 1.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.9);
+            border: none;
+            text-align: left;
+        }
+        
+        .edu-table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .edu-table tbody tr:hover {
+            background: rgba(23, 81, 239, 0.1);
+        }
+        
+        .edu-table tbody td {
+            padding: 1rem 1.25rem;
+            vertical-align: middle;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* User Info Cell */
+        .edu-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .edu-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(135deg, var(--edu-primary), #0EA5E9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        
+        .edu-user-name { font-weight: 600; color: white; }
+        
+        .edu-user-warning {
+            font-size: 0.75rem;
+            color: var(--edu-warning);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        /* Badges */
+        .edu-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .edu-badge-code {
+            background: rgba(23, 81, 239, 0.2);
+            color: #60A5FA;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+        
+        .edu-badge-se {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .edu-badge-ia {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .edu-badge-ai {
+            background: rgba(139, 92, 246, 0.2);
+            color: #A78BFA;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .edu-badge-default {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* GPA Display */
+        .edu-gpa { font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
+        .edu-gpa.excellent { color: #22C55E; }
+        .edu-gpa.good { color: #3B82F6; }
+        .edu-gpa.average { color: #F59E0B; }
+        .edu-gpa.poor { color: #EF4444; }
+        
+        /* Status Badge */
+        .edu-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .edu-status-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22C55E;
+        }
+        
+        .edu-status-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+        
+        /* Action Buttons */
+        .edu-action-btns {
+            display: flex;
+            gap: 0.375rem;
+        }
+        
+        .edu-btn-action {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        
+        .edu-btn-action.view { background: rgba(14, 165, 233, 0.2); color: #0EA5E9; }
+        .edu-btn-action.view:hover { background: #0EA5E9; color: white; }
+        .edu-btn-action.edit { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+        .edu-btn-action.edit:hover { background: #F59E0B; color: white; }
+        .edu-btn-action.delete { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
+        .edu-btn-action.delete:hover { background: #EF4444; color: white; }
+        
+        /* Empty State */
+        .edu-empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        
+        .edu-empty-state i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 1rem;
+        }
+        
+        .edu-empty-state h3 { font-size: 1.25rem; color: white; margin-bottom: 0.5rem; }
+        .edu-empty-state p { color: rgba(255, 255, 255, 0.5); margin-bottom: 1.5rem; }
+        
+        /* Modal Styling */
+        .edu-modal .modal-content {
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+        }
+        
+        .edu-modal .modal-header {
+            background: linear-gradient(135deg, var(--edu-primary) 0%, #0EA5E9 100%);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            border: none;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .edu-modal .modal-title {
+            color: white;
+            font-weight: 700;
+        }
+        
+        .edu-modal .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .edu-modal .modal-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 1.5rem;
+        }
+        
+        .edu-modal .form-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .edu-modal .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            border-radius: var(--radius-md);
+            padding: 0.625rem 1rem;
+        }
+        
+        .edu-modal .form-control:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--edu-primary);
+            box-shadow: 0 0 0 3px rgba(23, 81, 239, 0.15);
+            color: white;
+        }
+        
+        .edu-modal .form-control:disabled {
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .edu-modal .alert {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #F59E0B;
+            border-radius: var(--radius-md);
+        }
+    </style>
+}
+
+<!-- Page Header -->
+<div class="edu-page-header">
+    <div>
+        <h1 class="edu-page-title">
+            <i class="fas fa-users"></i> Quản lý sinh viên
+        </h1>
+        <p class="edu-page-subtitle">Quản lý danh sách sinh viên theo ngành và kỳ học</p>
+    </div>
+    <a asp-controller="Students" asp-action="Create" class="edu-btn edu-btn-primary">
+        <i class="fas fa-plus"></i> Thêm sinh viên
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="edu-stats-grid">
+    <div class="edu-stat-card primary">
+        <div class="edu-stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@totalStudents</h3>
+            <p>Tổng sinh viên</p>
+        </div>
+    </div>
+    
+    <div class="edu-stat-card se">
+        <div class="edu-stat-icon">
+            <i class="fas fa-code"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@seStudents</h3>
+            <p>Software Engineering</p>
+        </div>
+    </div>
+    
+    <div class="edu-stat-card ia">
+        <div class="edu-stat-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@iaStudents</h3>
+            <p>Information Assurance</p>
+        </div>
+    </div>
+    
+    <div class="edu-stat-card ai">
+        <div class="edu-stat-icon">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@aiStudents</h3>
+            <p>Artificial Intelligence</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="edu-filter-card">
+    <div class="edu-filter-row">
+        <div class="edu-search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" class="edu-search-input" placeholder="Tìm theo tên, MSSV, email...">
+        </div>
+        <select id="majorFilter" class="edu-filter-select">
+            <option value="">🎓 Tất cả ngành</option>
+            <option value="SE">💻 Software Engineering</option>
+            <option value="IA">🛡️ Information Assurance</option>
+            <option value="AI">🤖 Artificial Intelligence</option>
+        </select>
+        <select id="statusFilter" class="edu-filter-select">
+            <option value="">📋 Tất cả trạng thái</option>
+            <option value="active">✅ Hoạt động</option>
+            <option value="inactive">🚫 Đã khóa</option>
+        </select>
+    </div>
+</div>
+
+<!-- Alert Message -->
+<div id="alertMessage" class="alert d-none" style="border-radius: var(--radius-md);"></div>
+
+<!-- Data Table -->
+<div class="edu-data-card">
+    <div class="table-responsive">
+        <table class="edu-table" id="studentsTable">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>MSSV</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>SĐT</th>
+                    <th>Ngành</th>
+                    <th>Lớp</th>
+                    <th>GPA</th>
+                    <th>Trạng thái</th>
+                    <th style="width: 140px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (studentUsers != null && studentUsers.Any())
+                {
+                    int index = 1;
+                    foreach (var user in studentUsers)
+                    {
+                        var student = Model?.FirstOrDefault(s => s.UserId == user.UserId);
+                        var major = student?.Major.ToString() ?? "";
+                        var badgeClass = "edu-badge-default";
+                        if (major.Contains("SE") || major.Contains("Phần mềm")) badgeClass = "edu-badge-se";
+                        else if (major.Contains("IA") || major.Contains("An toàn")) badgeClass = "edu-badge-ia";
+                        else if (major.Contains("AI") || major.Contains("Trí tuệ")) badgeClass = "edu-badge-ai";
+                        
+                        <tr id="row_@(student?.StudentIdInt ?? 0)">
+                            <td style="color: rgba(255,255,255,0.5); font-weight: 500;">@index</td>
+                            <td>
+                                <span class="edu-badge edu-badge-code">@(student?.StudentCode ?? "N/A")</span>
+                            </td>
+                            <td>
+                                <div class="edu-user-info">
+                                    <div class="edu-user-avatar">
+                                        @user.FullName?.Substring(0, 2).ToUpper()
+                                    </div>
+                                    <div>
+                                        <div class="edu-user-name">@user.FullName</div>
+                                        @if (user.MustChangePassword)
+                                        {
+                                            <span class="edu-user-warning">
+                                                <i class="fas fa-exclamation-triangle"></i> Cần đổi mật khẩu
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-size: 0.875rem;">@user.Email</td>
+                            <td style="font-size: 0.875rem;">@user.PhoneNumber</td>
+                            <td>
+                                <span class="edu-badge @badgeClass">
+                                    @(major != "" ? major : "Chưa cập nhật")
+                                </span>
+                            </td>
+                            <td style="font-size: 0.875rem;">@(student?.ClassCode ?? "Chưa phân lớp")</td>
+                            <td>
+                                @if (student != null)
+                                {
+                                    var gpaClass = student.OverallGPA >= 8.5 ? "excellent" : 
+                                                   student.OverallGPA >= 7.0 ? "good" : 
+                                                   student.OverallGPA >= 5.5 ? "average" : "poor";
+                                    <span class="edu-gpa @gpaClass">@student.OverallGPA.ToString("F2")</span>
+                                }
+                                else
+                                {
+                                    <span style="color: rgba(255,255,255,0.4);">N/A</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="edu-status edu-status-active">
+                                        <i class="fas fa-check-circle"></i> Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="edu-status edu-status-inactive">
+                                        <i class="fas fa-ban"></i> Đã khóa
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <div class="edu-action-btns">
+                                    @if (student != null)
+                                    {
+                                        <a asp-action="Details" asp-route-id="@student.StudentIdInt" class="edu-btn-action view" title="Xem chi tiết">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@student.StudentIdInt" class="edu-btn-action edit" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="edu-btn-action delete" onclick="deleteStudent(@student.StudentIdInt, '@user.FullName')" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: rgba(255,255,255,0.4); font-size: 0.75rem;">Chưa có hồ sơ</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="10">
+                            <div class="edu-empty-state">
+                                <i class="fas fa-users"></i>
+                                <h3>Chưa có sinh viên</h3>
+                                <p>Vui lòng tạo User với vai trò Student để bắt đầu.</p>
+                                <a asp-controller="Users" asp-action="Create" class="edu-btn edu-btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Thêm sinh viên mới
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Filter functionality
+        document.getElementById('searchInput').addEventListener('input', filterTable);
+        document.getElementById('majorFilter').addEventListener('change', filterTable);
+        document.getElementById('statusFilter').addEventListener('change', filterTable);
+        
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const majorFilter = document.getElementById('majorFilter').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            
+            document.querySelectorAll('#studentsTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const matchSearch = text.includes(searchTerm);
+                const matchMajor = !majorFilter || text.includes(majorFilter);
+                const matchStatus = !statusFilter || 
+                    (statusFilter === 'active' && text.includes('hoạt động')) ||
+                    (statusFilter === 'inactive' && text.includes('đã khóa'));
+                
+                row.style.display = matchSearch && matchMajor && matchStatus ? '' : 'none';
+            });
+        }
+        
+        function deleteStudent(id, name) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: `Bạn có chắc muốn xóa sinh viên "${name}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: '<i class="fas fa-trash me-1"></i> Xóa',
+                cancelButtonText: '<i class="fas fa-times me-1"></i> Hủy',
+                background: '#1a1a1a',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/Students/Delete/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            document.getElementById(`row_${id}`).remove();
+                            Swal.fire({
+                                title: 'Đã xóa!',
+                                text: 'Sinh viên đã được xóa thành công.',
+                                icon: 'success',
+                                background: '#1a1a1a',
+                                color: '#fff'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Lỗi!',
+                                text: 'Không thể xóa sinh viên.',
+                                icon: 'error',
+                                background: '#1a1a1a',
+                                color: '#fff'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

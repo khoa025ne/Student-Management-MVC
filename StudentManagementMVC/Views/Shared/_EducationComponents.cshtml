@@ -1,0 +1,17 @@
+@* 
+    Education Theme - Reusable Components Partial
+    Contains common UI components used across all views
+    
+    NOTE: @helper directive is NOT supported in .NET Core Razor.
+    Use partial views or tag helpers instead.
+    
+    Usage example for StatCard:
+    <partial name="_StatCard" model="new StatCardModel { Icon = 'fas fa-users', Value = '100', Label = 'Users', ColorClass = 'primary' }" />
+    
+    Or inline in views:
+    <div class="edu-admin-stat primary">
+        <div class="edu-admin-stat-icon"><i class="fas fa-users"></i></div>
+        <div class="edu-admin-stat-value">100</div>
+        <div class="edu-admin-stat-label">Users</div>
+    </div>
+*@

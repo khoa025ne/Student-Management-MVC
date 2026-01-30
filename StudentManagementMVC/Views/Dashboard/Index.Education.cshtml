@@ -1,0 +1,662 @@
+@model Services.Models.DashboardStatistics
+
+@{
+    ViewData["Title"] = "Dashboard - Thống kê tổng quan";
+    Layout = "~/Views/Shared/_Layout.AdminDark.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* Page Header */
+        .edu-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title i {
+            color: var(--edu-primary);
+        }
+        
+        /* Hero Banner for Admin */
+        .edu-admin-hero {
+            background: linear-gradient(135deg, rgba(23, 81, 239, 0.2) 0%, rgba(14, 165, 233, 0.2) 100%);
+            border: 1px solid rgba(23, 81, 239, 0.3);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .edu-admin-hero::before {
+            content: '';
+            position: absolute;
+            right: -100px;
+            top: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(23, 81, 239, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .edu-admin-hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .edu-admin-hero h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .edu-admin-hero p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: var(--space-lg);
+        }
+        
+        /* Stats Grid */
+        .edu-admin-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-admin-stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-admin-stat {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .edu-admin-stat:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-4px);
+            border-color: var(--edu-primary);
+        }
+        
+        .edu-admin-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+        
+        .edu-admin-stat.primary::before { background: var(--edu-primary); }
+        .edu-admin-stat.success::before { background: var(--edu-success); }
+        .edu-admin-stat.warning::before { background: var(--edu-warning); }
+        .edu-admin-stat.info::before { background: var(--edu-info); }
+        .edu-admin-stat.accent::before { background: var(--edu-accent); }
+        .edu-admin-stat.purple::before { background: #7C3AED; }
+        .edu-admin-stat.teal::before { background: #14B8A6; }
+        .edu-admin-stat.danger::before { background: var(--edu-danger); }
+        
+        .edu-admin-stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin: 0 auto var(--space-md);
+        }
+        
+        .edu-admin-stat.primary .edu-admin-stat-icon { background: rgba(23, 81, 239, 0.2); color: var(--edu-primary); }
+        .edu-admin-stat.success .edu-admin-stat-icon { background: rgba(34, 197, 94, 0.2); color: var(--edu-success); }
+        .edu-admin-stat.warning .edu-admin-stat-icon { background: rgba(245, 158, 11, 0.2); color: var(--edu-warning); }
+        .edu-admin-stat.info .edu-admin-stat-icon { background: rgba(14, 165, 233, 0.2); color: var(--edu-info); }
+        .edu-admin-stat.accent .edu-admin-stat-icon { background: rgba(161, 84, 60, 0.2); color: var(--edu-accent); }
+        .edu-admin-stat.purple .edu-admin-stat-icon { background: rgba(124, 58, 237, 0.2); color: #7C3AED; }
+        .edu-admin-stat.teal .edu-admin-stat-icon { background: rgba(20, 184, 166, 0.2); color: #14B8A6; }
+        .edu-admin-stat.danger .edu-admin-stat-icon { background: rgba(239, 68, 68, 0.2); color: var(--edu-danger); }
+        
+        .edu-admin-stat-value {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-admin-stat-label {
+            font-size: 0.8125rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Charts Grid */
+        .edu-charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+        
+        @@media (min-width: 1024px) {
+            .edu-charts-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* Dark Card */
+        .edu-dark-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        
+        .edu-dark-card-header {
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .edu-dark-card-header.primary {
+            background: linear-gradient(135deg, rgba(23, 81, 239, 0.3) 0%, rgba(23, 81, 239, 0.1) 100%);
+        }
+        
+        .edu-dark-card-header.success {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%);
+        }
+        
+        .edu-dark-card-header.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0.1) 100%);
+        }
+        
+        .edu-dark-card-header.info {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.3) 0%, rgba(14, 165, 233, 0.1) 100%);
+        }
+        
+        .edu-dark-card-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+        
+        .edu-dark-card-body {
+            padding: var(--space-lg);
+        }
+        
+        /* Table Styles */
+        .edu-admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .edu-admin-table thead th {
+            padding: var(--space-md);
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .edu-admin-table tbody td {
+            padding: var(--space-md);
+            color: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .edu-admin-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        /* Rank Badge */
+        .edu-rank-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .edu-rank-badge.gold {
+            background: linear-gradient(135deg, #F59E0B, #FBBF24);
+            color: #78350F;
+        }
+        
+        .edu-rank-badge.silver {
+            background: linear-gradient(135deg, #9CA3AF, #D1D5DB);
+            color: #374151;
+        }
+        
+        .edu-rank-badge.bronze {
+            background: linear-gradient(135deg, #B45309, #D97706);
+            color: white;
+        }
+        
+        .edu-rank-badge.default {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* GPA Badge */
+        .edu-gpa-badge {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        
+        .edu-gpa-badge.excellent { color: var(--edu-success); }
+        .edu-gpa-badge.good { color: var(--edu-primary); }
+        .edu-gpa-badge.average { color: var(--edu-warning); }
+        .edu-gpa-badge.poor { color: var(--edu-danger); }
+        
+        /* Filter Section */
+        .edu-filter-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .edu-filter-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-filter-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-filter-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: var(--space-sm);
+        }
+        
+        .edu-filter-input {
+            width: 100%;
+            padding: 0.625rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            color: white;
+            font-size: 0.875rem;
+        }
+        
+        .edu-filter-input:focus {
+            outline: none;
+            border-color: var(--edu-primary);
+        }
+        
+        .edu-filter-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* Chart Container */
+        .edu-chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+}
+
+<!-- Page Header -->
+<div class="edu-page-header">
+    <h1 class="edu-page-title">
+        <i class="fas fa-chart-line"></i> Dashboard - Thống kê hệ thống
+    </h1>
+    <button class="edu-btn edu-btn-accent" onclick="exportDashboardPDF()">
+        <i class="fas fa-file-pdf"></i> Xuất PDF
+    </button>
+</div>
+
+<!-- Hero Banner -->
+<div class="edu-admin-hero">
+    <div class="edu-admin-hero-content">
+        <h2><i class="fas fa-rocket me-2"></i>Start Your Learning Journey Today!</h2>
+        <p>Quản lý và theo dõi toàn bộ hoạt động học tập của hệ thống.</p>
+        <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
+            <a asp-controller="Students" asp-action="Index" class="edu-btn edu-btn-primary">
+                <i class="fas fa-users"></i> Quản lý sinh viên
+            </a>
+            <a asp-controller="Classes" asp-action="Index" class="edu-btn edu-btn-outline" style="border-color: rgba(255,255,255,0.3); color: white;">
+                <i class="fas fa-chalkboard"></i> Quản lý lớp học
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Grid Row 1 -->
+<div class="edu-admin-stats">
+    <div class="edu-admin-stat primary">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-user-graduate"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.TotalStudents</div>
+        <div class="edu-admin-stat-label">Tổng sinh viên</div>
+    </div>
+    
+    <div class="edu-admin-stat success">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-book"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.TotalCourses</div>
+        <div class="edu-admin-stat-label">Môn học</div>
+    </div>
+    
+    <div class="edu-admin-stat warning">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-door-open"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.TotalClasses</div>
+        <div class="edu-admin-stat-label">Lớp học</div>
+    </div>
+    
+    <div class="edu-admin-stat info">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.TotalEnrollments</div>
+        <div class="edu-admin-stat-label">Đăng ký</div>
+    </div>
+</div>
+
+<!-- Stats Grid Row 2 -->
+<div class="edu-admin-stats">
+    <div class="edu-admin-stat accent">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.ActiveUsers</div>
+        <div class="edu-admin-stat-label">Người dùng hoạt động</div>
+    </div>
+    
+    <div class="edu-admin-stat danger">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.TotalTeachers</div>
+        <div class="edu-admin-stat-label">Giảng viên</div>
+    </div>
+    
+    <div class="edu-admin-stat purple">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-chart-bar"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.AverageGPA.ToString("F2")</div>
+        <div class="edu-admin-stat-label">GPA Trung bình</div>
+    </div>
+    
+    <div class="edu-admin-stat teal">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-percentage"></i>
+        </div>
+        <div class="edu-admin-stat-value">@Model.ClassFillRate.ToString("F1")%</div>
+        <div class="edu-admin-stat-label">Tỷ lệ lấp đầy lớp</div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="edu-charts-grid">
+    <!-- Score Distribution Chart -->
+    <div class="edu-dark-card">
+        <div class="edu-dark-card-header primary">
+            <h5 class="edu-dark-card-title">
+                <i class="fas fa-chart-pie"></i> Phân bố điểm số
+            </h5>
+        </div>
+        <div class="edu-dark-card-body">
+            <div class="edu-chart-container">
+                <canvas id="scoreDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Students by Major Chart -->
+    <div class="edu-dark-card">
+        <div class="edu-dark-card-header success">
+            <h5 class="edu-dark-card-title">
+                <i class="fas fa-graduation-cap"></i> Sinh viên theo ngành
+            </h5>
+        </div>
+        <div class="edu-dark-card-body">
+            <div class="edu-chart-container">
+                <canvas id="studentsByMajorChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid Row 2 -->
+<div class="edu-charts-grid">
+    <!-- Enrollment Status Chart -->
+    <div class="edu-dark-card">
+        <div class="edu-dark-card-header warning">
+            <h5 class="edu-dark-card-title">
+                <i class="fas fa-tasks"></i> Trạng thái đăng ký
+            </h5>
+        </div>
+        <div class="edu-dark-card-body">
+            <div class="edu-chart-container">
+                <canvas id="enrollmentStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Students -->
+    <div class="edu-dark-card">
+        <div class="edu-dark-card-header info">
+            <h5 class="edu-dark-card-title">
+                <i class="fas fa-trophy"></i> Top 10 Sinh viên xuất sắc
+            </h5>
+        </div>
+        <div class="edu-dark-card-body" style="max-height: 350px; overflow-y: auto;">
+            <table class="edu-admin-table">
+                <thead>
+                    <tr>
+                        <th>Hạng</th>
+                        <th>Mã SV</th>
+                        <th>Họ tên</th>
+                        <th>Ngành</th>
+                        <th>GPA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in Model.TopStudents)
+                    {
+                        <tr>
+                            <td>
+                                @if (student.Rank == 1)
+                                {
+                                    <span class="edu-rank-badge gold">🥇 @student.Rank</span>
+                                }
+                                else if (student.Rank == 2)
+                                {
+                                    <span class="edu-rank-badge silver">🥈 @student.Rank</span>
+                                }
+                                else if (student.Rank == 3)
+                                {
+                                    <span class="edu-rank-badge bronze">🥉 @student.Rank</span>
+                                }
+                                else
+                                {
+                                    <span class="edu-rank-badge default">@student.Rank</span>
+                                }
+                            </td>
+                            <td style="font-family: monospace;">@student.StudentCode</td>
+                            <td style="font-weight: 500;">@student.FullName</td>
+                            <td style="font-size: 0.8125rem;">@student.Major</td>
+                            <td>
+                                <span class="edu-gpa-badge @GetGPAClass(student.GPA)">
+                                    @student.GPA.ToString("F2")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        // Chart.js dark theme defaults
+        Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        
+        // Score Distribution Chart
+        const scoreDistributionCtx = document.getElementById('scoreDistributionChart').getContext('2d');
+        new Chart(scoreDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['A (8.5-10)', 'B (7.0-8.4)', 'C (5.5-6.9)', 'D (4.0-5.4)', 'F (<4.0)'],
+                datasets: [{
+                    data: [@Model.GradeACount, @Model.GradeBCount, @Model.GradeCCount, @Model.GradeDCount, @Model.GradeFCount],
+                    backgroundColor: ['#22C55E', '#1751EF', '#0EA5E9', '#F59E0B', '#EF4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Students by Major Chart
+        const studentsByMajorCtx = document.getElementById('studentsByMajorChart').getContext('2d');
+        new Chart(studentsByMajorCtx, {
+            type: 'bar',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.StudentsByMajor.Select(x => $"'{x.Key}'")))],
+                datasets: [{
+                    label: 'Số sinh viên',
+                    data: [@string.Join(",", Model.StudentsByMajor.Select(x => x.Value))],
+                    backgroundColor: '#1751EF',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+        
+        // Enrollment Status Chart
+        const enrollmentStatusCtx = document.getElementById('enrollmentStatusChart').getContext('2d');
+        new Chart(enrollmentStatusCtx, {
+            type: 'pie',
+            data: {
+                labels: [@Html.Raw(string.Join(",", Model.EnrollmentsByStatus.Select(x => $"'{x.Key}'")))],
+                datasets: [{
+                    data: [@string.Join(",", Model.EnrollmentsByStatus.Select(x => x.Value))],
+                    backgroundColor: ['#22C55E', '#F59E0B', '#EF4444', '#0EA5E9', '#A1543C'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Export PDF function
+        function exportDashboardPDF() {
+            const element = document.querySelector('.admin-content');
+            const opt = {
+                margin: 10,
+                filename: 'dashboard-report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+}
+
+@functions {
+    string GetGPAClass(double gpa)
+    {
+        return gpa switch
+        {
+            >= 8.5 => "excellent",
+            >= 7.0 => "good",
+            >= 5.5 => "average",
+            _ => "poor"
+        };
+    }
+}

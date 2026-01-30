@@ -1,0 +1,584 @@
+@model IEnumerable<Services.Models.ClassDto>
+
+@{
+    ViewData["Title"] = "Danh sách Lớp học";
+    Layout = "~/Views/Shared/_Layout.AdminDark.cshtml";
+    var totalClasses = Model.Count();
+    var activeClasses = Model.Count(c => c.CurrentEnrollment > 0);
+    var fullClasses = Model.Count(c => c.CurrentEnrollment >= c.MaxCapacity);
+    var totalStudents = Model.Sum(c => c.CurrentEnrollment);
+}
+
+@section Styles {
+    <style>
+        /* Page Header */
+        .edu-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title i { color: #10B981; }
+        
+        .edu-page-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: var(--space-xs);
+            font-size: 0.9375rem;
+        }
+        
+        /* Stats Grid */
+        .edu-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            transition: all 0.3s ease;
+        }
+        
+        .edu-stat-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-4px);
+        }
+        
+        .edu-stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.375rem;
+        }
+        
+        .edu-stat-card.total .edu-stat-icon { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+        .edu-stat-card.active .edu-stat-icon { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+        .edu-stat-card.full .edu-stat-icon { background: rgba(239, 68, 68, 0.2); color: #EF4444; }
+        .edu-stat-card.students .edu-stat-icon { background: rgba(139, 92, 246, 0.2); color: #8B5CF6; }
+        
+        .edu-stat-info h3 {
+            font-family: var(--font-display);
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 0 var(--space-xs) 0;
+        }
+        
+        .edu-stat-info p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        
+        /* Filter Section */
+        .edu-filter-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .edu-filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            align-items: center;
+        }
+        
+        .edu-search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        .edu-search-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .edu-search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 0.9375rem;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-search-input:focus {
+            outline: none;
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+        
+        .edu-search-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        
+        .edu-filter-select {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 0.9375rem;
+            min-width: 200px;
+            cursor: pointer;
+        }
+        
+        .edu-filter-select:focus {
+            outline: none;
+            border-color: #10B981;
+        }
+        
+        .edu-filter-select option {
+            background: var(--edu-dark);
+            color: white;
+        }
+        
+        /* Classes Grid */
+        .edu-classes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+        }
+        
+        @@media (max-width: 1200px) {
+            .edu-classes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @@media (max-width: 768px) {
+            .edu-classes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Class Card */
+        .edu-class-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-class-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(16, 185, 129, 0.5);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15);
+        }
+        
+        .edu-class-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .edu-class-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .edu-class-code {
+            display: inline-block;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Monaco', 'Consolas', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .edu-class-status {
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .edu-class-status.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
+        }
+        
+        .edu-class-status.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+        
+        .edu-class-status.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+        
+        .edu-class-body {
+            padding: 1.25rem;
+        }
+        
+        .edu-class-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .edu-class-info i {
+            width: 20px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .edu-progress-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .edu-progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .edu-progress-label span:first-child { color: rgba(255, 255, 255, 0.5); }
+        .edu-progress-label span:last-child { font-weight: 600; color: white; }
+        
+        .edu-progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .edu-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .edu-progress-fill.success { background: linear-gradient(135deg, #10b981, #047857); }
+        .edu-progress-fill.warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .edu-progress-fill.danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        
+        .edu-class-footer {
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .edu-btn-detail {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+            border: none;
+        }
+        
+        .edu-btn-detail:hover {
+            background: #3B82F6;
+            color: white;
+        }
+        
+        .edu-btn-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .edu-btn-icon.edit {
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+        
+        .edu-btn-icon.edit:hover {
+            background: #F59E0B;
+            color: white;
+        }
+        
+        .edu-btn-icon.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+        
+        .edu-btn-icon.delete:hover {
+            background: #EF4444;
+            color: white;
+        }
+        
+        /* Empty State */
+        .edu-empty-state {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        
+        .edu-empty-state i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 1rem;
+        }
+        
+        .edu-empty-state h3 {
+            font-size: 1.25rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .edu-empty-state p {
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 1.5rem;
+        }
+    </style>
+}
+
+<!-- Page Header -->
+<div class="edu-page-header">
+    <div>
+        <h1 class="edu-page-title">
+            <i class="fas fa-door-open"></i> Quản lý Lớp học
+        </h1>
+        <p class="edu-page-subtitle">Danh sách và quản lý tất cả các lớp học trong hệ thống</p>
+    </div>
+    <a asp-action="Create" class="edu-btn edu-btn-success" style="background: linear-gradient(135deg, #10B981, #047857);">
+        <i class="fas fa-plus"></i> Tạo lớp mới
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="edu-stats-grid">
+    <div class="edu-stat-card total">
+        <div class="edu-stat-icon">
+            <i class="fas fa-layer-group"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@totalClasses</h3>
+            <p>Tổng lớp học</p>
+        </div>
+    </div>
+    
+    <div class="edu-stat-card active">
+        <div class="edu-stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@activeClasses</h3>
+            <p>Lớp đang hoạt động</p>
+        </div>
+    </div>
+    
+    <div class="edu-stat-card full">
+        <div class="edu-stat-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@fullClasses</h3>
+            <p>Lớp đã đầy</p>
+        </div>
+    </div>
+    
+    <div class="edu-stat-card students">
+        <div class="edu-stat-icon">
+            <i class="fas fa-user-graduate"></i>
+        </div>
+        <div class="edu-stat-info">
+            <h3>@totalStudents</h3>
+            <p>Tổng sinh viên</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="edu-filter-card">
+    <div class="edu-filter-row">
+        <div class="edu-search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchClass" class="edu-search-input" placeholder="Tìm kiếm lớp học...">
+        </div>
+        <select id="statusFilter" class="edu-filter-select">
+            <option value="">📋 Tất cả trạng thái</option>
+            <option value="active">✅ Còn chỗ</option>
+            <option value="warning">⚠️ Sắp đầy</option>
+            <option value="full">🚫 Đã đầy</option>
+        </select>
+    </div>
+</div>
+
+<!-- Classes Grid -->
+@if (Model.Any())
+{
+    <div class="edu-classes-grid" id="classesGrid">
+        @foreach (var item in Model)
+        {
+            var fillPercent = item.MaxCapacity > 0 ? (item.CurrentEnrollment * 100 / item.MaxCapacity) : 0;
+            var statusClass = fillPercent >= 100 ? "danger" : fillPercent >= 80 ? "warning" : "success";
+            var statusText = fillPercent >= 100 ? "Đã đầy" : fillPercent >= 80 ? "Sắp đầy" : "Còn chỗ";
+            
+            <div class="edu-class-card" data-status="@statusClass">
+                <div class="edu-class-header">
+                    <div>
+                        <h5 class="edu-class-title">@item.ClassName</h5>
+                        <span class="edu-class-code">@item.ClassCode</span>
+                    </div>
+                    <span class="edu-class-status @statusClass">@statusText</span>
+                </div>
+                
+                <div class="edu-class-body">
+                    <div class="edu-class-info">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>@(item.TeacherName ?? "Chưa phân công")</span>
+                    </div>
+                    <div class="edu-class-info">
+                        <i class="fas fa-book"></i>
+                        <span>@(item.CourseName ?? "Chưa có môn học")</span>
+                    </div>
+                    <div class="edu-class-info">
+                        <i class="fas fa-calendar"></i>
+                        <span>@(item.SemesterName ?? "N/A")</span>
+                    </div>
+                    <div class="edu-class-info">
+                        <i class="fas fa-clock"></i>
+                        <span>@(item.Schedule ?? "Chưa có lịch")</span>
+                    </div>
+                    
+                    <div class="edu-progress-section">
+                        <div class="edu-progress-label">
+                            <span>Sĩ số</span>
+                            <span>@item.CurrentEnrollment / @item.MaxCapacity</span>
+                        </div>
+                        <div class="edu-progress-bar">
+                            <div class="edu-progress-fill @statusClass" style="width: @fillPercent%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="edu-class-footer">
+                    <a asp-action="Details" asp-route-id="@item.ClassId" class="edu-btn-detail">
+                        <i class="fas fa-eye me-1"></i> Chi tiết
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@item.ClassId" class="edu-btn-icon edit" title="Chỉnh sửa">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button onclick="deleteClass(@item.ClassId, '@item.ClassCode')" class="edu-btn-icon delete" title="Xóa">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="edu-empty-state">
+        <i class="fas fa-door-open"></i>
+        <h3>Chưa có lớp học</h3>
+        <p>Chưa có lớp học nào trong hệ thống.</p>
+        <a asp-action="Create" class="edu-btn edu-btn-success" style="background: linear-gradient(135deg, #10B981, #047857);">
+            <i class="fas fa-plus me-2"></i>Tạo lớp đầu tiên
+        </a>
+    </div>
+}
+
+<form id="deleteForm" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function deleteClass(id, code) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: `Bạn có chắc muốn xóa lớp ${code}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: '<i class="fas fa-trash me-1"></i> Xóa',
+                cancelButtonText: '<i class="fas fa-times me-1"></i> Hủy',
+                background: '#1a1a1a',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteForm').action = `/Classes/Delete/${id}`;
+                    document.getElementById('deleteForm').submit();
+                }
+            });
+        }
+        
+        document.getElementById('searchClass').addEventListener('input', filterClasses);
+        document.getElementById('statusFilter').addEventListener('change', filterClasses);
+        
+        function filterClasses() {
+            const searchTerm = document.getElementById('searchClass').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            document.querySelectorAll('.edu-class-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                const cardStatus = card.dataset.status;
+                const matchSearch = text.includes(searchTerm);
+                const matchStatus = !statusFilter || 
+                    (statusFilter === 'active' && cardStatus === 'success') ||
+                    (statusFilter === 'warning' && cardStatus === 'warning') ||
+                    (statusFilter === 'full' && cardStatus === 'danger');
+                
+                card.style.display = matchSearch && matchStatus ? '' : 'none';
+            });
+        }
+    </script>
+}

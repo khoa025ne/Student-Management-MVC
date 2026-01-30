@@ -1,0 +1,556 @@
+@model IEnumerable<DataAccess.Entities.Course>
+
+@{
+    ViewData["Title"] = "Danh sách Môn học";
+    Layout = "~/Views/Shared/_Layout.AdminDark.cshtml";
+    var totalCourses = Model.Count();
+    var seCourses = Model.Count(c => c.Major?.ToString() == "SE" || c.Major?.ToString() == "SoftwareEngineering");
+    var iaCourses = Model.Count(c => c.Major?.ToString() == "IA" || c.Major?.ToString() == "InformationAssurance");
+    var aiCourses = Model.Count(c => c.Major?.ToString() == "AI" || c.Major?.ToString() == "ArtificialIntelligence");
+}
+
+@section Styles {
+    <style>
+        /* Page Header */
+        .edu-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-xl);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .edu-page-title i {
+            color: var(--edu-primary);
+        }
+        
+        .edu-page-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: var(--space-xs);
+            font-size: 0.9375rem;
+        }
+        
+        /* Stats Grid */
+        .edu-admin-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-admin-stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-admin-stat {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            transition: all 0.3s ease;
+        }
+        
+        .edu-admin-stat:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-4px);
+            border-color: var(--edu-primary);
+        }
+        
+        .edu-admin-stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.375rem;
+        }
+        
+        .edu-admin-stat.primary .edu-admin-stat-icon { background: rgba(23, 81, 239, 0.2); color: var(--edu-primary); }
+        .edu-admin-stat.se .edu-admin-stat-icon { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+        .edu-admin-stat.ia .edu-admin-stat-icon { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+        .edu-admin-stat.ai .edu-admin-stat-icon { background: rgba(139, 92, 246, 0.2); color: #8B5CF6; }
+        
+        .edu-admin-stat-info h3 {
+            font-family: var(--font-display);
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            margin: 0 0 var(--space-xs) 0;
+        }
+        
+        .edu-admin-stat-info p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        
+        /* Filter Section */
+        .edu-filter-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .edu-filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            align-items: center;
+        }
+        
+        .edu-search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+        
+        .edu-search-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .edu-search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 0.9375rem;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-search-input:focus {
+            outline: none;
+            border-color: var(--edu-primary);
+            box-shadow: 0 0 0 3px rgba(23, 81, 239, 0.15);
+        }
+        
+        .edu-search-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .edu-filter-select {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-lg);
+            color: white;
+            font-size: 0.9375rem;
+            min-width: 220px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-filter-select:focus {
+            outline: none;
+            border-color: var(--edu-primary);
+        }
+        
+        .edu-filter-select option {
+            background: var(--edu-dark);
+            color: white;
+        }
+        
+        /* Data Card */
+        .edu-data-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        
+        /* Modern Table */
+        .edu-modern-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .edu-modern-table thead {
+            background: linear-gradient(135deg, rgba(23, 81, 239, 0.3) 0%, rgba(23, 81, 239, 0.1) 100%);
+        }
+        
+        .edu-modern-table thead th {
+            padding: 1rem 1.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.9);
+            border: none;
+            text-align: left;
+        }
+        
+        .edu-modern-table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .edu-modern-table tbody tr:hover {
+            background: rgba(23, 81, 239, 0.1);
+        }
+        
+        .edu-modern-table tbody td {
+            padding: 1rem 1.25rem;
+            vertical-align: middle;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Course Info Cell */
+        .edu-course-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .edu-course-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .edu-course-icon.se { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .edu-course-icon.ia { background: linear-gradient(135deg, #10b981, #047857); color: white; }
+        .edu-course-icon.ai { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+        .edu-course-icon.default { background: linear-gradient(135deg, #6b7280, #4b5563); color: white; }
+        
+        .edu-course-name {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+        
+        .edu-course-code {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Monaco', 'Consolas', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        /* Credit Badge */
+        .edu-credit-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+        
+        /* Major Badge */
+        .edu-major-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .edu-major-badge.se {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .edu-major-badge.ia {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .edu-major-badge.ai {
+            background: rgba(139, 92, 246, 0.2);
+            color: #A78BFA;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .edu-major-badge.default {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Action Buttons */
+        .edu-action-btns {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        .edu-btn-action {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        
+        .edu-btn-action.edit {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+        }
+        
+        .edu-btn-action.edit:hover {
+            background: #3B82F6;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        
+        .edu-btn-action.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #F87171;
+        }
+        
+        .edu-btn-action.delete:hover {
+            background: #EF4444;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Empty State */
+        .edu-empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        
+        .edu-empty-state i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 1rem;
+        }
+        
+        .edu-empty-state h3 {
+            font-size: 1.25rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        
+        .edu-empty-state p {
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 1.5rem;
+        }
+    </style>
+}
+
+<!-- Page Header -->
+<div class="edu-page-header">
+    <div>
+        <h1 class="edu-page-title">
+            <i class="fas fa-book-open"></i> Quản lý Môn học
+        </h1>
+        <p class="edu-page-subtitle">Danh sách tất cả các môn học trong hệ thống</p>
+    </div>
+    <a asp-action="Create" class="edu-btn edu-btn-primary">
+        <i class="fas fa-plus"></i> Thêm môn học mới
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="edu-admin-stats">
+    <div class="edu-admin-stat primary">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-book"></i>
+        </div>
+        <div class="edu-admin-stat-info">
+            <h3>@totalCourses</h3>
+            <p>Tổng môn học</p>
+        </div>
+    </div>
+    
+    <div class="edu-admin-stat se">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-code"></i>
+        </div>
+        <div class="edu-admin-stat-info">
+            <h3>@seCourses</h3>
+            <p>Software Engineering</p>
+        </div>
+    </div>
+    
+    <div class="edu-admin-stat ia">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="edu-admin-stat-info">
+            <h3>@iaCourses</h3>
+            <p>Information Assurance</p>
+        </div>
+    </div>
+    
+    <div class="edu-admin-stat ai">
+        <div class="edu-admin-stat-icon">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="edu-admin-stat-info">
+            <h3>@aiCourses</h3>
+            <p>Artificial Intelligence</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="edu-filter-card">
+    <div class="edu-filter-row">
+        <div class="edu-search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchCourse" class="edu-search-input" placeholder="Tìm kiếm môn học...">
+        </div>
+        <select id="majorFilter" class="edu-filter-select">
+            <option value="">🎓 Tất cả chuyên ngành</option>
+            <option value="SE">💻 Software Engineering</option>
+            <option value="IA">🛡️ Information Assurance</option>
+            <option value="AI">🤖 Artificial Intelligence</option>
+        </select>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="edu-data-card">
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="edu-modern-table" id="coursesTable">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Môn học</th>
+                        <th style="text-align: center; width: 120px;">Tín chỉ</th>
+                        <th style="text-align: center; width: 200px;">Chuyên ngành</th>
+                        <th style="text-align: center; width: 120px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var majorStr = item.Major?.ToString() ?? "";
+                        var majorClass = majorStr switch { "SE" or "SoftwareEngineering" => "se", "IA" or "InformationAssurance" => "ia", "AI" or "ArtificialIntelligence" => "ai", _ => "default" };
+                        var majorIcon = majorStr switch { "SE" or "SoftwareEngineering" => "fa-code", "IA" or "InformationAssurance" => "fa-shield-alt", "AI" or "ArtificialIntelligence" => "fa-robot", _ => "fa-book" };
+                        <tr>
+                            <td>
+                                <div class="edu-course-info">
+                                    <div class="edu-course-icon @majorClass">
+                                        <i class="fas @majorIcon"></i>
+                                    </div>
+                                    <div>
+                                        <div class="edu-course-name">@item.CourseName</div>
+                                        <span class="edu-course-code">@item.CourseCode</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="edu-credit-badge">@item.Credits TC</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="edu-major-badge @majorClass">
+                                    <i class="fas @majorIcon"></i> @item.Major
+                                </span>
+                            </td>
+                            <td>
+                                <div class="edu-action-btns">
+                                    <a asp-action="Edit" asp-route-id="@item.CourseId" class="edu-btn-action edit" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button onclick="deleteCourse(@item.CourseId, '@item.CourseCode')" class="edu-btn-action delete" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="edu-empty-state">
+            <i class="fas fa-book"></i>
+            <h3>Chưa có môn học</h3>
+            <p>Chưa có môn học nào trong hệ thống.</p>
+            <a asp-action="Create" class="edu-btn edu-btn-primary">
+                <i class="fas fa-plus me-2"></i>Thêm môn học đầu tiên
+            </a>
+        </div>
+    }
+</div>
+
+<form id="deleteForm" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function deleteCourse(id, code) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: `Bạn có chắc muốn xóa môn ${code}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: '<i class="fas fa-trash me-1"></i> Xóa',
+                cancelButtonText: '<i class="fas fa-times me-1"></i> Hủy',
+                background: '#1a1a1a',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteForm').action = `/Courses/Delete/${id}`;
+                    document.getElementById('deleteForm').submit();
+                }
+            });
+        }
+        
+        document.getElementById('searchCourse').addEventListener('input', filterTable);
+        document.getElementById('majorFilter').addEventListener('change', filterTable);
+        
+        function filterTable() {
+            const searchTerm = document.getElementById('searchCourse').value.toLowerCase();
+            const majorFilter = document.getElementById('majorFilter').value.toLowerCase();
+            document.querySelectorAll('#coursesTable tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) && (!majorFilter || text.includes(majorFilter)) ? '' : 'none';
+            });
+        }
+    </script>
+}

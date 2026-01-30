@@ -1,0 +1,762 @@
+@model Services.Models.TeacherDashboardDto
+
+@{
+    ViewData["Title"] = "Trang chủ Giảng viên";
+    Layout = "~/Views/Shared/_Layout.Education.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* Teacher Hero Section */
+        .edu-teacher-hero {
+            position: relative;
+            padding: var(--space-2xl) var(--space-xl);
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            margin-bottom: var(--space-xl);
+            background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%);
+        }
+        
+        .edu-teacher-hero::after {
+            content: '';
+            position: absolute;
+            right: -100px;
+            top: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .edu-hero-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+        
+        @@media (min-width: 1024px) {
+            .edu-hero-inner {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+        
+        .edu-hero-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+        
+        .edu-hero-avatar {
+            width: 88px;
+            height: 88px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        
+        .edu-hero-greeting {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.875rem;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-hero-name {
+            color: white;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+        
+        .edu-hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+        
+        .edu-hero-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.375rem 0.875rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .edu-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+        
+        .edu-hero-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .edu-hero-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Stats Section */
+        .edu-teacher-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-teacher-stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-stat-box {
+            background: var(--edu-card-bg);
+            border: 1px solid var(--edu-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-stat-box:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card-hover);
+        }
+        
+        .edu-stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .edu-stat-box.emerald::before { background: #10B981; }
+        .edu-stat-box.blue::before { background: var(--edu-primary); }
+        .edu-stat-box.purple::before { background: #7C3AED; }
+        .edu-stat-box.orange::before { background: var(--edu-accent); }
+        
+        .edu-stat-icon-lg {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto var(--space-md);
+        }
+        
+        .edu-stat-icon-lg.emerald { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+        .edu-stat-icon-lg.blue { background: rgba(23, 81, 239, 0.1); color: var(--edu-primary); }
+        .edu-stat-icon-lg.purple { background: rgba(124, 58, 237, 0.1); color: #7C3AED; }
+        .edu-stat-icon-lg.orange { background: rgba(161, 84, 60, 0.1); color: var(--edu-accent); }
+        
+        .edu-stat-value {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-stat-value.emerald { color: #10B981; }
+        .edu-stat-value.blue { color: var(--edu-primary); }
+        .edu-stat-value.purple { color: #7C3AED; }
+        .edu-stat-value.orange { color: var(--edu-accent); }
+        
+        .edu-stat-label {
+            font-size: 0.8125rem;
+            color: var(--edu-gray);
+        }
+        
+        /* Content Grid */
+        .edu-content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+        
+        @@media (min-width: 1024px) {
+            .edu-content-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .edu-content-card {
+            background: var(--edu-card-bg);
+            border: 1px solid var(--edu-card-border);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+        }
+        
+        .edu-content-header {
+            background: var(--edu-dark);
+            color: white;
+            padding: var(--space-md) var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .edu-content-header.emerald {
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+        }
+        
+        .edu-content-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+        }
+        
+        .edu-content-link {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8125rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+        
+        .edu-content-link:hover {
+            color: white;
+        }
+        
+        .edu-content-body {
+            padding: var(--space-lg);
+        }
+        
+        /* Class Cards */
+        .edu-class-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+        }
+        
+        @@media (min-width: 576px) {
+            .edu-class-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .edu-class-card {
+            background: var(--edu-muted);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .edu-class-card:hover {
+            background: white;
+            border-color: #10B981;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .edu-class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+        
+        .edu-class-code {
+            background: #10B981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .edu-class-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--edu-dark);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-class-semester {
+            font-size: 0.8125rem;
+            color: var(--edu-gray);
+        }
+        
+        .edu-class-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--edu-card-border);
+        }
+        
+        .edu-class-stat {
+            text-align: center;
+        }
+        
+        .edu-class-stat-value {
+            font-weight: 700;
+            color: var(--edu-dark);
+        }
+        
+        .edu-class-stat-label {
+            font-size: 0.75rem;
+            color: var(--edu-gray);
+        }
+        
+        /* Schedule Items */
+        .edu-schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .edu-schedule-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            background: var(--edu-muted);
+            border-radius: var(--radius-md);
+            border-left: 4px solid #10B981;
+            transition: all 0.2s ease;
+        }
+        
+        .edu-schedule-item:hover {
+            background: var(--edu-card-border);
+        }
+        
+        .edu-schedule-item.completed {
+            opacity: 0.6;
+            border-left-color: var(--edu-gray);
+        }
+        
+        .edu-schedule-time {
+            min-width: 70px;
+            padding: var(--space-sm);
+            background: #10B981;
+            color: white;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8125rem;
+        }
+        
+        .edu-schedule-info h6 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--edu-dark);
+            margin-bottom: 2px;
+        }
+        
+        .edu-schedule-info span {
+            font-size: 0.8125rem;
+            color: var(--edu-gray);
+        }
+        
+        /* Social Proof / Stats Banner */
+        .edu-proof-section {
+            background: var(--gradient-dark);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .edu-proof-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            text-align: center;
+        }
+        
+        .edu-proof-item h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .edu-proof-item p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+        
+        /* Empty State */
+        .edu-empty-state {
+            text-align: center;
+            padding: var(--space-2xl);
+        }
+        
+        .edu-empty-state i {
+            font-size: 3rem;
+            color: var(--edu-card-border);
+            margin-bottom: var(--space-md);
+        }
+        
+        .edu-empty-state h6 {
+            color: var(--edu-gray);
+            font-weight: 500;
+        }
+        
+        /* Pending Grades Alert */
+        .edu-pending-alert {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border: 1px solid #F59E0B;
+            border-left: 4px solid #F59E0B;
+            border-radius: var(--radius-lg);
+            padding: var(--space-md) var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+        
+        .edu-pending-icon {
+            width: 48px;
+            height: 48px;
+            background: #F59E0B;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .edu-pending-content {
+            flex: 1;
+        }
+        
+        .edu-pending-title {
+            font-weight: 600;
+            color: #92400E;
+            margin-bottom: 2px;
+        }
+        
+        .edu-pending-text {
+            font-size: 0.875rem;
+            color: #78350F;
+            margin: 0;
+        }
+        
+        /* Quick Actions */
+        .edu-quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        .edu-quick-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-lg);
+            background: var(--edu-muted);
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .edu-quick-action:hover {
+            background: white;
+            border-color: #10B981;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-4px);
+        }
+        
+        .edu-quick-action-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-sm);
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .edu-quick-action span {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--edu-dark);
+            text-align: center;
+        }
+    </style>
+}
+
+<!-- Hero Section -->
+<div class="edu-teacher-hero">
+    <div class="edu-hero-inner">
+        <div class="edu-hero-profile">
+            <div class="edu-hero-avatar">
+                @Model.Teacher.FullName.Substring(0, 1).ToUpper()
+            </div>
+            <div>
+                <p class="edu-hero-greeting">Designed for Success in Teaching</p>
+                <h1 class="edu-hero-name">Xin chào, @Model.Teacher.FullName!</h1>
+                <div class="edu-hero-badges">
+                    <span class="edu-hero-badge"><i class="fas fa-id-badge"></i> Giảng viên</span>
+                    <span class="edu-hero-badge"><i class="fas fa-chalkboard-teacher"></i> @Model.TotalClasses lớp</span>
+                    <span class="edu-hero-badge"><i class="fas fa-users"></i> @Model.TotalStudents sinh viên</span>
+                </div>
+            </div>
+        </div>
+        <div class="edu-hero-actions">
+            <a asp-controller="Classes" asp-action="MyClasses" class="edu-hero-btn">
+                <i class="fas fa-users"></i> Lớp giảng dạy
+            </a>
+            <a asp-controller="EnrollmentGrades" asp-action="Index" class="edu-hero-btn">
+                <i class="fas fa-edit"></i> Nhập điểm
+            </a>
+            <a asp-controller="StudentComment" asp-action="SelectClass" class="edu-hero-btn">
+                <i class="fas fa-comment"></i> Nhận xét SV
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Grades Alert -->
+@if (Model.ClassesWithoutScores?.Count > 0)
+{
+    <div class="edu-pending-alert">
+        <div class="edu-pending-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="edu-pending-content">
+            <h6 class="edu-pending-title">⏳ Có @Model.ClassesWithoutScores.Count lớp cần nhập điểm</h6>
+            <p class="edu-pending-text">Vui lòng hoàn thành nhập điểm cho các lớp đang chờ xử lý.</p>
+        </div>
+        <a asp-controller="EnrollmentGrades" asp-action="Index" class="edu-btn edu-btn-dark edu-btn-sm">
+            <i class="fas fa-arrow-right"></i> Nhập điểm ngay
+        </a>
+    </div>
+}
+
+<!-- Stats Grid -->
+<div class="edu-teacher-stats">
+    <div class="edu-stat-box emerald">
+        <div class="edu-stat-icon-lg emerald">
+            <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        <div class="edu-stat-value emerald">@Model.TotalClasses</div>
+        <p class="edu-stat-label">Lớp giảng dạy</p>
+    </div>
+    
+    <div class="edu-stat-box blue">
+        <div class="edu-stat-icon-lg blue">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="edu-stat-value blue">@Model.TotalStudents</div>
+        <p class="edu-stat-label">Tổng sinh viên</p>
+    </div>
+    
+    <div class="edu-stat-box purple">
+        <div class="edu-stat-icon-lg purple">
+            <i class="fas fa-calendar-day"></i>
+        </div>
+        <div class="edu-stat-value purple">@Model.TodaySchedule.Count</div>
+        <p class="edu-stat-label">Lịch dạy hôm nay</p>
+    </div>
+    
+    <div class="edu-stat-box orange">
+        <div class="edu-stat-icon-lg orange">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="edu-stat-value orange">@(Model.ClassesWithoutScores?.Count ?? 0)</div>
+        <p class="edu-stat-label">Lớp chờ nhập điểm</p>
+    </div>
+</div>
+
+<!-- Social Proof Section -->
+<div class="edu-proof-section">
+    <div class="edu-proof-grid">
+        <div class="edu-proof-item">
+            <h3>@Model.TotalClasses+</h3>
+            <p>Courses Created</p>
+        </div>
+        <div class="edu-proof-item">
+            <h3>@Model.TotalStudents+</h3>
+            <p>Happy Students</p>
+        </div>
+        <div class="edu-proof-item">
+            <h3>@(Model.TotalClasses * 15)+</h3>
+            <p>Teaching Hours</p>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="edu-content-grid">
+    <!-- Today's Schedule -->
+    <div class="edu-content-card">
+        <div class="edu-content-header emerald">
+            <h5 class="edu-content-title">
+                <i class="fas fa-calendar-day"></i> Lịch dạy hôm nay
+            </h5>
+        </div>
+        <div class="edu-content-body">
+            <p style="font-size: 0.8125rem; color: var(--edu-gray); margin-bottom: var(--space-md);">
+                <i class="fas fa-clock me-1"></i>@DateTime.Now.ToString("dddd, dd/MM/yyyy", new System.Globalization.CultureInfo("vi-VN"))
+            </p>
+            
+            @if (Model.TodaySchedule != null && Model.TodaySchedule.Any())
+            {
+                <div class="edu-schedule-list">
+                    @foreach (var cls in Model.TodaySchedule)
+                    {
+                        <div class="edu-schedule-item">
+                            <div class="edu-schedule-time">@cls.TimeSlot</div>
+                            <div class="edu-schedule-info">
+                                <h6>@cls.CourseName</h6>
+                                <span><i class="fas fa-door-open me-1"></i>@cls.Room • @cls.ClassCode</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="edu-empty-state">
+                    <i class="fas fa-coffee"></i>
+                    <h6>Không có lịch dạy hôm nay!</h6>
+                    <p style="font-size: 0.875rem; color: var(--edu-gray);">Hãy tận hưởng ngày nghỉ ☕</p>
+                </div>
+            }
+        </div>
+    </div>
+    
+    <!-- My Classes -->
+    <div class="edu-content-card">
+        <div class="edu-content-header">
+            <h5 class="edu-content-title">
+                <i class="fas fa-chalkboard"></i> Lớp giảng dạy
+            </h5>
+            <a asp-controller="Classes" asp-action="MyClasses" class="edu-content-link">
+                Xem tất cả <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        <div class="edu-content-body">
+            @if (Model.MyClasses != null && Model.MyClasses.Any())
+            {
+                <div class="edu-class-grid">
+                    @foreach (var cls in Model.MyClasses.Take(4))
+                    {
+                        <div class="edu-class-card">
+                            <div class="edu-class-header">
+                                <div>
+                                    <h5 class="edu-class-title">@cls.CourseName</h5>
+                                    <p class="edu-class-semester">@cls.SemesterName</p>
+                                </div>
+                                <span class="edu-class-code">@cls.ClassCode</span>
+                            </div>
+                            <div class="edu-class-meta">
+                                <div class="edu-class-stat">
+                                    <div class="edu-class-stat-value">@cls.StudentCount</div>
+                                    <div class="edu-class-stat-label">Sinh viên</div>
+                                </div>
+                                <div class="edu-class-stat">
+                                    <div class="edu-class-stat-value">@cls.MaxCapacity</div>
+                                    <div class="edu-class-stat-label">Sỉ số tối đa</div>
+                                </div>
+                                <a asp-controller="Classes" asp-action="Details" asp-route-id="@cls.Id" 
+                                   class="edu-btn edu-btn-sm edu-btn-outline" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;">
+                                    Chi tiết
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="edu-empty-state">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <h6>Chưa có lớp giảng dạy</h6>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="edu-content-card">
+    <div class="edu-content-header">
+        <h5 class="edu-content-title">
+            <i class="fas fa-bolt"></i> Thao tác nhanh
+        </h5>
+    </div>
+    <div class="edu-content-body">
+        <div class="edu-quick-actions">
+            <a asp-controller="Classes" asp-action="MyClasses" class="edu-quick-action">
+                <div class="edu-quick-action-icon" style="background: linear-gradient(135deg, #059669, #10B981);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <span>Lớp giảng dạy</span>
+            </a>
+            <a asp-controller="EnrollmentGrades" asp-action="Index" class="edu-quick-action">
+                <div class="edu-quick-action-icon" style="background: var(--gradient-primary);">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <span>Nhập điểm</span>
+            </a>
+            <a asp-controller="StudentComment" asp-action="SelectClass" class="edu-quick-action">
+                <div class="edu-quick-action-icon" style="background: #7C3AED;">
+                    <i class="fas fa-comment"></i>
+                </div>
+                <span>Nhận xét sinh viên</span>
+            </a>
+            <a asp-controller="Notifications" asp-action="MyNotifications" class="edu-quick-action">
+                <div class="edu-quick-action-icon" style="background: var(--edu-info);">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <span>Thông báo</span>
+            </a>
+        </div>
+    </div>
+</div>

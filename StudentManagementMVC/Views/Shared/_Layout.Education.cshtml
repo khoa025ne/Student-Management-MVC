@@ -1,0 +1,441 @@
+@{
+    var userRole = User.IsInRole("Teacher") ? "teacher" : "student";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var userName = User.Identity?.Name ?? "Người dùng";
+    var userInitials = userName.Length >= 2 ? userName.Substring(0, 2).ToUpper() : userName.ToUpper();
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Student Compass</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Bootstrap (for grid & utilities) -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <!-- Education Theme CSS -->
+    <link rel="stylesheet" href="~/css/education-theme.css" asp-append-version="true" />
+    
+    <style>
+        /* Layout Structure */
+        .edu-layout {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .edu-main {
+            flex: 1;
+            padding: var(--space-lg);
+            max-width: var(--container-max);
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        @@media (min-width: 768px) {
+            .edu-main {
+                padding: var(--space-xl) var(--space-lg);
+            }
+        }
+        
+        /* Mobile Navigation */
+        .edu-mobile-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .edu-mobile-nav.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .edu-mobile-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .edu-mobile-menu {
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 85%;
+            max-width: 320px;
+            height: 100%;
+            background: var(--edu-card-bg);
+            box-shadow: var(--shadow-xl);
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .edu-mobile-nav.active .edu-mobile-menu {
+            right: 0;
+        }
+        
+        .edu-mobile-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--edu-card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .edu-mobile-close {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: var(--edu-muted);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .edu-mobile-links {
+            flex: 1;
+            padding: var(--space-lg);
+            overflow-y: auto;
+        }
+        
+        .edu-mobile-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            color: var(--edu-dark);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: var(--space-xs);
+            transition: all 0.2s ease;
+        }
+        
+        .edu-mobile-link:hover,
+        .edu-mobile-link.active {
+            background: var(--edu-primary);
+            color: white;
+        }
+        
+        .edu-mobile-link i {
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* Notification Badge */
+        .edu-notification-btn {
+            position: relative;
+        }
+        
+        .edu-notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            background: var(--edu-accent);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+        
+        /* User dropdown override */
+        .dropdown-menu {
+            border: 1px solid var(--edu-card-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+    
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="edu-layout">
+        <!-- Header -->
+        <header class="edu-header">
+            <div class="edu-header-inner">
+                <!-- Brand -->
+                <a href="@(userRole == "teacher" ? "/Teacher/Dashboard" : "/Student/Dashboard")" class="edu-logo">
+                    <div class="edu-logo-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <span class="edu-logo-text edu-hide-mobile">Student Compass</span>
+                </a>
+
+                <!-- Desktop Navigation -->
+                <nav class="edu-nav">
+                    @if (userRole == "student")
+                    {
+                        <a asp-controller="Student" asp-action="Dashboard" 
+                           class="edu-nav-link @(currentController == "Student" ? "active" : "")">
+                            <i class="fas fa-home me-1"></i> Trang chủ
+                        </a>
+                        <a asp-controller="Enrollments" asp-action="Register" 
+                           class="edu-nav-link @(currentController == "Enrollments" ? "active" : "")">
+                            <i class="fas fa-book-open me-1"></i> Môn học
+                        </a>
+                        <a asp-controller="Schedule" asp-action="Index" 
+                           class="edu-nav-link @(currentController == "Schedule" ? "active" : "")">
+                            <i class="fas fa-calendar me-1"></i> Lịch học
+                        </a>
+                        <a asp-controller="Scores" asp-action="MyGrades" 
+                           class="edu-nav-link @(currentController == "Scores" ? "active" : "")">
+                            <i class="fas fa-chart-line me-1"></i> Bảng điểm
+                        </a>
+                        <a asp-controller="LearningPath" asp-action="Index" 
+                           class="edu-nav-link @(currentController == "LearningPath" ? "active" : "")">
+                            <i class="fas fa-road me-1"></i> Lộ trình
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Teacher" asp-action="Dashboard" 
+                           class="edu-nav-link @(currentController == "Teacher" && currentAction == "Dashboard" ? "active" : "")">
+                            <i class="fas fa-home me-1"></i> Trang chủ
+                        </a>
+                        <a asp-controller="Classes" asp-action="MyClasses" 
+                           class="edu-nav-link @(currentAction == "MyClasses" ? "active" : "")">
+                            <i class="fas fa-users me-1"></i> Lớp học
+                        </a>
+                        <a asp-controller="EnrollmentGrades" asp-action="Index" 
+                           class="edu-nav-link @(currentController == "EnrollmentGrades" ? "active" : "")">
+                            <i class="fas fa-edit me-1"></i> Nhập điểm
+                        </a>
+                        <a asp-controller="StudentComment" asp-action="SelectClass" 
+                           class="edu-nav-link @(currentController == "StudentComment" ? "active" : "")">
+                            <i class="fas fa-comment me-1"></i> Nhận xét
+                        </a>
+                    }
+                </nav>
+
+                <!-- Right Section -->
+                <div class="edu-header-actions">
+                    <!-- Notifications -->
+                    <a asp-controller="Notifications" asp-action="MyNotifications" class="edu-notification-btn" title="Thông báo">
+                        <i class="fas fa-bell"></i>
+                        <span class="edu-notification-badge" id="notificationBadge" style="display:none;">0</span>
+                    </a>
+
+                    <!-- User Menu -->
+                    <div class="dropdown">
+                        <button class="edu-user-menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="edu-user-avatar">@userInitials</div>
+                            <span class="edu-user-name edu-hide-mobile">@userName</span>
+                            <i class="fas fa-chevron-down ms-1 edu-hide-mobile" style="font-size: 0.7rem; color: rgba(255,255,255,0.7);"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" asp-controller="@(userRole == "teacher" ? "Home" : "StudentProfile")" asp-action="Index">
+                                    <i class="fas fa-user me-2 text-muted"></i> Hồ sơ
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Auth" asp-action="ChangePassword">
+                                    <i class="fas fa-key me-2 text-muted"></i> Đổi mật khẩu
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Mobile Menu Toggle -->
+                    <button class="edu-mobile-toggle" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile Navigation -->
+        <div class="edu-mobile-nav" id="mobileNav">
+            <div class="edu-mobile-overlay" onclick="toggleMobileMenu()"></div>
+            <div class="edu-mobile-menu">
+                <div class="edu-mobile-header">
+                    <div class="edu-logo">
+                        <div class="edu-logo-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <span class="edu-logo-text">Student Compass</span>
+                    </div>
+                    <button class="edu-mobile-close" onclick="toggleMobileMenu()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="edu-mobile-links">
+                    @if (userRole == "student")
+                    {
+                        <a asp-controller="Student" asp-action="Dashboard" class="edu-mobile-link @(currentController == "Student" ? "active" : "")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                        <a asp-controller="Enrollments" asp-action="Register" class="edu-mobile-link @(currentController == "Enrollments" ? "active" : "")">
+                            <i class="fas fa-book-open"></i> Đăng ký môn học
+                        </a>
+                        <a asp-controller="Schedule" asp-action="Index" class="edu-mobile-link @(currentController == "Schedule" ? "active" : "")">
+                            <i class="fas fa-calendar"></i> Lịch học
+                        </a>
+                        <a asp-controller="Scores" asp-action="MyGrades" class="edu-mobile-link @(currentController == "Scores" ? "active" : "")">
+                            <i class="fas fa-chart-line"></i> Bảng điểm
+                        </a>
+                        <a asp-controller="Transfers" asp-action="Index" class="edu-mobile-link @(currentController == "Transfers" ? "active" : "")">
+                            <i class="fas fa-exchange-alt"></i> Chuyển lớp
+                        </a>
+                        <a asp-controller="LearningPath" asp-action="Index" class="edu-mobile-link @(currentController == "LearningPath" ? "active" : "")">
+                            <i class="fas fa-road"></i> Lộ trình học tập
+                        </a>
+                        <a asp-controller="Notifications" asp-action="MyNotifications" class="edu-mobile-link @(currentController == "Notifications" ? "active" : "")">
+                            <i class="fas fa-bell"></i> Thông báo
+                        </a>
+                        <a asp-controller="StudentProfile" asp-action="Index" class="edu-mobile-link @(currentController == "StudentProfile" ? "active" : "")">
+                            <i class="fas fa-user"></i> Hồ sơ
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Teacher" asp-action="Dashboard" class="edu-mobile-link @(currentController == "Teacher" && currentAction == "Dashboard" ? "active" : "")">
+                            <i class="fas fa-home"></i> Trang chủ
+                        </a>
+                        <a asp-controller="Classes" asp-action="MyClasses" class="edu-mobile-link @(currentAction == "MyClasses" ? "active" : "")">
+                            <i class="fas fa-users"></i> Lớp học
+                        </a>
+                        <a asp-controller="EnrollmentGrades" asp-action="Index" class="edu-mobile-link @(currentController == "EnrollmentGrades" ? "active" : "")">
+                            <i class="fas fa-edit"></i> Nhập điểm
+                        </a>
+                        <a asp-controller="StudentComment" asp-action="SelectClass" class="edu-mobile-link @(currentController == "StudentComment" ? "active" : "")">
+                            <i class="fas fa-comment"></i> Nhận xét sinh viên
+                        </a>
+                        <a asp-controller="Notifications" asp-action="MyNotifications" class="edu-mobile-link @(currentController == "Notifications" ? "active" : "")">
+                            <i class="fas fa-bell"></i> Thông báo
+                        </a>
+                    }
+                    <hr style="margin: var(--space-md) 0; border-color: var(--edu-card-border);">
+                    <a asp-controller="Auth" asp-action="Logout" class="edu-mobile-link" style="color: var(--edu-danger);">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="edu-main">
+            <!-- Flash Messages -->
+            <partial name="_Notifications" />
+            
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="edu-footer">
+            <div class="edu-footer-inner">
+                <div class="edu-footer-grid">
+                    <div>
+                        <div class="edu-footer-brand">
+                            <div class="edu-footer-brand-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <span class="edu-footer-brand-text">Student Compass</span>
+                        </div>
+                        <p class="edu-footer-description">
+                            Hệ thống quản lý học tập hiện đại, giúp sinh viên và giảng viên kết nối, theo dõi tiến độ và đạt được mục tiêu học tập.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="edu-footer-title">Liên kết nhanh</h4>
+                        <ul class="edu-footer-links">
+                            <li><a href="#">Trang chủ</a></li>
+                            <li><a href="#">Môn học</a></li>
+                            <li><a href="#">Lịch học</a></li>
+                            <li><a href="#">Bảng điểm</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="edu-footer-title">Hỗ trợ</h4>
+                        <ul class="edu-footer-links">
+                            <li><a href="#">Hướng dẫn sử dụng</a></li>
+                            <li><a href="#">Câu hỏi thường gặp</a></li>
+                            <li><a href="#">Liên hệ</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="edu-footer-title">Liên hệ</h4>
+                        <ul class="edu-footer-links">
+                            <li><i class="fas fa-envelope me-2"></i> support@studentcompass.edu</li>
+                            <li><i class="fas fa-phone me-2"></i> (028) 1234 5678</li>
+                            <li><i class="fas fa-map-marker-alt me-2"></i> TP. Hồ Chí Minh, Việt Nam</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="edu-footer-bottom">
+                    &copy; @DateTime.Now.Year Student Compass - Hệ thống quản lý sinh viên. All rights reserved.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        function toggleMobileMenu() {
+            document.getElementById('mobileNav').classList.toggle('active');
+            document.body.style.overflow = document.getElementById('mobileNav').classList.contains('active') ? 'hidden' : '';
+        }
+        
+        // Close mobile menu on escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const mobileNav = document.getElementById('mobileNav');
+                if (mobileNav.classList.contains('active')) {
+                    toggleMobileMenu();
+                }
+            }
+        });
+        
+        // Close mobile menu on window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                const mobileNav = document.getElementById('mobileNav');
+                if (mobileNav.classList.contains('active')) {
+                    toggleMobileMenu();
+                }
+            }
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
