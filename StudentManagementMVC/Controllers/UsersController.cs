@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
-using DataAccess.Entities;
-using DataAccess.Enums;
+
 using System.Threading.Tasks;
 using System.Linq;
 using System;
@@ -128,56 +127,38 @@ namespace StudentManagementMVC.Controllers
                     finalPassword = password;
                 }
 
-                var user = new User
+                // Create user using DTO
+                var userCreateDto = new UserCreateDto
                 {
                     Email = email,
                     FullName = fullName,
                     PhoneNumber = phoneNumber,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(finalPassword),
-                    RoleId = roleId,
-                    IsActive = isActive,
-                    MustChangePassword = true,
-                    CreatedAt = DateTime.Now
+                    Password = finalPassword,
+                    RoleIds = new List<int> { roleId }
                 };
 
-                await _userService.CreateAsync(user);
+                var createdUserDto = await _userService.CreateAsync(userCreateDto, hashPassword: true);
 
                 // Tự động tạo hồ sơ sinh viên nếu role là Student
                 if (role != null && role.RoleName == "Student")
                 {
                     try
                     {
-                        // Lấy user vừa tạo để có UserId
-                        var createdUser = await _userService.GetByEmailAsync(email);
-                        if (createdUser != null)
+                        // Create student using DTO with UserId from created user
+                        var studentCreateDto = new StudentCreateDto
                         {
-                            // Parse major code
-                            var major = MajorType.Undefined;
-                            if (!string.IsNullOrEmpty(majorCode))
-                            {
-                                if (Enum.TryParse<MajorType>(majorCode, true, out var parsedMajor))
-                                {
-                                    major = parsedMajor;
-                                }
-                            }
+                            UserId = createdUserDto.UserIdInt,
+                            StudentCode = studentCode, // Sử dụng auto-generated code
+                            FullName = fullName,
+                            Email = email,
+                            PhoneNumber = phoneNumber,
+                            DateOfBirth = dateOfBirth!.Value,
+                            MajorCode = majorCode,
+                            ClassCode = "Chưa phân lớp"
+                        };
 
-                            var student = new Student
-                            {
-                                UserId = createdUser.UserId,
-                                StudentCode = studentCode, // Sử dụng auto-generated code
-                                FullName = fullName,
-                                Email = email,
-                                PhoneNumber = phoneNumber,
-                                DateOfBirth = dateOfBirth!.Value,
-                                Major = major,
-                                ClassCode = "Chưa phân lớp",
-                                OverallGPA = 0.0,
-                                CurrentTermNo = 1
-                            };
-
-                            await _studentService.CreateAsync(student);
-                            TempData["InfoMessage"] = $"Hồ sơ sinh viên đã được tạo tự động. Mã SV: {studentCode} - Ngành: {major}";
-                        }
+                        var createdStudent = await _studentService.CreateAsync(studentCreateDto);
+                        TempData["InfoMessage"] = $"Hồ sơ sinh viên đã được tạo tự động. Mã SV: {createdStudent.StudentCode} - Ngành: {createdStudent.MajorName}";
                     }
                     catch (Exception studentEx)
                     {
@@ -435,23 +416,23 @@ namespace StudentManagementMVC.Controllers
                     
                     if (existingStudent == null)
                     {
-                        // Tạo hồ sơ Student mới với thông tin cơ bản
-                        var newStudent = new Student
+                        // Tạo hồ sơ Student mới với thông tin cơ bản sử dụng DTO
+                        var studentCode = $"SV{DateTime.Now:yyyyMMddHHmmss}";
+                        var studentCreateDto = new StudentCreateDto
                         {
                             UserId = userId,
-                            StudentCode = $"SV{DateTime.Now:yyyyMMddHHmmss}",
+                            StudentCode = studentCode,
                             FullName = user.FullName,
                             Email = user.Email,
                             PhoneNumber = user.PhoneNumber,
                             DateOfBirth = DateTime.Now.AddYears(-20), // Default 20 tuổi
                             ClassCode = "TBD", // To Be Determined - cần cập nhật sau
-                            Major = DataAccess.Enums.MajorType.Undefined,
-                            User = user
+                            MajorCode = "Undefined"
                         };
                         
-                        await _studentService.CreateAsync(newStudent);
+                        await _studentService.CreateAsync(studentCreateDto);
                         
-                        TempData["SuccessMessage"] = $"Đã cập nhật role từ '{oldRole}' sang '{newRole}' và tạo hồ sơ sinh viên (Mã SV: {newStudent.StudentCode})!";
+                        TempData["SuccessMessage"] = $"Đã cập nhật role từ '{oldRole}' sang '{newRole}' và tạo hồ sơ sinh viên (Mã SV: {studentCode})!";
                         TempData["InfoMessage"] = "Vui lòng cập nhật đầy đủ thông tin sinh viên (Ngành, Lớp, v.v.) trong phần Quản lý sinh viên.";
                     }
                     else

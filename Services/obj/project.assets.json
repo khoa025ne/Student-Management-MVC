@@ -412,19 +412,6 @@
         "runtime": {
           "bin/placeholder/DataAccess.dll": {}
         }
-      },
-      "Repositories/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v9.0",
-        "dependencies": {
-          "DataAccess": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/Repositories.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Repositories.dll": {}
-        }
       }
     }
   },
@@ -1119,21 +1106,16 @@
       "type": "project",
       "path": "../DataAccess/DataAccess.csproj",
       "msbuildProject": "../DataAccess/DataAccess.csproj"
-    },
-    "Repositories/1.0.0": {
-      "type": "project",
-      "path": "../Repositories/Repositories.csproj",
-      "msbuildProject": "../Repositories/Repositories.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
       "BCrypt.Net-Next >= 4.0.3",
+      "DataAccess >= 1.0.0",
       "MailKit >= 4.14.1",
       "Microsoft.Extensions.Configuration >= 10.0.2",
       "MimeKit >= 4.14.0",
-      "Newtonsoft.Json >= 13.0.4",
-      "Repositories >= 1.0.0"
+      "Newtonsoft.Json >= 13.0.4"
     ]
   },
   "packageFolders": {
@@ -1168,8 +1150,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "F:\\ALL\\StudentManagementMVC\\Repositories\\Repositories.csproj": {
-              "projectPath": "F:\\ALL\\StudentManagementMVC\\Repositories\\Repositories.csproj"
+            "F:\\ALL\\StudentManagementMVC\\DataAccess\\DataAccess.csproj": {
+              "projectPath": "F:\\ALL\\StudentManagementMVC\\DataAccess\\DataAccess.csproj"
             }
           }
         }

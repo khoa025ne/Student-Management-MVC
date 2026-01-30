@@ -1,10 +1,8 @@
 using DataAccess;
-using DataAccess.DAO;
-using DataAccess.Entities;
+using DataAccess.Repositories.Implementations;
+using DataAccess.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using Repositories.Implementations;
-using Repositories.Interfaces;
 using Services.Implementations;
 using Services.Interfaces;
 using Services.Models;
@@ -89,13 +87,14 @@ builder.Services.AddScoped<IAcademicAnalysisService, AcademicAnalysisService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>(); // ✅ Dashboard Service
 builder.Services.AddScoped<IAIKnowledgeBaseService, AIKnowledgeBaseService>(); // ✅ AI Knowledge Base Service
 builder.Services.AddScoped<ITeacherService, TeacherService>(); // ✅ Teacher Service - 3-Layer Architecture
+builder.Services.AddScoped<IAcademicWarningService, AcademicWarningService>(); // ✅ Academic Warning Service
 
 // 7. Email & AI Services
 builder.Services.AddScoped<IEmailService, EmailService>();
 // Note: IGeminiAIService already registered via AddHttpClient above
 
-// 8. Background Services
-builder.Services.AddHostedService<StudentManagementMVC.Services.AcademicWarningBackgroundService>();
+// 8. Background Services (hosts in Presentation layer, logic in Services layer)
+builder.Services.AddHostedService<StudentManagementMVC.BackgroundServices.AcademicWarningBackgroundService>();
 
 var app = builder.Build();
 

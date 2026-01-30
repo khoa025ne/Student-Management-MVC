@@ -9,11 +9,11 @@
       "Services/1.0.0": {
         "dependencies": {
           "BCrypt.Net-Next": "4.0.3",
+          "DataAccess": "1.0.0",
           "MailKit": "4.14.1",
           "Microsoft.Extensions.Configuration": "10.0.2",
           "MimeKit": "4.14.0",
-          "Newtonsoft.Json": "13.0.4",
-          "Repositories": "1.0.0"
+          "Newtonsoft.Json": "13.0.4"
         },
         "runtime": {
           "Services.dll": {}
@@ -265,17 +265,6 @@
             "fileVersion": "1.0.0.0"
           }
         }
-      },
-      "Repositories/1.0.0": {
-        "dependencies": {
-          "DataAccess": "1.0.0"
-        },
-        "runtime": {
-          "Repositories.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
-        }
       }
     }
   },
@@ -447,11 +436,6 @@
       "hashPath": "system.security.cryptography.pkcs.8.0.1.nupkg.sha512"
     },
     "DataAccess/1.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "Repositories/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

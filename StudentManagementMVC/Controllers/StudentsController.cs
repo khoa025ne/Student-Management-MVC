@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
-using DataAccess.Entities;
 using StudentManagementMVC.ViewModels;
 
 namespace StudentManagementMVC.Controllers
@@ -50,25 +49,15 @@ namespace StudentManagementMVC.Controllers
             {
                 try
                 {
-                    var student = new Student
-                    {
-                        FullName = model.FullName,
-                        Email = model.Email,
-                        PhoneNumber = model.PhoneNumber,
-                        DateOfBirth = model.DateOfBirth,
-                        ClassCode = model.ClassCode,
-                        Major = model.Major,
-                        CurrentTermNo = model.CurrentTermNo ?? 1,
-                        OverallGPA = 0
-                    };
-
                     // Create StudentCreateDto for the service
                     var createDto = new StudentCreateDto
                     {
                         Email = model.Email,
                         FullName = model.FullName,
                         PhoneNumber = model.PhoneNumber,
-                        DateOfBirth = model.DateOfBirth
+                        DateOfBirth = model.DateOfBirth,
+                        ClassCode = model.ClassCode,
+                        MajorCode = model.Major.ToString()
                     };
 
                     await _studentService.CreateStudentWithUserAsync(createDto);

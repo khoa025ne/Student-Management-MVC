@@ -1,6 +1,6 @@
 using DataAccess.Entities;
+using DataAccess.Repositories.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Repositories.Interfaces;
 using Services.Interfaces;
 using System;
 using System.Collections.Generic;

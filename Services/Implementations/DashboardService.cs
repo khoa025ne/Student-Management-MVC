@@ -1,6 +1,6 @@
 using DataAccess.Entities;
+using DataAccess.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Models;
 using System;

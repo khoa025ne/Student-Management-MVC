@@ -28,8 +28,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNhZGVtaWNBbmFseXNpc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/AcademicAnalysis/MyAnalysis.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNhZGVtaWNBbmFseXNpc1xNeUFuYWx5c2lzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/AcademicAnalysis/StudentAnalysis.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNhZGVtaWNBbmFseXNpc1xTdHVkZW50QW5hbHlzaXMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/AIKnowledge/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQUlLbm93bGVkZ2VcQ3JlYXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/AIKnowledge/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQUlLbm93bGVkZ2VcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Auth/AccessDenied.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxBY2Nlc3NEZW5pZWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Auth/ChangePassword.cshtml]
@@ -44,8 +60,24 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/ClassAssignment/RandomAssign.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xhc3NBc3NpZ25tZW50XFJhbmRvbUFzc2lnbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/ClassAssignment/TransferRequest.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xhc3NBc3NpZ25tZW50XFRyYW5zZmVyUmVxdWVzdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Classes/AddStudents.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xhc3Nlc1xBZGRTdHVkZW50cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Classes/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xhc3Nlc1xDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Classes/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xhc3Nlc1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Classes/Edit.cshtml]
@@ -54,6 +86,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Classes/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xhc3Nlc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Classes/Index.Education.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2xhc3Nlc1xJbmRleC5FZHVjYXRpb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Courses/Create.cshtml]
@@ -66,6 +102,22 @@ build_metadata.AdditionalFiles.CssScope =
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Courses/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ291cnNlc1xJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Courses/Index.Education.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ291cnNlc1xJbmRleC5FZHVjYXRpb24uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Dashboard/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Dashboard/Index.Education.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4LkVkdWNhdGlvbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Dashboard/IndexTailAdmin.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRGFzaGJvYXJkXEluZGV4VGFpbEFkbWluLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/EnrollmentGrades/ClassDetails.cshtml]
@@ -116,12 +168,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGVhcm5pbmdQYXRoXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Notifications/Create.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xDcmVhdGUuY3NodG1s
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/NotificationCenter/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uQ2VudGVyXENyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Notifications/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xJbmRleC5jc2h0bWw=
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/NotificationCenter/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uQ2VudGVyXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Notifications/AdminIndex.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xBZG1pbkluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Notifications/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTm90aWZpY2F0aW9uc1xDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Notifications/MyNotifications.cshtml]
@@ -164,12 +224,52 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_EducationComponents.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9FZHVjYXRpb25Db21wb25lbnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_Layout.Admin.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuQWRtaW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_Layout.AdminDark.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuQWRtaW5EYXJrLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_Layout.Education.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuRWR1Y2F0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_Layout.Portal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuUG9ydGFsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_LayoutTailAdmin.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXRUYWlsQWRtaW4uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_Notifications.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Ob3RpZmljYXRpb25zLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/StudentComment/ClassStudents.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudENvbW1lbnRcQ2xhc3NTdHVkZW50cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/StudentComment/EditComment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudENvbW1lbnRcRWRpdENvbW1lbnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/StudentComment/SelectClass.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudENvbW1lbnRcU2VsZWN0Q2xhc3MuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/StudentProfile/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudFByb2ZpbGVcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/StudentProfile/EditMajor.cshtml]
@@ -180,12 +280,56 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudFByb2ZpbGVcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/StudentProfile/NoProfile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudFByb2ZpbGVcTm9Qcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Students/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudHNcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Students/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudHNcRGV0YWlscy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Students/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudHNcRWRpdC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Students/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudHNcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Students/Index.Education.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudHNcSW5kZXguRWR1Y2F0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Student/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudFxEYXNoYm9hcmQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Student/Dashboard.Education.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3R1ZGVudFxEYXNoYm9hcmQuRWR1Y2F0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Teacher/ClassDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVhY2hlclxDbGFzc0RldGFpbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Teacher/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVhY2hlclxEYXNoYm9hcmQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Teacher/Dashboard.Education.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVhY2hlclxEYXNoYm9hcmQuRWR1Y2F0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Teacher/EnterGrades.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVhY2hlclxFbnRlckdyYWRlcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Teacher/MyClasses.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVhY2hlclxNeUNsYXNzZXMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [F:/ALL/StudentManagementMVC/StudentManagementMVC/Views/Transfers/Create.cshtml]

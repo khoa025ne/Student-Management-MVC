@@ -1,5 +1,6 @@
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css
+F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\css\academia-admin.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\bootstrap.js
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css
@@ -31,6 +32,7 @@ F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\favicon.ico
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css.map
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css.map
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map
+F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\css\dashboard.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\jquery\LICENSE.txt
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\jquery-validation\LICENSE.md
@@ -46,6 +48,7 @@ F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\jquery\dist\jquery.min.js
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css
+F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\css\academia-portal.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\jquery-validation\dist\additional-methods.js
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css.map
@@ -56,14 +59,21 @@ F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\b
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js.map
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css.map
+F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\css\tailadmin.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\js\bootstrap.js.map
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\jquery\dist\jquery.js
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\js\site.js
+F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\css\education-theme.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 F:\ALL\StudentManagementMVC\StudentManagementMVC\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css.map
+wwwroot\css\academia-admin.css
+wwwroot\css\academia-portal.css
 wwwroot\css\animated-login.css
+wwwroot\css\dashboard.css
+wwwroot\css\education-theme.css
 wwwroot\css\site.css
+wwwroot\css\tailadmin.css
 wwwroot\favicon.ico
 wwwroot\js\notifications.js
 wwwroot\js\site.js

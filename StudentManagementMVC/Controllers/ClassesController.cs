@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
-using DataAccess.Entities;
 
 namespace StudentManagementMVC.Controllers
 {
@@ -61,74 +60,6 @@ namespace StudentManagementMVC.Controllers
             return View();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Manager")]
-        public async Task<IActionResult> Create(Class classEntity)
-        {
-            // Remove validation errors for navigation properties
-            ModelState.Remove("Course");
-            ModelState.Remove("Semester");
-            ModelState.Remove("Enrollments");
-            
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    // Kiểm tra duplicate ClassCode
-                    var existingClasses = await _classService.GetAllAsync();
-                    if (existingClasses.Any(c => c.ClassCode == classEntity.ClassCode))
-                    {
-                        TempData["ErrorMessage"] = $"Mã lớp '{classEntity.ClassCode}' đã tồn tại! Vui lòng sử dụng mã lớp khác.";
-                        ViewBag.Courses = await _courseService.GetAllAsync();
-                        ViewBag.Semesters = await _semesterService.GetAllAsync();
-                        return View(classEntity);
-                    }
-
-                    // Sync MaxStudents with MaxCapacity
-                    if (classEntity.MaxCapacity > 0)
-                    {
-                        classEntity.MaxStudents = classEntity.MaxCapacity;
-                    }
-                    else if (classEntity.MaxStudents > 0)
-                    {
-                        classEntity.MaxCapacity = classEntity.MaxStudents;
-                    }
-                    else
-                    {
-                        classEntity.MaxCapacity = 30;
-                        classEntity.MaxStudents = 30;
-                    }
-
-                    // Set default value for Schedule if null (legacy field)
-                    if (string.IsNullOrEmpty(classEntity.Schedule))
-                    {
-                        classEntity.Schedule = "";
-                    }
-
-                    await _classService.CreateClassAsync(classEntity);
-                    TempData["SuccessMessage"] = $"Tạo lớp học '{classEntity.ClassCode}' thành công! Sĩ số tối đa: {classEntity.MaxStudents} sinh viên.";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (Exception ex)
-                {
-                    TempData["ErrorMessage"] = $"Lỗi khi tạo lớp học: {ex.Message}";
-                    ModelState.AddModelError("", ex.Message);
-                }
-            }
-            else
-            {
-                // Log validation errors for debugging
-                var errors = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage));
-                TempData["ErrorMessage"] = $"Dữ liệu không hợp lệ! Chi tiết: {errors}";
-            }
-            ViewBag.Courses = await _courseService.GetAllAsync();
-            ViewBag.Semesters = await _semesterService.GetAllAsync();
-            return View(classEntity);
-        }
-
         [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Edit(int id)
         {
@@ -147,69 +78,64 @@ namespace StudentManagementMVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Manager")]
-        public async Task<IActionResult> Edit(Class classEntity)
+        public async Task<IActionResult> Edit(ClassUpdateDto classDto)
         {
-            // Remove validation errors for navigation properties
-            ModelState.Remove("Course");
-            ModelState.Remove("Semester");
-            ModelState.Remove("Enrollments");
-            
             if (ModelState.IsValid)
             {
                 try
                 {
                     // Kiểm tra lớp học tồn tại
-                    var existingClass = await _classService.GetByIdAsync(classEntity.ClassId);
+                    var existingClass = await _classService.GetByIdAsync(classDto.ClassId);
                     if (existingClass == null)
                     {
-                        TempData["ErrorMessage"] = $"Không tìm thấy lớp học với ID: {classEntity.ClassId}!";
+                        TempData["ErrorMessage"] = $"Không tìm thấy lớp học với ID: {classDto.ClassId}!";
                         return RedirectToAction(nameof(Index));
                     }
 
                     // Kiểm tra duplicate ClassCode (trừ chính nó)
                     var allClasses = await _classService.GetAllAsync();
-                    if (allClasses.Any(c => c.ClassCode == classEntity.ClassCode && c.ClassId != classEntity.ClassId))
+                    if (allClasses.Any(c => c.ClassCode == classDto.ClassCode && c.ClassId != classDto.ClassId))
                     {
-                        TempData["ErrorMessage"] = $"Mã lớp '{classEntity.ClassCode}' đã được sử dụng bởi lớp khác!";
+                        TempData["ErrorMessage"] = $"Mã lớp '{classDto.ClassCode}' đã được sử dụng bởi lớp khác!";
                         ViewBag.Courses = await _courseService.GetAllAsync();
                         ViewBag.Semesters = await _semesterService.GetAllAsync();
-                        return View(classEntity);
+                        return View(classDto);
                     }
 
                     // Kiểm tra sĩ số
-                    if (classEntity.MaxStudents <= 0 && classEntity.MaxCapacity <= 0)
+                    if (classDto.MaxStudents <= 0 && classDto.MaxCapacity <= 0)
                     {
                         TempData["ErrorMessage"] = "Sĩ số tối đa phải lớn hơn 0!";
                         ViewBag.Courses = await _courseService.GetAllAsync();
                         ViewBag.Semesters = await _semesterService.GetAllAsync();
-                        return View(classEntity);
+                        return View(classDto);
                     }
 
                     // Sync MaxStudents with MaxCapacity
-                    if (classEntity.MaxCapacity > 0)
+                    if (classDto.MaxCapacity > 0)
                     {
-                        classEntity.MaxStudents = classEntity.MaxCapacity;
+                        classDto.MaxStudents = classDto.MaxCapacity;
                     }
 
                     // Set default value for Schedule if null (legacy field)
-                    if (string.IsNullOrEmpty(classEntity.Schedule))
+                    if (string.IsNullOrEmpty(classDto.Schedule))
                     {
-                        classEntity.Schedule = existingClass.Schedule ?? "";
+                        classDto.Schedule = existingClass.Schedule ?? "";
                     }
 
                     // Nếu không cập nhật lịch học/giờ học, giữ nguyên giá trị cũ
                     // Note: DayOfWeekPair and TimeSlot are enums, check if they're at default values
-                    if (classEntity.DayOfWeekPair == 0)
+                    if (classDto.DayOfWeekPair == 0)
                     {
-                        classEntity.DayOfWeekPair = existingClass.DayOfWeekPair;
+                        classDto.DayOfWeekPair = existingClass.DayOfWeekPair;
                     }
-                    if (classEntity.TimeSlot == 0)
+                    if (classDto.TimeSlot == 0)
                     {
-                        classEntity.TimeSlot = existingClass.TimeSlot;
+                        classDto.TimeSlot = existingClass.TimeSlot;
                     }
 
-                    await _classService.UpdateClassAsync(classEntity);
-                    TempData["SuccessMessage"] = $"Cập nhật lớp học '{classEntity.ClassCode}' thành công!";
+                    await _classService.UpdateAsync(classDto);
+                    TempData["SuccessMessage"] = $"Cập nhật lớp học '{classDto.ClassCode}' thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -228,7 +154,7 @@ namespace StudentManagementMVC.Controllers
             }
             ViewBag.Courses = await _courseService.GetAllAsync();
             ViewBag.Semesters = await _semesterService.GetAllAsync();
-            return View(classEntity);
+            return View(classDto);
         }
 
         [HttpPost]
@@ -389,16 +315,13 @@ namespace StudentManagementMVC.Controllers
                 {
                     try
                     {
-                        var enrollment = new Enrollment
+                        var enrollmentDto = new EnrollmentCreateDto
                         {
-                            StudentId = student.StudentId,
-                            ClassId = classId,
-                            EnrollmentDate = DateTime.Now,
-                            Status = "Active",
-                            AttemptNumber = 1
+                            StudentId = student.StudentId.ToString(),
+                            ClassId = classId
                         };
 
-                        await _enrollmentService.CreateAsync(enrollment);
+                        await _enrollmentService.CreateAsync(enrollmentDto);
                         successCount++;
                     }
                     catch (Exception ex)
@@ -513,16 +436,13 @@ namespace StudentManagementMVC.Controllers
                             continue;
                         }
 
-                        var enrollment = new Enrollment
+                        var enrollmentDto = new EnrollmentCreateDto
                         {
-                            StudentId = studentId,
-                            ClassId = classId,
-                            EnrollmentDate = DateTime.Now,
-                            Status = "Active",
-                            AttemptNumber = 1
+                            StudentId = studentId.ToString(),
+                            ClassId = classId
                         };
 
-                        await _enrollmentService.CreateAsync(enrollment);
+                        await _enrollmentService.CreateAsync(enrollmentDto);
                         successCount++;
                     }
                     catch (Exception ex)

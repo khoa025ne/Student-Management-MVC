@@ -7,6 +7,7 @@ F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.GeneratedMSBu
 F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.AssemblyInfoInputs.cache
 F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.AssemblyInfo.cs
 F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.csproj.CoreCompileInputs.cache
+F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.sourcelink.json
 F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.dll
 F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\refint\DataAccess.dll
 F:\ALL\StudentManagementMVC\DataAccess\obj\Debug\net9.0\DataAccess.pdb

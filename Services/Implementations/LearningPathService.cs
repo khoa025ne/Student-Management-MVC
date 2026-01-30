@@ -1,5 +1,5 @@
 using DataAccess.Entities;
-using Repositories.Interfaces;
+using DataAccess.Repositories.Interfaces;
 using Services.Interfaces;
 using System;
 using System.Linq;

@@ -100,4 +100,16 @@ namespace Services.Models
         public string ClassName { get; set; } = "";
         public string CourseName { get; set; } = "";
     }
+
+    /// <summary>
+    /// DTO cho real-time notification message (SignalR)
+    /// </summary>
+    public class NotificationMessageDto
+    {
+        public string Title { get; set; } = "";
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "info";
+        public string? Link { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+    }
 }

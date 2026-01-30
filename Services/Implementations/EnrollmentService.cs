@@ -1,6 +1,6 @@
 using DataAccess.Entities;
 using DataAccess.Enums;
-using Repositories.Interfaces;
+using DataAccess.Repositories.Interfaces;
 using Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -380,6 +380,36 @@ namespace Services.Implementations
             if (totalScore >= 5.0) return "D+";
             if (totalScore >= 4.0) return "D";
             return "F";
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // DTO-BASED METHODS (for Controllers)
+        // ═══════════════════════════════════════════════════════════════
+
+        public async Task<Models.EnrollmentDto> CreateAsync(Models.EnrollmentCreateDto dto)
+        {
+            // Create Enrollment entity from DTO
+            var enrollment = new Enrollment
+            {
+                StudentId = int.TryParse(dto.StudentId, out var studentId) ? studentId : 0,
+                ClassId = dto.ClassId,
+                Comment = dto.Comment,
+                EnrollmentDate = DateTime.Now,
+                Status = "Active"
+            };
+
+            var created = await CreateAsync(enrollment);
+            
+            // Return DTO
+            return new Models.EnrollmentDto
+            {
+                EnrollmentId = created.EnrollmentId,
+                StudentId = created.StudentId.ToString(),
+                ClassId = created.ClassId,
+                EnrollmentDate = created.EnrollmentDate,
+                Status = created.Status ?? "Active",
+                Comment = created.Comment
+            };
         }
     }
 }

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
-using DataAccess.Entities;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Linq;
@@ -100,15 +99,13 @@ namespace StudentManagementMVC.Controllers
                     return RedirectToAction(nameof(Register));
                 }
 
-                var enrollment = new Enrollment
+                var enrollmentDto = new EnrollmentCreateDto
                 {
-                    StudentId = student.StudentId,
-                    ClassId = classId,
-                    EnrollmentDate = DateTime.Now,
-                    Status = "Enrolled"
+                    StudentId = student.StudentId.ToString(),
+                    ClassId = classId
                 };
 
-                await _enrollmentService.CreateAsync(enrollment);
+                await _enrollmentService.CreateAsync(enrollmentDto);
                 
                 // UPDATE: Cập nhật sĩ số của lớp học
                 classInfo.CurrentEnrollment += 1;

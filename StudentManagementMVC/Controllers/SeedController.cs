@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
+// SeedController is a special controller for seeding initial data
+// It is acceptable to use Entities directly here as it's for development/setup purposes only
 using DataAccess.Entities;
-using DataAccess.Enums;
+
 
 namespace StudentManagementMVC.Controllers
 {
     /// <summary>
     /// Controller tạo dữ liệu mẫu - chỉ dùng cho môi trường Development
     /// Tuân thủ nguyên tắc: Controller chỉ gọi Services, không gọi trực tiếp Repositories
+    /// NOTE: Using DataAccess.Entities is acceptable here as this is seed data controller
     /// </summary>
     public class SeedController : Controller
     {
@@ -18,6 +21,7 @@ namespace StudentManagementMVC.Controllers
         private readonly IClassService _classService;
         private readonly ICourseService _courseService;
         private readonly ISemesterService _semesterService;
+
 
         public SeedController(
             IUserService userService,

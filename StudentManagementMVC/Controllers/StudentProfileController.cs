@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
-using DataAccess.Enums;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System;

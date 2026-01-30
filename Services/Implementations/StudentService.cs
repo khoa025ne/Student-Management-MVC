@@ -1,5 +1,5 @@
 using DataAccess.Entities;
-using Repositories.Interfaces;
+using DataAccess.Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Models;
 using System.Threading;
@@ -102,15 +102,29 @@ namespace Services.Implementations
 
         public async Task<StudentDto> CreateAsync(StudentCreateDto createDto)
         {
+            // Parse MajorCode to MajorType if provided
+            var major = DataEnums.MajorType.Undefined;
+            if (!string.IsNullOrEmpty(createDto.MajorCode))
+            {
+                if (Enum.TryParse<DataEnums.MajorType>(createDto.MajorCode, true, out var parsedMajor))
+                {
+                    major = parsedMajor;
+                }
+            }
+
             var student = new Student
             {
+                UserId = createDto.UserId ?? 0, // Link to User if provided
                 Email = createDto.Email,
                 FullName = createDto.FullName,
                 DateOfBirth = createDto.DateOfBirth ?? DateTime.Now,
                 PhoneNumber = createDto.PhoneNumber,
                 StudentCode = createDto.StudentCode ?? await GenerateStudentCodeAsync(),
+                ClassCode = createDto.ClassCode ?? "Chưa phân lớp",
+                Major = major,
                 CreatedAt = DateTime.Now,
-                Major = DataEnums.MajorType.Undefined,
+                OverallGPA = 0.0,
+                CurrentTermNo = 1,
                 IsFirstLogin = true
             };
 

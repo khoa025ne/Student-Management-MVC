@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using Services.Models;
-using DataAccess.Entities;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Linq;
@@ -60,7 +59,7 @@ namespace StudentManagementMVC.Controllers
                 var model = (classInfo, enrollments.Select(e => (
                     e,
                     e.Student,
-                    new Score { ScoreValue = e.TotalScore ?? 0 }
+                    new ScoreDto { ScoreValue = e.TotalScore ?? 0 }
                 )).AsEnumerable());
 
                 return View(model);

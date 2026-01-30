@@ -1,5 +1,5 @@
 using DataAccess.Entities;
-using Repositories.Interfaces;
+using DataAccess.Repositories.Interfaces;
 using Services.Interfaces;
 using Services.Models;
 using System;
@@ -114,6 +114,55 @@ namespace Services.Implementations
         // ═══════════════════════════════════════════════════════════════
         // DTO-BASED METHODS (for Controllers)
         // ═══════════════════════════════════════════════════════════════
+
+        public async Task<UserDto> CreateAsync(UserCreateDto dto, bool hashPassword = true)
+        {
+            try
+            {
+                // Kiểm tra email đã tồn tại
+                if (await _userRepository.ExistsByEmailAsync(dto.Email))
+                {
+                    throw new Exception("Email đã được sử dụng");
+                }
+
+                var user = new User
+                {
+                    Email = dto.Email,
+                    FullName = dto.FullName,
+                    PhoneNumber = dto.PhoneNumber,
+                    PasswordHash = hashPassword ? BCrypt.Net.BCrypt.HashPassword(dto.Password) : dto.Password,
+                    RoleId = dto.RoleIds.Count > 0 ? dto.RoleIds[0] : 4, // Default to Student role
+                    IsActive = true,
+                    MustChangePassword = true,
+                    CreatedAt = DateTime.Now
+                };
+
+                if (!string.IsNullOrEmpty(dto.Avatar))
+                {
+                    user.AvatarUrl = dto.Avatar;
+                }
+
+                var created = await _userRepository.AddAsync(user);
+
+                return new UserDto
+                {
+                    UserIdInt = created.UserId,
+                    UserId = created.UserId.ToString(),
+                    Email = created.Email,
+                    FullName = created.FullName,
+                    PhoneNumber = created.PhoneNumber,
+                    AvatarUrl = created.AvatarUrl,
+                    IsActive = created.IsActive,
+                    RoleId = created.RoleId,
+                    CreatedAt = created.CreatedAt,
+                    MustChangePassword = created.MustChangePassword
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi tạo người dùng: {ex.Message}", ex);
+            }
+        }
 
         public async Task<UserDto> UpdateDtoAsync(UserUpdateDto dto)
         {

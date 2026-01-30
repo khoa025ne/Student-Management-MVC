@@ -50,12 +50,15 @@ namespace Services.Models
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
         public int? MajorId { get; set; }
+        public string? MajorCode { get; set; } // e.g., "CNTT", "KTPM", etc. for parsing to MajorType
         public int? ClassId { get; set; }
+        public string? ClassCode { get; set; }
         public string? Avatar { get; set; }
         public string? StudentCode { get; set; }
         public string? ParentName { get; set; }
         public string? ParentPhone { get; set; }
         public string? ParentEmail { get; set; }
+        public int? UserId { get; set; } // Link to existing User
     }
 
     public class StudentUpdateDto
